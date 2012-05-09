@@ -1,5 +1,5 @@
 ERLC =
-ERLCF = 
+ERLC_OPTS = 
 
 DIRS = $(wildcard */)
 
@@ -8,7 +8,7 @@ DIRS = $(wildcard */)
 all: bench
 
 bench:
-	for d in $(DIRS); do (cd $$d && $(MAKE) ERLC=$(ERLC) ERL_COMPILE_FLAGS=$(ERL_COMPILE_FLAGS) $@);done
+	for d in $(DIRS); do (cd $$d && $(MAKE) ERLC=$(ERLC) ERLC_OPTS=$(ERLC_OPTS) $@);done
 
 clean: 
 	for d in $(DIRS); do (cd $$d && $(MAKE) $@); done

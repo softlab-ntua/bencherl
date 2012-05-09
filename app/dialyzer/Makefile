@@ -1,5 +1,5 @@
 ERLC =
-ERLCF =
+ERLC_OPTS =
 
 SOURCES=$(wildcard src/*.erl)
 BEAMS=$(SOURCES:src/%.erl=ebin/%.beam)

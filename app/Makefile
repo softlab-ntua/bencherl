@@ -1,5 +1,5 @@
 ERLC = 
-ERLCF =
+ERLC_OPTS =
  
 DIRS = $(wildcard */)
 
@@ -8,7 +8,7 @@ DIRS = $(wildcard */)
 all: app
 
 app:
-	for d in $(DIRS); do (cd $$d; if test -x configure; then ./configure; fi; $(MAKE) ERLC=$(ERLC) ERLCF=$(ERLCF) all); done
+	for d in $(DIRS); do (cd $$d; if test -x configure; then ./configure; fi; $(MAKE) ERLC=$(ERLC) ERLC_OPTS=$(ERLC_OPTS) all); done
 
 clean: 
 	for d in $(DIRS); do (cd $$d && $(MAKE) $@); done

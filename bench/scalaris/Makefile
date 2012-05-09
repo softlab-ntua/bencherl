@@ -1,5 +1,5 @@
 ERLC =
-ERLCF = 
+ERLC_OPTS = 
 
 SRCD = src
 EBIND = ebin
@@ -14,7 +14,7 @@ all: bench
 bench: $(BEAMF)
 
 $(EBIND)/%.beam: $(SRCD)/%.erl
-	$(ERLC) $(ERLCF) -o$(EBIND) $<
+	$(ERLC) $(ERLC_OPTS) -o$(EBIND) $<
 
 $(BEAMF): | $(EBIND)
 

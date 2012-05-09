@@ -1,5 +1,5 @@
 ERLC = erlc 
-ERLCF = +debug_info
+ERLC_OPTS = +debug_info
 
 ERLF = $(wildcard *.erl)
 BEAMF = $(subst .erl,.beam,$(ERLF))
