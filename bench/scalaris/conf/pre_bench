@@ -1,0 +1,3 @@
+#!/bin/bash
+
+./app/scalaris-0.4.1/bin/firstnode.sh -detached -noshell &

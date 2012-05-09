@@ -1,0 +1,295 @@
+#!/bin/bash
+
+# Runs one or more benchmarks.
+# Usage: ./run_bench <options> 
+
+# Display information about how this script can be used.
+usage()
+{
+	cat << EOF
+Usage: run_bench [OPTION..]
+Run scalability benchmarks.
+
+  -b <B>..	run the specified benchmark(s) (e.g. big or bang,big)
+  -d		calculate and plot speedup information
+  -h		display this help and exit
+  -l		list all the available benchmarks
+  -s <N>	use N schedulers (e.g. 1 or 1..4 or 1,5,6)
+  -t		plot time information
+
+For complete documentation, go to ...
+EOF
+}
+
+# Display a list with all the available benchmarks.
+list_benchmarks()
+{
+	echo -n "Benchmarks:"
+	for b in `ls bench`; do
+		if [ -d bench/$b ]; then
+			echo -n " $b"
+		fi
+	done
+	echo
+}
+
+# Run a benchmark.
+run_benchmark()
+{
+	echo "Benchmark: $bench"
+
+	# Configure the benchmark.
+	if [ -f bench/$bench/conf/bench.conf ]; then
+		source bench/$bench/conf/bench.conf
+	fi
+
+	# Create a directory for this benchmark in the results directory.
+	bdir=$dir/$bench
+	mkdir -p $bdir
+
+	# Create an output directory for this benchmark.
+	odir=$bdir/output
+	mkdir -p $odir
+
+	# Create statistics directory for this benchmark.
+	sdir=$bdir/statistics
+	mkdir -p $sdir
+
+	# Run the pre_bench script (if there is one).
+	if [ -f bench/$bench/conf/pre_bench ]; then
+		bench/$bench/conf/pre_bench
+	fi
+
+	# For each OTP
+	for otp in $OTPS; do
+
+		otpl=${otp%%=*}
+		otpv=${otp##*=}
+
+		echo "  OTP: $otpv"
+
+		# For each VM argument set
+		for args in $ARGS; do	
+
+			argsl=${args%%=*}
+			argsv=${args##*=}
+			file=$sdir/$otpl.$argsl.time
+
+			echo "    Args: $argsv"		
+
+			# For each number of schedulers
+			for s in $SCS; do
+
+				echo -n "      $s "
+				echo -n "$s " >> $file
+
+				IFS=$OLD_IFS
+				
+				# Create the configuration file that is necessary for running
+				# the benchmark.
+				bdir=`cd bench/$bench; pwd`
+
+cat > scratch/run_bench.config << EOF
+{bench, $bench}.
+{otp, "$otpv"}.
+{args, "$argsv $EXTRA_ARGS +S$s:$s -rsh ssh -noshell -pa $CODE_PATH suite/ebin bench/$bench/ebin" }.
+{nodes, [$NODES]}.
+{cookie, '$COOKIE'}.
+{outfile, "$odir/$otpl.$argsl.$s.output"}.
+{datadir, "$bdir/data"}.
+EOF
+
+				# Run the benchmark.
+				${otpv}erl ${argsv} ${EXTRA_ARGS} -setcookie "${COOKIE}" +S$s:$s \
+				-name master -rsh ssh -noshell -pa ${CODE_PATH} \
+				suite/ebin bench/$bench/ebin -s run_bench main -s erlang \
+				halt | tee -a $file
+				echo "" | tee -a $file
+				IFS=$MY_IFS
+			done
+		done
+	done
+
+	# Run the post_bench script (if there is one).
+    if [ -f bench/$bench/conf/post_bench ]; then
+		bench/$bench/conf/post_bench
+    fi
+}
+
+# Plot diagrams for a benchmark.
+plot_benchmark()
+{
+
+	# Plot time diagrams.
+	if [ ! -z $PLOT_TIME ]; then
+		WHAT=time
+		plot
+	fi
+
+	# Plot speedup diagrams.
+	if [ ! -z $PLOT_SPEEDUP ]; then
+		# Create files with speedup information.
+		for file in `ls $sdir/*.*.time`; do
+			fn=`basename $file .$WHAT`
+			cat $sdir/$fn.time | ./suite/speedup.awk >> \
+			$sdir/$fn.speedup
+		done
+		# And plot.
+		WHAT=speedup
+		plot
+	fi
+}
+
+# Plot.
+plot()
+{
+
+	# Create a diagrams directory.
+	ddir=$bdir/diagrams
+	mkdir -p $ddir
+
+	# Plot a diagram for each OTP-VM args combination.
+	for file in `ls $sdir/*.$WHAT`; do
+		fn=`basename $file .$WHAT`
+		otp=${fn%%.*}
+		args=${fn##*.}
+		PARGS="$PARGS $args"
+		POTPS="$POTPS $otp"
+		./suite/plot.pl "$bench - $otp - $args" \
+		"$sdir/$fn.$WHAT" \
+		"$ddir/$fn.$WHAT.ps"
+	done
+
+	POTPS=`echo $POTPS | tr " " "\n" | sort -du | tr "\n" " "`
+	PARGS=`echo $PARGS | tr " " "\n" | sort -du | tr "\n" " "`
+	NOTPS=`echo $POTPS | wc -w`
+	NARGS=`echo $PARGS | wc -w`
+
+	# Plot a diagram for each OTP.
+	if [ $NARGS -gt 1 ]; then
+		for otp in $POTPS; do
+			for file in `ls $sdir/$otp.*.$WHAT`; do
+				fn=`basename $file .$WHAT`
+				otp=${fn%%.*}
+				args=${fn##*.}
+				cat $sdir/$fn.$WHAT | ./suite/inject.awk \
+				what=$args > $sdir/$fn.tmp
+			done
+			cat `ls $sdir/$otp.*.tmp` | sort -g | ./suite/merge.awk \
+			> $sdir/$otp.$WHAT
+			./suite/plot.pl "$bench - $otp" \
+			"$sdir/$otp.$WHAT" \
+			"$ddir/$otp.$WHAT.ps"
+		done
+	fi
+
+	# Plot a diagram for each VM args set.
+	if [ $NOTPS -gt 1 ]; then
+		for args in $PARGS; do
+			for file in `ls $sdir/*.$args.$WHAT`; do
+				fn=`basename $file .$WHAT`
+				otp=${fn%%.*}
+				args=${fn##*.}
+				cat $sdir/$fn.$WHAT | ./suite/inject.awk \
+				what=$otp > $sdir/$fn.tmp
+			done
+			cat `ls $sdir/*.$args.tmp` | sort -g | \
+			./suite/merge.awk > $sdir/$args.$WHAT
+			./suite/plot.pl "$bench - $args" \
+			"$sdir/$args.$WHAT" \
+			"$ddir/$args.$WHAT.ps"
+		done
+	fi
+	rm -rf $sdir/*.tmp
+}
+
+while getopts ":b:dhls:t" opt; do
+	case $opt in
+		b)
+			BMS=$OPTARG
+			;;
+		h)
+			usage
+			exit 0
+			;;
+		l)
+			list_benchmarks
+			exit 0
+			;;	
+		s)
+			SCS=$OPTARG
+			;;
+		t)
+			PLOT_TIME=1
+			;;
+		d)
+			PLOT_SPEEDUP=1
+			;;
+		\?)	
+			echo "Invalid option: -$OPTARG"	
+			exit 1
+			;;
+	esac
+done
+
+if [ -z $SCS ]; then
+	SCS=`cat /proc/cpuinfo | grep processor | wc -l`
+fi
+if [[ "$SCS" =~ .*\.\..* ]]; then
+	min=`echo $SCS | cut -d'.' -f1`
+	max=`echo $SCS | cut -d'.' -f3`
+	SCS=`seq $min $max`
+else
+	SCS=`echo $SCS | sed 's/,/ /g'`
+fi 
+x=`echo $SCS | tr " " "\n" | wc -l`
+if [ $x -ne 1 ]; then
+	SCS="$SCS"
+fi
+SCS=`echo $SCS | tr " " "\n" | sort -gu | tr "\n" ","`
+
+source conf/suite.conf
+
+DEF_OTPS=${OTPS:-"DEFOTP="}
+DEF_ARGS=${ARGS:-"DEFARGS= "}
+DEF_COOKIE=${COOKIE:-"scala_cookie"}
+
+if [ -z "$BMS" ]; then
+    for b in `ls bench`; do
+        if [ -d bench/$b ]; then
+			if [ -z "$BMS" ]; then
+				BMS="$b"
+			else
+				BMS="$BMS,$b"
+			fi
+        fi
+    done
+fi
+
+OLD_IFS=$IFS
+MY_IFS=$','
+
+NOW=`date +%d%m%y%H%M%S`
+dir=results/$NOW
+mkdir $dir
+
+for bench in $BMS; do
+	if [ ! -d bench/$bench ]; then
+        echo "Unknown benchmark: $bench"
+    elif [[ "$IGNORE_BENCH" =~ "$bench" ]]; then
+        echo "Ignored benchmark: $bench"
+    else
+		OTPS=$DEF_OTPS
+		ARGS=$DEF_ARGS
+		COOKIE=$DEF_COOKIE
+		CODE_PATH=
+		EXTRA_ARGS=
+		IFS=$MY_IFS
+		run_benchmark
+		IFS=$OLD_IFS
+		if [ "$x" -ne "1" ]; then
+			plot_benchmark
+		fi
+	fi
+done
+
