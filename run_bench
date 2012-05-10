@@ -55,11 +55,6 @@ run_benchmark()
 	sdir=$bdir/statistics
 	mkdir -p $sdir
 
-	# Run the pre_bench script (if there is one).
-	if [ -f bench/$bench/conf/pre_bench ]; then
-		bench/$bench/conf/pre_bench
-	fi
-
 	# For each OTP
 	for otp in $OTPS; do
 
@@ -84,6 +79,11 @@ run_benchmark()
 				echo -n "$s " >> $file
 
 				IFS=$OLD_IFS
+
+				# Run the pre_bench script (if there is one).
+				if [ -f bench/$bench/conf/pre_bench ]; then
+					bench/$bench/conf/pre_bench $s "$otp" "$argsv"
+				fi
 				
 				# Create the configuration file that is necessary for running
 				# the benchmark.
@@ -105,15 +105,16 @@ EOF
 				suite/ebin bench/$bench/ebin -s run_bench main -s erlang \
 				halt | tee -a $file
 				echo "" | tee -a $file
+
+				# Run the post_bench script (if there is one).
+				if [ -f bench/$bench/conf/post_bench ]; then
+					bench/$bench/conf/post_bench
+				fi
+
 				IFS=$MY_IFS
 			done
 		done
 	done
-
-	# Run the post_bench script (if there is one).
-    if [ -f bench/$bench/conf/post_bench ]; then
-		bench/$bench/conf/post_bench
-    fi
 }
 
 # Plot diagrams for a benchmark.
