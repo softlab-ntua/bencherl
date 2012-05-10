@@ -11,15 +11,15 @@ all: app suite bench
 
 # Compile only the applications.
 app:
-	@(cd app && $(MAKE) ERLC=$(ERLC) ERLCF=$(ERLCF) $@)
+	@(cd app && $(MAKE) ERLC=$(ERLC) ERLC_OPTS=$(ERLC_OPTS) $@)
 
 # Compile only the suite.
 suite: $(BEAMF)
-	@(cd suite && $(MAKE) ERLC=$(ERLC) ERLCF=$(ERLCF) $@)
+	@(cd suite && $(MAKE) ERLC=$(ERLC) ERLC_OPTS=$(ERLC_OPTS) $@)
 
 # Compile both the suite and the benchmarks.
 bench: suite
-	@(cd bench && $(MAKE) ERLC=$(ERLC) ERLCF=$(ERLCF) $@)
+	@(cd bench && $(MAKE) ERLC=$(ERLC) ERLC_OPTS=$(ERLC_OPTS) $@)
 
 # Clean up everything.
 clean:
@@ -34,5 +34,5 @@ clean-res:
 	@(cd results && $(RM) -rf *)
 
 %.beam: %.erl
-	$(ERLC) $(ERLCF) $<
+	$(ERLC) $(ERLC_OPTS) $<
 
