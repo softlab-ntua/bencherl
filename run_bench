@@ -87,7 +87,7 @@ run_benchmark()
 				
 				# Create the configuration file that is necessary for running
 				# the benchmark.
-				bdir=`cd bench/$bench; pwd`
+				benchdir=`cd bench/$bench; pwd`
 
 cat > scratch/run_bench.config << EOF
 {bench, $bench}.
@@ -96,7 +96,7 @@ cat > scratch/run_bench.config << EOF
 {nodes, [$NODES]}.
 {cookie, '$COOKIE'}.
 {outfile, "$odir/$otpl.$argsl.$s.output"}.
-{datadir, "$bdir/data"}.
+{datadir, "$benchdir/data"}.
 EOF
 
 				# Run the benchmark.
@@ -119,6 +119,13 @@ EOF
 # Plot diagrams for a benchmark.
 plot_benchmark()
 {
+
+	if [ ! -z $PLOT ]; then
+		echo "$bdir/diagrams"
+		# Create a diagrams directory.
+		ddir=$bdir/diagrams
+		mkdir -p $ddir
+	fi
 
 	# Plot time diagrams.
 	if [ ! -z $PLOT_TIME ]; then
@@ -143,10 +150,6 @@ plot_benchmark()
 # Plot.
 plot()
 {
-
-	# Create a diagrams directory.
-	ddir=$bdir/diagrams
-	mkdir -p $ddir
 
 	# Plot a diagram for each OTP-VM args combination.
 	for file in `ls $sdir/*.$WHAT`; do
@@ -221,9 +224,11 @@ while getopts ":b:dhls:t" opt; do
 			;;
 		t)
 			PLOT_TIME=1
+			PLOT=1
 			;;
 		d)
 			PLOT_SPEEDUP=1
+			PLOT=1
 			;;
 		\?)	
 			echo "Invalid option: -$OPTARG"	
@@ -287,7 +292,9 @@ for bench in $BMS; do
 		IFS=$MY_IFS
 		run_benchmark
 		IFS=$OLD_IFS
+		echo "x=$x"
 		if [ "$x" -ne "1" ]; then
+			echo "xxx"
 			plot_benchmark
 		fi
 	fi
