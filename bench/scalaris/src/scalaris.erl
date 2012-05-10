@@ -5,7 +5,7 @@
 -export([bench_args/0, run/3]).
 
 bench_args() ->
-	[[T,I] || T <- [1], I <- [500000]].
+	[[T,I] || T <- [10], I <- [50000]].
 
 run([T,I|_], _, _) ->
 	{ok, N} = inet:gethostname(),
