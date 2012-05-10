@@ -121,7 +121,6 @@ plot_benchmark()
 {
 
 	if [ ! -z $PLOT ]; then
-		echo "$bdir/diagrams"
 		# Create a diagrams directory.
 		ddir=$bdir/diagrams
 		mkdir -p $ddir
@@ -292,9 +291,7 @@ for bench in $BMS; do
 		IFS=$MY_IFS
 		run_benchmark
 		IFS=$OLD_IFS
-		echo "x=$x"
 		if [ "$x" -ne "1" ]; then
-			echo "xxx"
 			plot_benchmark
 		fi
 	fi
