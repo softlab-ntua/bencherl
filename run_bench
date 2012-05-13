@@ -277,6 +277,7 @@ NOW=`date +%d%m%y%H%M%S`
 dir=results/$NOW
 mkdir $dir
 
+IFS=$MY_IFS
 for bench in $BMS; do
 	if [ ! -d bench/$bench ]; then
         echo "Unknown benchmark: $bench"
