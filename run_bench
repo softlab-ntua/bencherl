@@ -92,16 +92,15 @@ run_benchmark()
 cat > scratch/run_bench.config << EOF
 {bench, $bench}.
 {otp, "$otpv"}.
-{args, "$argsv $EXTRA_ARGS +S$s:$s -rsh ssh -noshell -pa $CODE_PATH suite/ebin bench/$bench/ebin" }.
+{args, "$argsv $EXTRA_ARGS +S$s:$s -noshell -pa $CODE_PATH suite/ebin bench/$bench/ebin -setcookie $COOKIE" }.
 {nodes, [$NODES]}.
-{cookie, '$COOKIE'}.
 {outfile, "$odir/$otpl.$argsl.$s.output"}.
 {datadir, "$benchdir/data"}.
 EOF
 
 				# Run the benchmark.
 				${otpv}erl ${argsv} ${EXTRA_ARGS} -setcookie "${COOKIE}" +S$s:$s \
-				-name master -rsh ssh -noshell -pa ${CODE_PATH} \
+				-name master -noshell -pa ${CODE_PATH} \
 				suite/ebin bench/$bench/ebin -s run_bench main -s erlang \
 				halt | tee -a $file
 				echo "" | tee -a $file

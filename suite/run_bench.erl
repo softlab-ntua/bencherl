@@ -15,10 +15,9 @@ main() ->
 		{ok, T} = file:consult("scratch/run_bench.config"),
 		load(T),
 		M = get(bench),
-		OTP = get(otp),
+		OTP = get(otp) ++ "erl",
 		Args = get(args),
 		Nnames = get(nodes),
-		Cookie = get(cookie),
 		OutFile = get(outfile),
 		DataDir = get(datadir),
 	
@@ -27,7 +26,6 @@ main() ->
 			[Name,Host]=string:tokens(atom_to_list(Nn), "@"),
 			{ok, Node} = slave:start(list_to_atom(Host), list_to_atom(Name), 
 			Args, self(), OTP),
-			erlang:setcookie(Node, Cookie),
 			Node
 		end, Nnames),
 		
