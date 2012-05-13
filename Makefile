@@ -1,9 +1,6 @@
 ERLC = erlc 
 ERLC_OPTS = +debug_info
 
-ERLF = $(wildcard *.erl)
-BEAMF = $(subst .erl,.beam,$(ERLF))
-
 .PHONY: all app bench clean suite clean-res
 
 # Compile everything.
@@ -14,7 +11,7 @@ app:
 	@(cd app && $(MAKE) ERLC=$(ERLC) ERLC_OPTS=$(ERLC_OPTS) $@)
 
 # Compile only the suite.
-suite: $(BEAMF)
+suite: 
 	@(cd suite && $(MAKE) ERLC=$(ERLC) ERLC_OPTS=$(ERLC_OPTS) $@)
 
 # Compile both the suite and the benchmarks.
@@ -23,9 +20,9 @@ bench: suite
 
 # Clean up everything.
 clean:
-	$(RM) $(BEAMF)
 	@(cd bench && $(MAKE) $@)
 	@(cd app && $(MAKE) $@)
+	@(cd suite && $(MAKE) $@)
 	@(cd results && $(RM) -rf *)
 	@(cd scratch && $(RM) -rf *)
 
