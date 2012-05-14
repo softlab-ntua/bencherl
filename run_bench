@@ -82,7 +82,7 @@ run_benchmark()
 
 				# Run the pre_bench script (if there is one).
 				if [ -f bench/$bench/conf/pre_bench ]; then
-					bench/$bench/conf/pre_bench $s "$otp" "$argsv"
+					bench/$bench/conf/pre_bench $s "$otpv" "$argsv"
 				fi
 				
 				# Create the configuration file that is necessary for running
@@ -113,7 +113,7 @@ EOF
 
 				# Run the post_bench script (if there is one).
 				if [ -f bench/$bench/conf/post_bench ]; then
-					bench/$bench/conf/post_bench
+					bench/$bench/conf/post_bench $s "$otpv" "$argsv"
 				fi
 
 				IFS=$MY_IFS
