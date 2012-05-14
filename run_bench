@@ -105,8 +105,9 @@ cat > scratch/run_bench.config << EOF
 EOF
 
 				# Run the benchmark.
+				hostname=`hostname -f`
 				${erl} ${argsv} ${EXTRA_ARGS} -setcookie "${COOKIE}" +S$s:$s \
-				-name master -noshell -pa ${CODE_PATH} \
+				-name master@${hostname} -noshell -pa ${CODE_PATH} \
 				suite/ebin bench/$bench/ebin -s run_bench main -s erlang \
 				halt | tee -a $file
 				echo "" | tee -a $file

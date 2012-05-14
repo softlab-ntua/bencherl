@@ -1,4 +1,4 @@
--module(orbit_seq).
+-module(orbit_seq_bench).
 
 -export([bench_args/0, run/3]).
 

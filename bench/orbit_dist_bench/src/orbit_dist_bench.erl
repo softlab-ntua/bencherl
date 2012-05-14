@@ -1,4 +1,4 @@
--module(orbit_dist).
+-module(orbit_dist_bench).
 
 -export([bench_args/0, run/3]).
 

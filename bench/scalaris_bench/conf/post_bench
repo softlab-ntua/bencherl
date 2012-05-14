@@ -1,0 +1,16 @@
+#!/bin/bash
+
+if [ -z $2 ]; then
+	e1="erlc"
+	e2="erl"
+	e3="epmd"
+else
+	e1="$2/bin/erlc"
+	e2="$2/bin/erl"
+	e3="$2/x86_64-unknown-linux-gnu/epmd"
+fi
+
+hostname=`env hostname -f`
+
+env BEAMDIR="app/scalaris/ebin" ERLC="$e1" ERL="$e2" EPMD="$e3" app/scalaris/bin/scalarisctl -n firstnode@$hostname stop > /dev/null 
+

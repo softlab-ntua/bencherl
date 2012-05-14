@@ -1,4 +1,4 @@
--module(dial).
+-module(dialyzer_bench).
 
 -export([bench_args/0, run/3]).
 

@@ -1,6 +1,7 @@
 #ERLC = ~/otps/otp_src_R15B01/bin/erlc
 ERLC = erlc
 #ERL = ~/otps/otp_src_R15B01/bin/erl
+ERL = erl
 #ERL_LIB_DIR = ~/otps/otp_src_R15B01/lib
 ERLC_OPTS = +debug_info
 

@@ -1,4 +1,0 @@
-#!/bin/bash
-
-env ERLC="$2/bin/erlc" ERL="$2/bin/erl" EPMD="$2/x86_64-unknown-linux-gnu/epmd" app/scalaris/bin/firstnode.sh "+S$1:$1 -detached -noshell" &
-

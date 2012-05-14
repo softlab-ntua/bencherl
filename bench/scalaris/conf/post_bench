@@ -1,5 +1,0 @@
-#!/bin/bash
-
-hostname=`env hostname -f`
-./app/scalaris/bin/scalarisctl -n firstnode@$hostname stop > /dev/null
-
