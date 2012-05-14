@@ -16,8 +16,8 @@
 prefix=@prefix@
 exec_prefix=@exec_prefix@
 datarootdir=@datarootdir@
-ERL=@ERL@
-EPMD=@EPMD@
+ERL=${ERL:-@ERL@}
+EPMD=${EPMD:-@EPMD@}
 
 # /bin
 BINDIR=@bindir@
