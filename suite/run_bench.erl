@@ -15,7 +15,11 @@ main() ->
 		{ok, T} = file:consult("scratch/run_bench.config"),
 		load(T),
 		M = get(bench),
-		OTP = get(otp) ++ "erl",
+		OTP = get(otp),
+		Program = case OTP of
+			[] 	-> "erl";
+			_	-> OTP ++ "/bin/erl"
+		end,
 		Args = get(args),
 		Nnames = get(nodes),
 		OutFile = get(outfile),
@@ -25,7 +29,7 @@ main() ->
 		Nodes = lists:map(fun(Nn)->
 			[Name,Host]=string:tokens(atom_to_list(Nn), "@"),
 			{ok, Node} = slave:start(list_to_atom(Host), list_to_atom(Name), 
-			Args, self(), OTP),
+			Args, self(), Program),
 			Node
 		end, Nnames),
 				

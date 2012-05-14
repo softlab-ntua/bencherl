@@ -89,6 +89,12 @@ run_benchmark()
 				# the benchmark.
 				benchdir=`cd bench/$bench; pwd`
 
+				if [ -z $otpv ]; then
+					erl="erl"
+				else
+					erl="$otpv/bin/erl"
+				fi
+
 cat > scratch/run_bench.config << EOF
 {bench, $bench}.
 {otp, "$otpv"}.
@@ -99,7 +105,7 @@ cat > scratch/run_bench.config << EOF
 EOF
 
 				# Run the benchmark.
-				${otpv}erl ${argsv} ${EXTRA_ARGS} -setcookie "${COOKIE}" +S$s:$s \
+				${erl} ${argsv} ${EXTRA_ARGS} -setcookie "${COOKIE}" +S$s:$s \
 				-name master -noshell -pa ${CODE_PATH} \
 				suite/ebin bench/$bench/ebin -s run_bench main -s erlang \
 				halt | tee -a $file

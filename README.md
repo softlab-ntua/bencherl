@@ -59,10 +59,10 @@ processors.
 Edit the `conf/suite.conf` file and set the value of the `OTPS` variable to a 
 a string that contains information about all the OTP's that should be used
 separated with commas.
-For each OTP both an alias and the path to its `bin` directory should be provided
+For each OTP both an alias and the path to it should be provided
 (separated with a `=`).
 
-	e.g. OTPS="R15B=~/otps/otp_src_R15B/bin/,R15B01=~/otps/otp_src_R15B01/bin/"
+	e.g. OTPS="R15B=~/otps/otp_src_R15B,R15B01=~/otps/otp_src_R15B01"
 
 Benchmarks are executed by default using the erl program found on path.
 
