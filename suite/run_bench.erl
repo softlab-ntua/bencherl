@@ -28,8 +28,7 @@ main() ->
 			Args, self(), OTP),
 			Node
 		end, Nnames),
-		
-		
+				
 		% Run the benchmark for all argument sets.
 		Fun = fun(Bargs) ->
 			T0 = now(),
