@@ -12,18 +12,17 @@ main() ->
 	try
 
 		% Load configuration settings.
-		{ok, T} = file:consult("scratch/run_bench.config"),
-		load(T),
-		M = get(bench),
-		OTP = get(otp),
+		{ok, Settings} = file:consult("scratch/run_bench.config"),
+		M = lists:keyfind(bench, 1, Settings),
+		OTP = lists:keyfind(otp, 1, Settings),
 		Program = case OTP of
 			[] 	-> "erl";
 			_	-> OTP ++ "/bin/erl"
 		end,
-		Args = get(args),
-		Nnames = get(nodes),
-		OutFile = get(outfile),
-		DataDir = get(datadir),
+		Args = lists:keyfind(args, 1, Settings),
+		Nnames = lists:keyfind(nodes, 1, Settings),
+		OutFile = lists:keyfind(outfile1, Settings),
+		DataDir = lists:keyfind(datadir, 1, Settings),
 	
 		% Start the nodes.
 		Nodes = lists:map(fun(Nn)->
@@ -60,9 +59,3 @@ main() ->
 	    io:format("Exception ~p while running benchmark:\n~p\n~p\n", 
 		[E, D, erlang:get_stacktrace()])
 	end.
-
-load([]) ->
-	ok;
-load([{K,V} | R]) ->
-	put(K, V),
-	load(R).

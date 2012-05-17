@@ -212,7 +212,7 @@ plot()
 	rm -rf $sdir/*.tmp
 }
 
-while getopts ":b:dhls:t" opt; do
+while getopts ":b:dhls:n:t" opt; do
 	case $opt in
 		b)
 			BMS=$OPTARG
@@ -227,6 +227,9 @@ while getopts ":b:dhls:t" opt; do
 			;;	
 		s)
 			SCS=$OPTARG
+			;;
+		n)
+			NDS=$OPTARG
 			;;
 		t)
 			PLOT_TIME=1
@@ -255,9 +258,22 @@ else
 fi 
 x=`echo $SCS | tr " " "\n" | wc -l`
 if [ $x -ne 1 ]; then
-	SCS="$SCS"
+	SCS="1 $SCS"
 fi
 SCS=`echo $SCS | tr " " "\n" | sort -gu | tr "\n" ","`
+
+if [ -z $NDS ]; then
+	NDS=0
+fi
+if [[ "$NDS" =~ .*\.\..* ]]; then
+    min=`echo $NDS | cut -d'.' -f1`
+    max=`echo $NDS | cut -d'.' -f3`
+    NDS=`seq $min $max`
+else
+    NDS=`echo $NDS | sed 's/,/ /g'`
+fi
+x=`echo $NDS | tr " " "\n" | wc -l`
+NDS=`echo $NDS | tr " " "\n" | sort -gu | tr "\n" ","`
 
 source conf/suite.conf
 

@@ -7,8 +7,7 @@ bench_args() ->
 
 run([plt], _, Opts) ->
 
-	load(Opts),
-	DataDir = get(datadir),
+	DataDir = lists:keyfind(datadir, 1, Opts),
 
 	[] = dialyzer:run([{analysis_type, plt_build},
 		{report_mode, normal},
@@ -19,8 +18,7 @@ run([plt], _, Opts) ->
 
 run([otp], _, Opts) ->
 
-    load(Opts),
-    DataDir = get(datadir),
+    DataDir = lists:keyfind(datadir, 1, Opts),
 
     RawWarns = dialyzer:run([{files_rec, [F || F <- [DataDir ++ "/plt", DataDir ++ "/otp"]]},
 		{report_mode, normal},
@@ -29,10 +27,4 @@ run([otp], _, Opts) ->
 	Warns = lists:sort([dialyzer:format_warning(W) || W <- RawWarns]),
 	io:format("~s", [Warns]),
 	ok.
-
-load([]) ->
-	ok;
-load([{K,V} | R]) ->
-	put(K, V),
-	load(R).
 
