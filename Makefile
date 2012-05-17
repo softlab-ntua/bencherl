@@ -5,7 +5,7 @@ ERL = erl
 #ERL_LIB_DIR = ~/otps/otp_src_R15B01/lib
 ERLC_OPTS = +debug_info
 
-.PHONY: all app bench clean suite clean-res
+.PHONY: all app bench clean clean-app clean-bench clean-res clean-suite suite
 
 # Compile everything.
 all: app suite bench
@@ -16,23 +16,36 @@ app:
 
 # Compile only the suite.
 suite: 
+	@(GNUPLOT=`which gnuplots`; \
+	if [ -z $$GNUPLOT ]; then \
+		echo "where is gnuplot?"; \
+		exit 1; \
+	fi)
 	@(cd suite && $(MAKE) ERLC=$(ERLC) ERLC_OPTS=$(ERLC_OPTS) $@)
 
-# Compile both the suite and the benchmarks.
-bench: suite
+# Compile the benchmarks.
+bench: 
 	@(cd bench && $(MAKE) ERLC=$(ERLC) ERLC_OPTS=$(ERLC_OPTS) $@)
 
 # Clean up everything.
-clean:
-	@(cd bench && $(MAKE) $@)
-	@(cd app && $(MAKE) $@)
-	@(cd suite && $(MAKE) $@)
-	@(cd results && $(RM) -rf *)
+clean: clean-app clean-bench clean-res clean-suite
 	@(cd scratch && $(RM) -rf *)
+
+# Clean up the applications.
+clean-app:
+	@(cd app && $(MAKE) clean)
+
+# Clean up the benchmarks.
+clean-bench:
+	@(cd bench && $(MAKE) clean)
 
 # Clean up the results.
 clean-res:
 	@(cd results && $(RM) -rf *)
+
+# Clean up the suite.
+clean-suite:
+	@(cd suite && $(MAKE) clean)
 
 %.beam: %.erl
 	$(ERLC) $(ERLC_OPTS) $<
