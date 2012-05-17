@@ -16,7 +16,7 @@ app:
 
 # Compile only the suite.
 suite: 
-	@(GNUPLOT=`which gnuplots`; \
+	@(GNUPLOT=`which gnuplot`; \
 	if [ -z $$GNUPLOT ]; then \
 		echo "where is gnuplot?"; \
 		exit 1; \
