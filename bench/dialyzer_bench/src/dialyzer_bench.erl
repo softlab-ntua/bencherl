@@ -7,7 +7,7 @@ bench_args() ->
 
 run([plt], _, Opts) ->
 
-	DataDir = lists:keyfind(datadir, 1, Opts),
+	{_,DataDir} = lists:keyfind(datadir, 1, Opts),
 
 	[] = dialyzer:run([{analysis_type, plt_build},
 		{report_mode, normal},

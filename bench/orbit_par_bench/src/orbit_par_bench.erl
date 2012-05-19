@@ -1,4 +1,4 @@
--module(orbit_par).
+-module(orbit_par_bench).
 
 -export([bench_args/0, run/3]).
 

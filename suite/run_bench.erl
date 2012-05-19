@@ -13,16 +13,19 @@ main() ->
 
 		% Load configuration settings.
 		{ok, Settings} = file:consult("scratch/run_bench.config"),
-		M = lists:keyfind(bench, 1, Settings),
-		OTP = lists:keyfind(otp, 1, Settings),
+		{_,M} = lists:keyfind(bench, 1, Settings),
+		{_,OTP} = lists:keyfind(otp, 1, Settings),
 		Program = case OTP of
 			[] 	-> "erl";
 			_	-> OTP ++ "/bin/erl"
 		end,
-		Args = lists:keyfind(args, 1, Settings),
-		Nnames = lists:keyfind(nodes, 1, Settings),
-		OutFile = lists:keyfind(outfile1, Settings),
-		DataDir = lists:keyfind(datadir, 1, Settings),
+		{_,Args} = lists:keyfind(args, 1, Settings),
+		{_,Nnames} = lists:keyfind(nodes, 1, Settings),
+		{_,N} = lists:keyfind(nnodes, 1, Settings),
+		{_,S} = lists:keyfind(nschedulers, 1, Settings),
+		{_,OutFile} = lists:keyfind(outfile, 1, Settings),
+		{_,StatFile} = lists:keyfind(statfile, 1, Settings),
+		{_,DataDir} = lists:keyfind(datadir, 1, Settings),
 	
 		% Start the nodes.
 		Nodes = lists:map(fun(Nn)->
@@ -30,29 +33,37 @@ main() ->
 			{ok, Node} = slave:start(list_to_atom(Host), list_to_atom(Name), 
 			Args, self(), Program),
 			Node
-		end, Nnames),
-				
+		end, lists:sublist(Nnames, N)),
+
+		% Open the statistics file.				
+		{ok, SF} = file:open(StatFile, [append]),
+		io:format(SF, "~w ~w ", [S, N]),
+
 		% Run the benchmark for all argument sets.
 		Fun = fun(Bargs) ->
 			T0 = now(),
 			Coordinator = self(),
 			% In a new process, please.
 			spawn(node(), fun() -> 
-				{ok, F} = file:open(OutFile, [append]),
-				group_leader(F, self()),
+				{ok, OF} = file:open(OutFile, [append]),
+				group_leader(OF, self()),
 				apply(M, run, [Bargs, Nodes, [{datadir, DataDir}]]), 
 				Coordinator ! done,
-				file:close(F)
+				file:close(OF)
 				end
 			),
 			receive done -> ok end,
 			T1 = now(),
-			io:format("(~w) ~w ", [Bargs, timer:now_diff(T1, T0)/1000]) 		
+			io:format(SF, "(~w) ~w ", [Bargs, timer:now_diff(T1, T0)/1000]) 		
 		end,
 		lists:foreach(Fun, M:bench_args()),
 
+		% Close the statistics file.
+		io:nl(SF),
+		file:close(SF),
+
 		% Stop the nodes.
-		lists:foreach(fun(N)-> slave:stop(N) end, Nodes)
+		lists:foreach(fun(Node)-> slave:stop(Node) end, Nodes)
 
 	catch
 		E:D ->

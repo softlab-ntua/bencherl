@@ -10,11 +10,12 @@ usage()
 Usage: run_bench [OPTION..]
 Run scalability benchmarks.
 
-  -b <B>..	run the specified benchmark(s) (e.g. big or bang,big)
+  -b <B>..	run the specified benchmark(s) (e.g. big or bang,big) (default: all)
   -d		calculate and plot speedup information
   -h		display this help and exit
   -l		list all the available benchmarks
-  -s <N>	use N schedulers (e.g. 1 or 1..4 or 1,5,6)
+  -n <N>	use N nodes (e.g. 1 or 1..4 or 1,5,6) (default: 0)
+  -s <N>	use N schedulers (e.g. 1 or 1..4 or 1,5,6) (default: as many as the cores)
   -t		plot time information
 
 For complete documentation, go to ...
@@ -22,7 +23,7 @@ EOF
 }
 
 # Display a list with all the available benchmarks.
-list_benchmarks()
+list_bms()
 {
 	echo -n "Benchmarks:"
 	for b in `ls bench`; do
@@ -34,10 +35,8 @@ list_benchmarks()
 }
 
 # Run a benchmark.
-run_benchmark()
+run_bm()
 {
-	echo "Benchmark: $bench"
-
 	# Configure the benchmark.
 	if [ -f bench/$bench/conf/bench.conf ]; then
 		source bench/$bench/conf/bench.conf
@@ -55,101 +54,133 @@ run_benchmark()
 	sdir=$bdir/statistics
 	mkdir -p $sdir
 
-	# For each OTP
+	# Count the nodes.
+	NNODES=`echo $NODES | tr "," "\n" | wc -l`
+
+	# For each OTP.
 	for otp in $OTPS; do
 
 		otpl=${otp%%=*}
 		otpv=${otp##*=}
 
-		echo "  OTP: $otpv"
-
-		# For each VM argument set
+		# For each VM argument set.
 		for args in $ARGS; do	
-
+			
 			argsl=${args%%=*}
 			argsv=${args##*=}
-			file=$sdir/$otpl.$argsl.time
 
-			echo "    Args: $argsv"		
-
-			# For each number of schedulers
+			IFS=$OLD_IFS
+			n=`echo $NDS | tr "," "\n" | tail -n 2 | head`
+			IFS=$MY_IFS
+			if [ "$n" -gt "$NNODES" ]; then
+				n=$NNODES
+			fi
+			# For each number of schedulers.
 			for s in $SCS; do
+				WHAT="sched"
+				do_run_bm
+			done
 
-				echo -n "      $s "
-				echo -n "$s " >> $file
-
-				IFS=$OLD_IFS
-
-				# Run the pre_bench script (if there is one).
-				if [ -f bench/$bench/conf/pre_bench ]; then
-					bench/$bench/conf/pre_bench $s "$otpv" "$argsv"
+			IFS=$OLD_IFS
+			s=`echo $SCS | tr "," "\n" | tail -n 2 | head`
+			IFS=$MY_IFS
+			# For each number of nodes.
+			for n in $NDS; do
+				if [ "$n" -gt "$NNODES" ]; then
+					continue
 				fi
-				
-				# Create the configuration file that is necessary for running
-				# the benchmark.
-				benchdir=`cd bench/$bench; pwd`
-
-				if [ -z $otpv ]; then
-					erl="erl"
-				else
-					erl="$otpv/bin/erl"
-				fi
-
-cat > scratch/run_bench.config << EOF
-{bench, $bench}.
-{otp, "$otpv"}.
-{args, "$argsv $EXTRA_ARGS +S$s:$s -noshell -pa $CODE_PATH suite/ebin bench/$bench/ebin -setcookie $COOKIE" }.
-{nodes, [$NODES]}.
-{outfile, "$odir/$otpl.$argsl.$s.output"}.
-{datadir, "$benchdir/data"}.
-EOF
-
-				# Run the benchmark.
-				hostname=`hostname -f`
-				${erl} ${argsv} ${EXTRA_ARGS} -setcookie "${COOKIE}" +S$s:$s \
-				-name master@${hostname} -noshell -pa ${CODE_PATH} \
-				suite/ebin bench/$bench/ebin -s run_bench main -s erlang \
-				halt | tee -a $file
-				echo "" | tee -a $file
-
-				# Run the post_bench script (if there is one).
-				if [ -f bench/$bench/conf/post_bench ]; then
-					bench/$bench/conf/post_bench $s "$otpv" "$argsv"
-				fi
-
-				IFS=$MY_IFS
+				WHAT="node"
+				do_run_bm
 			done
 		done
 	done
 }
 
-# Plot diagrams for a benchmark.
-plot_benchmark()
+do_run_bm()
 {
 
-	if [ ! -z $PLOT ]; then
-		# Create a diagrams directory.
-		ddir=$bdir/diagrams
-		mkdir -p $ddir
+	IFS=$OLD_IFS
+	
+	# Run the pre_bench script (if there is one).
+	if [ -f bench/$bench/conf/pre_bench ]; then
+		bench/$bench/conf/pre_bench $s "$otpv" "$argsv"	
 	fi
+
+	# Create the configuration file that is necessary for running the 
+	# benchmark.
+	benchdir=`cd bench/$bench; pwd`
+
+	if [ -z $otpv ]; then	
+		erl="erl"
+	else
+		erl="$otpv/bin/erl"
+	fi
+
+cat > scratch/run_bench.config << EOF
+{bench, $bench}.
+{otp, "$otpv"}.
+{args, "$argsv $EXTRA_ARGS +S$s:$s -noshell -pa $CODE_PATH suite/ebin bench/$bench/ebin -setcookie $COOKIE" }.
+{nnodes, $n}.
+{nschedulers, $s}.
+{nodes, [$NODES]}.
+{outfile, "$odir/$otpl.$argsl.$s.$n.output"}.
+{statfile, "$sdir/$otpl.$argsl.$WHAT.time"}.
+{datadir, "$benchdir/data"}.
+EOF
+
+	# Run the benchmark.
+	hostname=`hostname -f`
+		${erl} ${argsv} ${EXTRA_ARGS} -setcookie "${COOKIE}" +S$s:$s \
+		-name master@${hostname} -noshell -pa ${CODE_PATH} \
+		suite/ebin bench/$bench/ebin -s run_bench main -s erlang \
+		halt
+
+	# Run the post_bench script (if there is one).
+	if [ -f bench/$bench/conf/post_bench ]; then
+		bench/$bench/conf/post_bench $s "$otpv" "$argsv"
+	fi
+
+	IFS=$MY_IFS
+}
+
+# Plot diagrams for a benchmark.
+plot_bm()
+{
+
+	# Create a diagrams directory.
+	ddir=$bdir/diagrams
+	mkdir -p $ddir
 
 	# Plot time diagrams.
 	if [ ! -z $PLOT_TIME ]; then
-		WHAT=time
-		plot
+		if [ "$NNDS" -gt "1" ]; then
+			WHAT=nodes.time
+			plot
+		fi
+		if [ "$NSCS" -gt "1" ]; then
+			WHAT=sched.time
+			plot
+		fi
 	fi
 
 	# Plot speedup diagrams.
 	if [ ! -z $PLOT_SPEEDUP ]; then
-		# Create files with speedup information.
-		for file in `ls $sdir/*.*.time`; do
-			fn=`basename $file .$WHAT`
-			cat $sdir/$fn.time | ./suite/speedup.awk >> \
-			$sdir/$fn.speedup
-		done
-		# And plot.
-		WHAT=speedup
-		plot
+		if [ "$NNDS" -gt "1" ]; then
+			for file in `ls $sdir/*.*.nodes.time`; do
+				fn=`basename $file .nodes.time`
+				cat $sdir/$fn.time | ./suite/speedup.awk >> $sdir/$fn.speedup
+			done
+			WHAT=nodes.speedup
+			plot
+		fi
+		if [ "$NSCS" -gt "1" ]; then
+			for file in `ls $sdir/*.*.sched.time`; do
+				fn=`basename $file .sched.time`
+				cat $sdir/$fn.time | ./suite/speedup.awk >> $sdir/$fn.speedup
+			done
+			WHAT=sched.speedup
+			plot	
+		fi
 	fi
 }
 
@@ -222,7 +253,7 @@ while getopts ":b:dhls:n:t" opt; do
 			exit 0
 			;;
 		l)
-			list_benchmarks
+			list_bms
 			exit 0
 			;;	
 		s)
@@ -261,6 +292,7 @@ if [ $x -ne 1 ]; then
 	SCS="1 $SCS"
 fi
 SCS=`echo $SCS | tr " " "\n" | sort -gu | tr "\n" ","`
+NSCS=`echo $SCS | tr "," "\n" | wc -l`
 
 if [ -z $NDS ]; then
 	NDS=0
@@ -272,8 +304,8 @@ if [[ "$NDS" =~ .*\.\..* ]]; then
 else
     NDS=`echo $NDS | sed 's/,/ /g'`
 fi
-x=`echo $NDS | tr " " "\n" | wc -l`
 NDS=`echo $NDS | tr " " "\n" | sort -gu | tr "\n" ","`
+NNDS=`echo $NDS | tr "," "\n" | wc -l`
 
 source conf/suite.conf
 
@@ -296,7 +328,7 @@ fi
 OLD_IFS=$IFS
 MY_IFS=$','
 
-NOW=`date +%d%m%y%H%M%S`
+NOW=`date +%d.%m.%y.-%H.%M.%S`
 dir=results/$NOW
 mkdir $dir
 
@@ -307,16 +339,19 @@ for bench in $BMS; do
     elif [[ "$IGNORE_BENCH" =~ "$bench" ]]; then
         echo "Ignored benchmark: $bench"
     else
+		echo "Benchmark: $bench"
 		OTPS=$DEF_OTPS
 		ARGS=$DEF_ARGS
 		COOKIE=$DEF_COOKIE
 		CODE_PATH=
 		EXTRA_ARGS=
 		IFS=$MY_IFS
-		run_benchmark
+		echo "Running..."
+		run_bm
 		IFS=$OLD_IFS
-		if [ "$x" -ne "1" ]; then
-			plot_benchmark
+		if [[ ( "$PLOT" -eq "1" ) && ( ( "$NNDS" -ne "1" ) || ( "$NSCS" -ne "1" ) ) ]]; then
+			echo "Plotting..."
+			plot_bm
 		fi
 	fi
 done
