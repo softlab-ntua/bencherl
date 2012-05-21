@@ -70,16 +70,10 @@ run_bm()
 		source bench/$bench/conf/bench.conf
 	fi
 
-	# Create a directory for this benchmark in the results directory.
-	bdir=$dir/$bench
-	mkdir -p $bdir
-
-	# Create an output directory for this benchmark.
-	odir=$bdir/output
+	# Create the output directory for this benchmark.
 	mkdir -p $odir
 
-	# Create statistics directory for this benchmark.
-	sdir=$bdir/statistics
+	# Create the statistics directory for this benchmark.
 	mkdir -p $sdir
 
 	# Count the nodes.
@@ -195,8 +189,7 @@ check_bm()
 plot_bm()
 {
 
-	# Create a diagrams directory.
-	ddir=$bdir/diagrams
+	# Create the diagrams directory.
 	mkdir -p $ddir
 
 	# Plot time diagrams.
@@ -433,6 +426,15 @@ for bench in $BMS; do
 
 		IFS=$MY_IFS
 
+		# The different benchmark-related directories.
+		bdir=$dir/$bench
+		odir=$bdir/output
+		sdir=$bdir/statistics
+		ddir=$bdir/diagrams
+
+		# Create the directory for this benchmark.
+		mkdir -p $bdir
+
 		# Run this benchmark.
 		echo -n "Running"
 		run_bm &
@@ -443,9 +445,8 @@ for bench in $BMS; do
 
 		# Perform sanity check on the results of this benchmark.
 		if [ "$SANITY_CHECK" == "1" ]; then
-			echo -n "Performing sanity check"
-			check_bm &
-			spin $!
+			echo -n "Performing sanity check..."
+			check_bm
 			if [ $? == 1 ]; then
 				echo " succeeded"
 			else

@@ -49,20 +49,19 @@ main() ->
 		Fun = fun(Bargs) ->
 
 			Times=lists:map(fun(_) ->
-				T0 = now(),
 				Coordinator = self(),
 				% In a new process, please.
 				spawn(node(), fun() -> 
 					{ok, OF} = file:open(OutFile, [append]),
 					group_leader(OF, self()),
+					T0 = now(),
 					apply(M, run, [Bargs, Nodes, [{datadir, DataDir}]]), 
-					Coordinator ! done,
+					T1 = now(),	
+					Coordinator ! {done, timer:now_diff(T1, T0)/1000},
 					file:close(OF)
 					end
 				),
-				receive done -> ok end,
-				T1 = now(),
-				timer:now_diff(T1, T0)/1000
+				receive {done,T} -> T end
 				end, lists:seq(1,Iterations)),
 			io:format(SF, "(~w) ~w ", [Bargs, median(Times)])	
 		end,
