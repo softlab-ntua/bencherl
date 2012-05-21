@@ -10,13 +10,22 @@ usage()
 Usage: run_bench [OPTION..]
 Run scalability benchmarks.
 
-  -b <B>..	run the specified benchmark(s) (e.g. big or bang,big) (default: all)
-  -h		display this help and exit
-  -i <N>	run the benchmark(s) N times 
-  -l		list all the available benchmarks
-  -n <N>	use N nodes (e.g. 1 or 1..4 or 1,5,6) (default: 0)
-  -p		plot diagrams
-  -s <N>	use N schedulers (e.g. 1 or 1..4 or 1,5,6) (default: as many as the cores)
+ -b <B>  run the specified benchmark(s) 
+         (e.g. big or bang,big) 
+         (default: all)  
+ -c      perform sanity check
+ -h      display this help and exit
+ -i <N>  run the benchmark(s) N times 
+         (default: 1) 
+ -l      list all the available benchmarks
+ -m      use the specified mnemonic name for the results
+ -n <N>  use N nodes 
+         (e.g. 1 or 1..4 or 1,5,6) 
+         (default: 0)
+ -p      plot diagrams
+ -s <N>  use N schedulers 
+         (e.g. 1 or 1..4 or 1,5,6) 
+         (default: as many as the cores)
 
 For complete documentation, go to ...
 EOF
@@ -246,16 +255,22 @@ while getopts ":b:hls:n:pi:" opt; do
 		b)
 			BMS=$OPTARG
 			;;
+		c)
+			SANITY_CHECK=1
+			;;
 		h)
 			usage
 			exit 0
 			;;
+		i)
+			ITERATIONS=$OPTARG
+			;;
 		l)
 			list_bms
 			exit 0
-			;;	
-		s)
-			SCS=$OPTARG
+			;;
+		m)
+			MNEMONIC_NAME=$OPTARG
 			;;
 		n)
 			NDS=$OPTARG
@@ -263,8 +278,8 @@ while getopts ":b:hls:n:pi:" opt; do
 		p)
 			PLOT=1
 			;;
-		i)
-			ITERATIONS=$OPTARG
+		s)
+			SCS=$OPTARG
 			;;
 		\?)	
 			echo "Invalid option: -$OPTARG"	
@@ -309,6 +324,10 @@ L=$(( L - 1 ))
 NDS=${NDS:0:L}
 NNDS=`echo $NDS | tr "," "\n" | wc -l`
 
+if [ -z $ITERATIONS ]; then
+	ITERATIONS=1
+fi
+ 
 source conf/suite.conf
 
 DEF_OTPS=${OTPS:-"DEFOTP="}
@@ -330,8 +349,15 @@ fi
 OLD_IFS=$IFS
 MY_IFS=$','
 
-NOW=`date +%d.%m.%y.-%H.%M.%S`
-dir=results/$NOW
+if [ -z $MNEMONIC_NAME ]; then
+	NOW=`date +%d.%m.%y.-%H.%M.%S`
+	dir=results/$NOW
+else
+	if [ -e results/$MNEMONIC_NAME ]; then
+		rm -rf results/$MNEMONIC_NAME
+	fi
+	dir=results/$MNEMONIC_NAME
+fi
 mkdir $dir
 
 IFS=$MY_IFS
@@ -351,7 +377,11 @@ for bench in $BMS; do
 		echo "Running..."
 		run_bm
 		IFS=$OLD_IFS
-		if [[ ( "$PLOT" -eq "1" ) && ( ( "$NNDS" -ne "1" ) || ( "$NSCS" -ne "1" ) ) ]]; then
+		if [ "$SANITY_CHECK" == "1" ]; then
+			echo "Performing sanity check..."
+			check_bm
+		fi
+		if [[ ( "$PLOT" == "1" ) && ( ( "$NNDS" -ne "1" ) || ( "$NSCS" -ne "1" ) ) ]]; then
 			echo "Plotting..."
 			plot_bm
 		fi
