@@ -11,12 +11,12 @@ Usage: run_bench [OPTION..]
 Run scalability benchmarks.
 
   -b <B>..	run the specified benchmark(s) (e.g. big or bang,big) (default: all)
-  -d		calculate and plot speedup information
   -h		display this help and exit
+  -i <N>	run the benchmark(s) N times 
   -l		list all the available benchmarks
   -n <N>	use N nodes (e.g. 1 or 1..4 or 1,5,6) (default: 0)
+  -p		plot diagrams
   -s <N>	use N schedulers (e.g. 1 or 1..4 or 1,5,6) (default: as many as the cores)
-  -t		plot time information
 
 For complete documentation, go to ...
 EOF
@@ -70,7 +70,7 @@ run_bm()
 			argsv=${args##*=}
 
 			IFS=$OLD_IFS
-			n=`echo $NDS | tr "," "\n" | tail -n 2 | head`
+			n=`echo $NDS | tr "," "\n" | tail -n 1`
 			IFS=$MY_IFS
 			if [ "$n" -gt "$NNODES" ]; then
 				n=$NNODES
@@ -82,7 +82,7 @@ run_bm()
 			done
 
 			IFS=$OLD_IFS
-			s=`echo $SCS | tr "," "\n" | tail -n 2 | head`
+			s=`echo $SCS | tr "," "\n" | tail -n 1`
 			IFS=$MY_IFS
 			# For each number of nodes.
 			for n in $NDS; do
@@ -123,9 +123,11 @@ cat > scratch/run_bench.config << EOF
 {nnodes, $n}.
 {nschedulers, $s}.
 {nodes, [$NODES]}.
+{iterations, $ITERATIONS}.
 {outfile, "$odir/$otpl.$argsl.$s.$n.output"}.
 {statfile, "$sdir/$otpl.$argsl.$WHAT.time"}.
 {datadir, "$benchdir/data"}.
+{what, $WHAT}.
 EOF
 
 	# Run the benchmark.
@@ -152,35 +154,31 @@ plot_bm()
 	mkdir -p $ddir
 
 	# Plot time diagrams.
-	if [ ! -z $PLOT_TIME ]; then
-		if [ "$NNDS" -gt "1" ]; then
-			WHAT=nodes.time
-			plot
-		fi
-		if [ "$NSCS" -gt "1" ]; then
-			WHAT=sched.time
-			plot
-		fi
+	if [ "$NNDS" -gt "1" ]; then
+		WHAT=node.time
+		plot
+	fi
+	if [ "$NSCS" -gt "1" ]; then
+		WHAT=sched.time
+		plot
 	fi
 
 	# Plot speedup diagrams.
-	if [ ! -z $PLOT_SPEEDUP ]; then
-		if [ "$NNDS" -gt "1" ]; then
-			for file in `ls $sdir/*.*.nodes.time`; do
-				fn=`basename $file .nodes.time`
-				cat $sdir/$fn.time | ./suite/speedup.awk >> $sdir/$fn.speedup
-			done
-			WHAT=nodes.speedup
-			plot
-		fi
-		if [ "$NSCS" -gt "1" ]; then
-			for file in `ls $sdir/*.*.sched.time`; do
-				fn=`basename $file .sched.time`
-				cat $sdir/$fn.time | ./suite/speedup.awk >> $sdir/$fn.speedup
-			done
-			WHAT=sched.speedup
-			plot	
-		fi
+	if [ "$NNDS" -gt "1" ]; then
+		for file in `ls $sdir/*.*.node.time`; do
+			fn=`basename $file .node.time`
+			cat $sdir/$fn.node.time | ./suite/speedup.awk >> $sdir/$fn.node.speedup
+		done
+		WHAT=node.speedup
+		plot
+	fi
+	if [ "$NSCS" -gt "1" ]; then
+		for file in `ls $sdir/*.*.sched.time`; do
+			fn=`basename $file .sched.time`
+			cat $sdir/$fn.sched.time | ./suite/speedup.awk >> $sdir/$fn.sched.speedup
+		done
+		WHAT=sched.speedup
+		plot	
 	fi
 }
 
@@ -243,7 +241,7 @@ plot()
 	rm -rf $sdir/*.tmp
 }
 
-while getopts ":b:dhls:n:t" opt; do
+while getopts ":b:hls:n:pi:" opt; do
 	case $opt in
 		b)
 			BMS=$OPTARG
@@ -262,13 +260,11 @@ while getopts ":b:dhls:n:t" opt; do
 		n)
 			NDS=$OPTARG
 			;;
-		t)
-			PLOT_TIME=1
+		p)
 			PLOT=1
 			;;
-		d)
-			PLOT_SPEEDUP=1
-			PLOT=1
+		i)
+			ITERATIONS=$OPTARG
 			;;
 		\?)	
 			echo "Invalid option: -$OPTARG"	
@@ -292,6 +288,9 @@ if [ $x -ne 1 ]; then
 	SCS="1 $SCS"
 fi
 SCS=`echo $SCS | tr " " "\n" | sort -gu | tr "\n" ","`
+L=${#SCS}
+L=$(( L - 1 ))
+SCS=${SCS:0:L}
 NSCS=`echo $SCS | tr "," "\n" | wc -l`
 
 if [ -z $NDS ]; then
@@ -305,6 +304,9 @@ else
     NDS=`echo $NDS | sed 's/,/ /g'`
 fi
 NDS=`echo $NDS | tr " " "\n" | sort -gu | tr "\n" ","`
+L=${#NDS}
+L=$(( L - 1 ))
+NDS=${NDS:0:L}
 NNDS=`echo $NDS | tr "," "\n" | wc -l`
 
 source conf/suite.conf
@@ -354,5 +356,6 @@ for bench in $BMS; do
 			plot_bm
 		fi
 	fi
+	IFS=$MY_IFS
 done
 
