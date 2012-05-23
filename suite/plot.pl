@@ -1,8 +1,8 @@
 #!/usr/bin/perl -w
 
-# Plots a diagram based on the given input data, with the given title and 
-# stores it in the given file (in PS format).
-# Usage: ./plot.pl <title> <input_file> <output_file>
+# Plots a diagram based on the given input data, with the given title and the 
+# given X- and Y-axis labels, and stores it in the given file (in PS format).
+# Usage: ./plot.pl <title> <X_axis_label> <Y_axis_label> <input_file> <output_file>
 
 use strict;
 
@@ -21,8 +21,10 @@ sub main {
 	}
 
 	my $title = $ARGV[0];
-	my $infile = $ARGV[1];
-	my $outfile = $ARGV[2];
+	my $xaxislabel = $ARGV[1];
+	my $yaxislabel = $ARGV[2];
+	my $infile = $ARGV[3];
+	my $outfile = $ARGV[4];
 
 	# Generate the gnuplot scipt that plots the diagram.
 	open PIPE, "| gnuplot" || die "Somethng went wrong with gnuplot\n";
@@ -32,8 +34,8 @@ sub main {
 	print PIPE "set key right outside font ',10'\n";
 	print PIPE "set xtic auto\n";
 	print PIPE "set ytic auto\n";
-	print PIPE "set xlabel '# Schedulers'\n";
-	print PIPE "set ylabel 'Time (ms)'\n";
+	print PIPE "set xlabel '$xaxislabel'\n";
+	print PIPE "set ylabel '$yaxislabel'\n";
 	print PIPE "set term post eps enhanced 10 color\n";
 	print PIPE "set output '$outfile'\n";
 	print PIPE "plot ";

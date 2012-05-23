@@ -45,6 +45,8 @@ main() ->
 		{ok, SF} = file:open(StatFile, [append]),
 		io:format(SF, "~w ", [NS]),
 
+		{ok, OF} = file:open(OutFile, [write]),
+
 		% Run the benchmark for all argument sets.
 		Fun = fun(Bargs) ->
 
@@ -52,13 +54,11 @@ main() ->
 				Coordinator = self(),
 				% In a new process, please.
 				spawn(node(), fun() -> 
-					{ok, OF} = file:open(OutFile, [append]),
 					group_leader(OF, self()),
 					T0 = now(),
 					apply(M, run, [Bargs, Nodes, [{datadir, DataDir}]]), 
 					T1 = now(),	
-					Coordinator ! {done, timer:now_diff(T1, T0)/1000},
-					file:close(OF)
+					Coordinator ! {done, timer:now_diff(T1, T0)/1000}
 					end
 				),
 				receive {done,T} -> T end
@@ -66,6 +66,7 @@ main() ->
 			io:format(SF, "(~w) ~w ", [Bargs, median(Times)])	
 		end,
 		lists:foreach(Fun, M:bench_args()),
+		file:close(OF),
 
 		% Close the statistics file.
 		io:nl(SF),
