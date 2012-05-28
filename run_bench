@@ -464,7 +464,7 @@ for bench in $BMS; do
 		IFS=$OLD_IFS
 
 		# Perform sanity check on the results of this benchmark.
-		if [ "$SANITY_CHECK" -eq "1" ]; then
+		if [ "$SANITY_CHECK" == "1" ]; then
 			echo -n "Performing sanity check..."
 			check_bm
 			if [ "$?" -eq "1" ]; then
