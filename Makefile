@@ -1,8 +1,8 @@
-ERLC = ~/otps/otp_src_R15B/bin/erlc
+ERLC = /home/katerina/otps/otp_src_R14B04/bin/erlc
 #ERLC = erlc
-ERL = ~/otps/otp_src_R15B/bin/erl
+ERL = /home/katerina/otps/otp_src_R14B04/bin/erl
 #ERL = erl
-ERL_LIB_DIR = ~/otps/otp_src_R15B/lib
+ERL_LIB_DIR = /home/katerina/otps/otp_src_R14B04/lib
 ERLC_OPTS = +debug_info
 
 .PHONY: all app bench clean clean-app clean-bench clean-res clean-suite suite

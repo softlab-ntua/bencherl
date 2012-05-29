@@ -85,27 +85,33 @@ run_bm()
 
 			IFS=$OLD_IFS
 			n=`echo $NDS | tr "," "\n" | tail -n 1`
-			IFS=$MY_IFS
-			if [ "$n" -gt "$NNODES" ]; then
-				n=$NNODES
+			IFS=$MY_IFS                        
+
+			if [[ ( $NSCS -gt 1 ) || ( $NNDS -eq 1 ) || ( $n -lt $NNDS ) ]]; then
+				if [ "$n" -gt "$NNODES" ]; then
+					n=$NNODES
+				fi
+				# For each number of schedulers.
+				for s in $SCS; do
+					WHAT="sched"
+					do_run_bm
+				done
 			fi
-			# For each number of schedulers.
-			for s in $SCS; do
-				WHAT="sched"
-				do_run_bm
-			done
 
 			IFS=$OLD_IFS
 			s=`echo $SCS | tr "," "\n" | tail -n 1`
 			IFS=$MY_IFS
-			# For each number of nodes.
-			for n in $NDS; do
-				if [ "$n" -gt "$NNODES" ]; then
-					continue
-				fi
-				WHAT="node"
-				do_run_bm
-			done
+ 
+			if [[ ( $NNDS -gt 1 ) && ( $n -le $NNDS ) ]]; then
+				# For each number of nodes.
+				for n in $NDS; do
+					if [ "$n" -gt "$NNODES" ]; then
+						continue
+					fi
+					WHAT="node"
+					do_run_bm
+				done
+			fi
 		done
 	done
 }
@@ -218,16 +224,16 @@ plot_bm()
 plot()
 {
 
-	what1=${WHAT%%.*}
-	what2=${WHAT##.*}
+	what1=${WHAT%%\.*}
+	what2=${WHAT##*\.}
 	
-	if [ "$what1" == "time" ]; then
+	if [ "$what2" == "time" ]; then
 		yal="Time (ms)"
 	else
 		yal="Speedup"	
 	fi
 
-	if [ "$what2" == "sched" ]; then
+	if [ "$what1" == "sched" ]; then
 		xal="# Schedulers"
 	else
 		xal="# Nodes"
@@ -287,6 +293,8 @@ plot()
 	fi
 	rm -rf $sdir/*.tmp
 }
+
+start=`date +%s`
 
 # Handle the specified options.
 while getopts ":b:chlm:s:n:pi:" opt; do
@@ -486,4 +494,10 @@ for bench in $BMS; do
 	IFS=$MY_IFS
 
 done
+
+end=`date +%s`
+
+elapsed=$(( end - start ))
+
+echo "Time elapsed: $elapsed sec"
 

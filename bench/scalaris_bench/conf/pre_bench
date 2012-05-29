@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ -z $2 ]; then
+if [ -z "$2" ]; then
 	e1="erlc"
 	e2="erl"
 	e3="epmd"

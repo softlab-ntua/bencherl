@@ -2344,6 +2344,7 @@ start() ->
 		%% This is a bypass: On not-installed Erlang configurations we assume
 		%% that the preloaded version exists. If erts does not exist at all,
 		%% other version checks will abort the configuration.
+		io:format("xxx ~w~n", [code:root_dir()]),
 		NotInstalled = filename:join(code:root_dir(), "erts/preloaded"),
 		file:write_file("conftest.out", NotInstalled),
 		0;
