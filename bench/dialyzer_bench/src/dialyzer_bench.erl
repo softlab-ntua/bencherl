@@ -5,9 +5,9 @@
 bench_args() -> 
 	[[plt], [otp]].
 
-run([plt], _, Opts) ->
+run([plt], _, Conf) ->
 
-	{_,DataDir} = lists:keyfind(datadir, 1, Opts),
+	{_,DataDir} = lists:keyfind(datadir, 1, Conf),
 
 	[] = dialyzer:run([{analysis_type, plt_build},
 		{report_mode, normal},
@@ -16,9 +16,9 @@ run([plt], _, Opts) ->
 		{output_plt, DataDir ++ "/the.plt"}]),
 		ok;
 
-run([otp], _, Opts) ->
+run([otp], _, Conf) ->
 
-    DataDir = lists:keyfind(datadir, 1, Opts),
+    {_,DataDir} = lists:keyfind(datadir, 1, Conf),
 
     RawWarns = dialyzer:run([{files_rec, [F || F <- [DataDir ++ "/plt", DataDir ++ "/otp"]]},
 		{report_mode, normal},

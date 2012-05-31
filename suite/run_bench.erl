@@ -1,7 +1,7 @@
-%% The coordinator of the benchmark execution.
-%% The coordinator is responsible for starting the necessary Erlang nodes,
-%% for running the benchmark and for stopping the nodes, after the execution
-%% of the benchmark is over.
+%% The benchmark executor.
+%% The executor is responsible for starting the necessary slave nodes, for 
+%% running a benchmark and for stopping the slaves, after the execution of the
+%% benchmark is over.
 
 -module(run_bench).
 
@@ -11,18 +11,18 @@ main() ->
 
 	try
 
-		% Load configuration settings.
+		% Load run configuration settings.
 		{ok, Settings} = file:consult("scratch/run_bench.config"),
 		{_,M} = lists:keyfind(bench, 1, Settings),
 		{_,OTP} = lists:keyfind(otp, 1, Settings),
-		Program = case OTP of
+		ErlProgram = case OTP of
 			[] 	-> "erl";
 			_	-> OTP ++ "/bin/erl"
 		end,
-		{_,Args} = lists:keyfind(args, 1, Settings),
-		{_,Nnames} = lists:keyfind(nodes, 1, Settings),
-		{_,N} = lists:keyfind(nnodes, 1, Settings),
-		{_,S} = lists:keyfind(nschedulers, 1, Settings),
+		{_,ErlArgs} = lists:keyfind(erl_args, 1, Settings),
+		{_,Snames} = lists:keyfind(slaves, 1, Settings),
+		{_,N} = lists:keyfind(number_of_slaves, 1, Settings),
+		{_,S} = lists:keyfind(number_of_schedulers, 1, Settings),
 		{_,Iterations} = lists:keyfind(iterations, 1, Settings),
 		{_,OutFile} = lists:keyfind(outfile, 1, Settings),
 		{_,StatFile} = lists:keyfind(statfile, 1, Settings),
@@ -33,13 +33,13 @@ main() ->
 				sched -> S
 			 end,
 
-		% Start the nodes.
-		Nodes = lists:map(fun(Nn)->
-			[Name,Host]=string:tokens(atom_to_list(Nn), "@"),
-			{ok, Node} = slave:start(list_to_atom(Host), list_to_atom(Name), 
-			Args, self(), Program),
-			Node
-		end, lists:sublist(Nnames, N)),
+		% Start the slaves.
+		Slaves = lists:map(fun(Sn)->
+			[Name,Host]=string:tokens(atom_to_list(Sn), "@"),
+			{ok, Slave} = slave:start(list_to_atom(Host), list_to_atom(Name), 
+			ErlArgs, self(), ErlProgram),
+			Slave
+		end, lists:sublist(Snames, N)),
 
 		% Open the statistics file.				
 		{ok, SF} = file:open(StatFile, [append]),
@@ -56,7 +56,7 @@ main() ->
 				spawn(node(), fun() -> 
 					group_leader(OF, self()),
 					T0 = now(),
-					apply(M, run, [Bargs, Nodes, [{datadir, DataDir}]]), 
+					apply(M, run, [Bargs, Slaves, [{datadir, DataDir}]]), 
 					T1 = now(),	
 					Coordinator ! {done, timer:now_diff(T1, T0)/1000}
 					end
@@ -72,8 +72,8 @@ main() ->
 		io:nl(SF),
 		file:close(SF),
 
-		% Stop the nodes.
-		lists:foreach(fun(Node)-> slave:stop(Node) end, Nodes)
+		% Stop the slaves.
+		lists:foreach(fun(Slave)-> slave:stop(Slave) end, Slaves)
 
 	catch
 		E:D ->
