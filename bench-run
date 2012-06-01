@@ -97,7 +97,7 @@ rsbm()
 
 cat > scratch/run_bench.conf << EOF
 {bench, $bench}.
-{version, $VERSION}.
+{input_size, $INPUT_SIZE}.
 {otp, "$otpv"}.
 {erl_args, "$argsv $EXTRA_ERL_ARGS +S$s:$s -noshell -pa $EXTRA_CODE_PATH suite/ebin bench/$bench/ebin -setcookie $COOKIE" }.
 {number_of_slaves, $n}.

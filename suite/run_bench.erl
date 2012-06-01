@@ -14,7 +14,7 @@ main() ->
 		% Load run configuration settings.
 		{ok, Conf} = file:consult("scratch/run_bench.conf"),
 		{_,M} = lists:keyfind(bench, 1, Conf),
-		{_,Version} = lists:keyfind(version, 1, Conf),
+		{_,InputSize} = lists:keyfind(input_size, 1, Conf),
 		{_,OTP} = lists:keyfind(otp, 1, Conf),
 		ErlProgram = case OTP of
 			[] 	-> "erl";
@@ -66,7 +66,7 @@ main() ->
 				end, lists:seq(1,Iterations)),
 			io:format(SF, "(~w) ~w ", [Bargs, median(Times)])	
 		end,
-		lists:foreach(Fun, M:bench_args(Version)),
+		lists:foreach(Fun, M:bench_args(InputSize)),
 		file:close(OF),
 
 		% Close the statistics file.
