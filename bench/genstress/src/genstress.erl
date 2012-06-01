@@ -23,7 +23,7 @@
 
 -behaviour(gen_server).
 
--export([bench_args/0, run/3]).
+-export([bench_args/1, run/3]).
 
 % %gen cb:s
 
@@ -33,8 +33,12 @@
 
 -record(state, {mstate}).
 
-bench_args() ->
-	[[Type,Np,N,Cqueue] || Type <- [proc_call,gen_call], Np <- [1000], N <- [300], Cqueue <- [500]].
+bench_args(short) ->
+	[[Type,Np,N,Cqueue] || Type <- [proc_call,gen_call], Np <- [1000], N <- [200], Cqueue <- [500]];
+bench_args(intermediate) ->
+    [[Type,Np,N,Cqueue] || Type <- [proc_call,gen_call], Np <- [1000], N <- [600], Cqueue <- [700]];
+bench_args(long) ->
+    [[Type,Np,N,Cqueue] || Type <- [proc_call,gen_call], Np <- [2000], N <- [900], Cqueue <- [500]].
 
 run([Type,Np,N,Cqueue|_], _, _) ->
 	Server  = start_server(Type),

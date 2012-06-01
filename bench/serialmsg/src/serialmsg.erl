@@ -21,10 +21,14 @@
 
 -module(serialmsg).
 
--export([bench_args/0, run/3]).
+-export([bench_args/1, run/3]).
 
-bench_args() ->
-	[[P,N,L] || P <- [100], N <- [1000], L <- [2000]].
+bench_args(short) ->
+	[[P,N,L] || P <- [100], N <- [1000], L <- [2000]];
+bench_args(intermediate) ->
+    [[P,N,L] || P <- [100], N <- [2000], L <- [2500]];
+bench_args(long) ->
+    [[P,N,L] || P <- [300], N <- [1000], L <- [2000]].
 
 run([P,N,L|_], _, _) ->
 	Recvs = setup_receivers(P),

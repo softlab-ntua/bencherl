@@ -21,7 +21,7 @@
 
 -module(mbrot).
 
--export([bench_args/0, run/3]).
+-export([bench_args/1, run/3]).
 
 -compile(native).	%% This benchmark runs faster in native code
 
@@ -30,8 +30,12 @@
 -define(RL, 2.0).
 -define(IL, 2.0).
 
-bench_args() ->
-	[[N,Np] || N <- [100], Np <- [200]].
+bench_args(short) ->
+	[[N,Np] || N <- [100], Np <- [200]];
+bench_args(intermediate) ->
+    [[N,Np] || N <- [200], Np <- [200]];
+bench_args(long) ->
+    [[N,Np] || N <- [250], Np <- [300]].
 
 run([N,Np|_], _, _) ->
 	receive_workers(start_workers(N, Np)),

@@ -1,9 +1,14 @@
 -module(orbit_int).
 
--export([bench_args/0, run/3]).
+-export([bench_args/1, run/3]).
 
-bench_args() ->
-	[[IWP,G,N,W] || IWP <- [true,false], G <- [fun bench:g124/1], N <- [10000], W <- [8]].
+bench_args(short) ->
+	[[IWP,G,N,W] || IWP <- [true,false], G <- [fun bench:g13/1], N <- [700], W <- [100]];
+bench_args(intermediate) ->
+    [[IWP,G,N,W] || IWP <- [true,false], G <- [fun bench:g124/1], N <- [10000], W <- [100]];
+bench_args(long) ->
+    [[IWP,G,N,W] || IWP <- [true,false], G <- [fun bench:g1245/1], N <- [10000], W <- [100]].
+
 
 run([true,G,N,W|_], [], _) ->
 	io:format("~p~n", [apply(bench, par, [G,N,W])]);

@@ -21,15 +21,19 @@
 
 -module(pcmark).
 
--export([bench_args/0, run/3]).
+-export([bench_args/1, run/3]).
 
 -define(etstables, [ets1,ets2,ets3,ets4,ets5]).
 
 %% abstract
 %% 
 
-bench_args() ->
-	[[A,B,C] || A <- [200], B <- [1000], C <- [1000]].
+bench_args(short) ->
+	[[A,B,C] || A <- [200], B <- [500], C <- [500]];
+bench_args(intermediate) ->
+    [[A,B,C] || A <- [200], B <- [1200], C <- [1200]];
+bench_args(long) ->
+    [[A,B,C] || A <- [200], B <- [1800], C <- [1800]].
 
 run([Size,Ongoing,Total|_], _, _) ->
 	init_ets(?etstables, Size),

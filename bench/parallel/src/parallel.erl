@@ -21,10 +21,14 @@
 
 -module(parallel).
 
--export([bench_args/0, run/3]).
+-export([bench_args/1, run/3]).
 
-bench_args() ->
-	[[N,M] || N <- [30000], M <- [256]].
+bench_args(short) ->
+	[[N,M] || N <- [20000], M <- [256]];
+bench_args(intermediate) ->
+    [[N,M] || N <- [30000], M <- [512]];
+bench_args(long) ->
+    [[N,M] || N <- [70000], M <- [600]].
 
 run([N,M|_], _, _) ->
 	Me   = self(),

@@ -12,22 +12,23 @@ main() ->
 	try
 
 		% Load run configuration settings.
-		{ok, Settings} = file:consult("scratch/run_bench.config"),
-		{_,M} = lists:keyfind(bench, 1, Settings),
-		{_,OTP} = lists:keyfind(otp, 1, Settings),
+		{ok, Conf} = file:consult("scratch/run_bench.conf"),
+		{_,M} = lists:keyfind(bench, 1, Conf),
+		{_,Version} = lists:keyfind(version, 1, Conf),
+		{_,OTP} = lists:keyfind(otp, 1, Conf),
 		ErlProgram = case OTP of
 			[] 	-> "erl";
 			_	-> OTP ++ "/bin/erl"
 		end,
-		{_,ErlArgs} = lists:keyfind(erl_args, 1, Settings),
-		{_,Snames} = lists:keyfind(slaves, 1, Settings),
-		{_,N} = lists:keyfind(number_of_slaves, 1, Settings),
-		{_,S} = lists:keyfind(number_of_schedulers, 1, Settings),
-		{_,Iterations} = lists:keyfind(iterations, 1, Settings),
-		{_,OutFile} = lists:keyfind(outfile, 1, Settings),
-		{_,StatFile} = lists:keyfind(statfile, 1, Settings),
-		{_,DataDir} = lists:keyfind(datadir, 1, Settings),
-		{_,What} = lists:keyfind(what, 1, Settings),
+		{_,ErlArgs} = lists:keyfind(erl_args, 1, Conf),
+		{_,Snames} = lists:keyfind(slaves, 1, Conf),
+		{_,N} = lists:keyfind(number_of_slaves, 1, Conf),
+		{_,S} = lists:keyfind(number_of_schedulers, 1, Conf),
+		{_,Iterations} = lists:keyfind(iterations, 1, Conf),
+		{_,OutFile} = lists:keyfind(outfile, 1, Conf),
+		{_,StatFile} = lists:keyfind(statfile, 1, Conf),
+		{_,DataDir} = lists:keyfind(datadir, 1, Conf),
+		{_,What} = lists:keyfind(what, 1, Conf),
 		NS = case What of
 				node -> N;
 				sched -> S
@@ -65,7 +66,7 @@ main() ->
 				end, lists:seq(1,Iterations)),
 			io:format(SF, "(~w) ~w ", [Bargs, median(Times)])	
 		end,
-		lists:foreach(Fun, M:bench_args()),
+		lists:foreach(Fun, M:bench_args(Version)),
 		file:close(OF),
 
 		% Close the statistics file.

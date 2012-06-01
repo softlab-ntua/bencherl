@@ -26,10 +26,14 @@
 
 -module(ran).
 
--export([bench_args/0, run/3]).
+-export([bench_args/1, run/3]).
 
-bench_args() ->
-	[[N] || N <- [200]].
+bench_args(short) ->
+	[[N] || N <- [30]];
+bench_args(intermediate) ->
+    [[N] || N <- [100]];
+bench_args(long) ->
+    [[N] || N <- [250]].
 
 mk_ranlist(0, _, Acc) -> Acc;
 mk_ranlist(N, M, Acc) -> mk_ranlist(N-1, M, [random:uniform(M) | Acc]). 

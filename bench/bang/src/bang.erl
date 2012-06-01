@@ -26,10 +26,14 @@
 
 -module(bang).
 
--export([bench_args/0, run/3]).
+-export([bench_args/1, run/3]).
 
-bench_args() ->
-	[[S,M] || S <- [1000], M <- [1000]].
+bench_args(short) ->
+	[[S,M] || S <- [1000], M <- [1000]];
+bench_args(intermediate) ->
+	[[S,M] || S <- [3500], M <- [3500]];
+bench_args(long) ->
+	[[S,M] || S <- [5000], M <- [5000]].
 
 run([S,M|_], _, _) ->
 	Parent = self(),

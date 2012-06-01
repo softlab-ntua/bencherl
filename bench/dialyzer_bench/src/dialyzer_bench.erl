@@ -1,8 +1,8 @@
 -module(dialyzer_bench).
 
--export([bench_args/0, run/3]).
+-export([bench_args/1, run/3]).
 
-bench_args() -> 
+bench_args(_) -> 
 	[[plt], [otp]].
 
 run([plt], _, Conf) ->

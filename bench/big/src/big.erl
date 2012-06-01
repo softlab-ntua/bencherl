@@ -25,10 +25,14 @@
 %%%-------------------------------------------------------------------
 -module(big).
 
--export([bench_args/0, run/3]).
+-export([bench_args/1, run/3]).
 
-bench_args() ->
-	[[N] || N <- [750]].
+bench_args(short) ->
+	[[N] || N <- [500]];
+bench_args(intermediate) ->
+    [[N] || N <- [750]];
+bench_args(long) ->
+    [[N] || N <- [1150]].
 
 run([N|_], _, _) ->
 	Procs = spawn_procs(N),

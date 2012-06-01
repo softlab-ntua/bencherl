@@ -26,10 +26,14 @@
 
 -module(ets_test).
 
--export([bench_args/0, run/3]).
+-export([bench_args/1, run/3]).
 
-bench_args() ->
-	[[N,W,R] || N <- [10000], W <- [10], R <- [500]].
+bench_args(short) ->
+	[[N,W,R] || N <- [10000], W <- [10], R <- [500]];
+bench_args(intermediate) ->
+    [[N,W,R] || N <- [10000], W <- [2000], R <- [2000]];
+bench_args(long) ->
+    [[N,W,R] || N <- [10000], W <- [5000], R <- [2500]].
 
 run([N,W,R|_], _, _) ->
 	Parent = self(),

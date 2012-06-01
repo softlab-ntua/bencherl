@@ -22,11 +22,15 @@
 
 -module(timer_wheel).
 
--export([bench_args/0, run/3]).
+-export([bench_args/1, run/3]).
 -export([wheel/1,no_wheel/1]).
 
-bench_args() ->
-	[[Wheel,N] || Wheel <- [wheel,no_wheel], N <- [2000]].
+bench_args(short) ->
+	[[Wheel,N] || Wheel <- [wheel,no_wheel], N <- [1000]];
+bench_args(intermediate) ->
+    [[Wheel,N] || Wheel <- [wheel,no_wheel], N <- [2500]];
+bench_args(long) ->
+    [[Wheel,N] || Wheel <- [wheel,no_wheel], N <- [3500]].
 
 run([wheel,N|_], _, _) ->
 	test(N, fun recv_loop_after/2);

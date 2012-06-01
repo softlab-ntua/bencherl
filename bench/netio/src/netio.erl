@@ -23,7 +23,7 @@
 
 -include_lib("kernel/include/inet.hrl").
 
--export([bench_args/0, run/3]).
+-export([bench_args/1, run/3]).
 
 -record(state, {
 	protocol = tcp,
@@ -41,16 +41,36 @@
 	ctrl_pid
 	}).
 
-bench_args() ->
+bench_args(short) ->
 	[[	[], 
 		[	{connections, Nc}, 
 			{packet_size, Psz}, 
 			{ack, Ack}, 
 			{packets, Np}]	] || 	Nc <- [200], 
-									Psz <- [1000, 10000], 
+									Psz <- [900], 
 									Np <- [1000],
 									Ack <- [false]
-	].
+	];
+bench_args(intermediate) ->
+    [[  [],
+        [   {connections, Nc},
+            {packet_size, Psz},
+            {ack, Ack},
+            {packets, Np}]  ] ||    Nc <- [200],
+                                    Psz <- [10000],
+                                    Np <- [1000],
+                                    Ack <- [false]
+    ];
+bench_args(long) ->
+    [[  [],
+        [   {connections, Nc},
+            {packet_size, Psz},
+            {ack, Ack},
+            {packets, Np}]  ] ||    Nc <- [200],
+                                    Psz <- [10000],
+                                    Np <- [3000],
+                                    Ack <- [false]
+    ].
 
 run([Copts, Popts|_], _, _) ->
 	Pid = consumer(Copts),

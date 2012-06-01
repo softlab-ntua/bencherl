@@ -95,8 +95,9 @@ rsbm()
 		erl="$otpv/bin/erl"
 	fi
 
-cat > scratch/run_bench.config << EOF
+cat > scratch/run_bench.conf << EOF
 {bench, $bench}.
+{version, $VERSION}.
 {otp, "$otpv"}.
 {erl_args, "$argsv $EXTRA_ERL_ARGS +S$s:$s -noshell -pa $EXTRA_CODE_PATH suite/ebin bench/$bench/ebin -setcookie $COOKIE" }.
 {number_of_slaves, $n}.
@@ -301,6 +302,10 @@ CORES=`cat /proc/cpuinfo | grep processor | wc -l`
 
 if [ -z $MNEMONIC_NAME ]; then
 	MNEMONIC_NAME=`date +%d.%m.%y.-%H.%M.%S`
+fi
+
+if [ -z $VERSION ]; then
+	VERSION=short
 fi
 
 DEF_OTPS=${OTPS:-"DEFOTP="}
