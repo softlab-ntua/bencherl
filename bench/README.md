@@ -1,47 +1,63 @@
 This is where all benchmarks reside.
 
-### What does a benchmark directory look like ###
+### The structure of a benchmark directory ###
 
-A benchmark directory should contain:
+A benchmark directory contains:
 
 * a `Makefile` that builds the benchmark
-* an `src` directory that contains the source files of the benchmark
-* a `conf` directory that contains the `pre_bench`, the `post_bench` and the `bench.conf` scripts
+* a `src` directory that contains the source code of the benchmark
+* a `data` directory that contains any external data that the benchmark needs for its execution
+* a `conf` directory that contains the `bench.conf`, the `pre_bench` and the `post_bench` scripts
 
-### How to write a benchmark driver module ###
+### The structure of a benchmark handler ###
 
-The `src` subdirectory of a benchmark directory `X` should contain at least one 
-file: `X.erl`.
+The benchmark handler is a standard Erlang module that has the same name as the 
+benchmark, is put in the `src` directory and is necessary for the execution of 
+the benchmark.
 
-The `X` module must expose the following functions:
+A benchmark handler exports the following functions:
 
-	% Return the different argument sets to use for running the benchmark.
-	bench_args() -> [[term()]]
+	%% Returns the different argument sets to use for running the specified
+	%% version of the benchmark.
+	bench_args(Version) -> Args
+  		when
+    		Args :: [[term()]],
+    		Version :: short | intermediate | long.
 
-	% Run the benchmark with the specified arguments on the specified nodes.
-	run(Args, Nodes, Opts) -> ok or {error, Reason}
-		where
-			Args = [term()]
-			Nodes = [node()]
-			Opts = [{Key :: atom, Val :: term()}, ...]
+	%% Uses the specified arguments, slave nodes and configuration settings
+	%% to run the benchmark.
+	run(Args, Slaves, Conf) -> ok | {error, Reason}
+		when
+			Args   :: [term()],
+    		Slaves :: [node()],
+    		Conf   :: [{Key :: atom(), Val :: term()}, ...],
+    		Reason :: term().
 
-### What is the pre_bench script ###
+### The purpose of the pre_bench script ###
 
-It is a BASH script that can be put in the `conf` subdirectory of a benchmark
-directory. This script is executed before running the corresponding benchmark.
+This is a BASH script that is used to perform any actions before executing the 
+benchmark in a new runtime environment.
 
-### What is the post_bench script ###
+### The purpose of the post_bench script ###
 
-It is a BASH script that can be put in the `conf` subdirectory of a benchmark
-directory. This script is executed after having finished with the execution of
-the corresponding benchmark.
+This is a BASH script that is used to perform any actions after the execution of
+the benchmark in a runtime environment is complete.
 
-### What is the bench.conf script ###
+### The purpose of the bench.conf script ###
 
-It is a BASH scipt that can be put in the `conf` subdirectory of a benchmark 
-directory. It is responsible for configuring the corresponding benchmark. 
+This file contains new values, which are specific for this benchmark, for the 
+following variables in `conf/run.conf`.
+* `CHECK_SANITY`
+* `COOKIE`
+* `ERL_ARGS`
+* `ITERATIONS`
+* `NUMBER_OF_SLAVE_NODES`
+* `NUMBER_OF_SCHEDULERS`
+* `OTPS`
+* `PLOT`
+* `SLAVE_NODES`
 
-A variable set in the `bench.conf` file overrides for the execution of the 
-corresponding benchmark a variable with the same name that is set in the 
-`conf/suite.conf` file.
+This file may also set the following variables:
+* `EXTRA_CODE_PATH`, which points to a directory that contains more BEAM files that are necessary for the execution of the benchmark
+* `EXTRA_ERL_ARGS`, which contains more command-line arguments to pass to the `erl` program
 

@@ -12,9 +12,9 @@ main() ->
 	try
 
 		% Load run configuration settings.
-		{ok, Conf} = file:consult("scratch/run_bench.conf"),
+		{ok,Conf} = file:consult("scratch/run_bench.conf"),
 		{_,M} = lists:keyfind(bench, 1, Conf),
-		{_,InputSize} = lists:keyfind(input_size, 1, Conf),
+		{_,Version} = lists:keyfind(version, 1, Conf),
 		{_,OTP} = lists:keyfind(otp, 1, Conf),
 		ErlProgram = case OTP of
 			[] 	-> "erl";
@@ -26,7 +26,7 @@ main() ->
 		{_,S} = lists:keyfind(number_of_schedulers, 1, Conf),
 		{_,Iterations} = lists:keyfind(iterations, 1, Conf),
 		{_,OutFile} = lists:keyfind(outfile, 1, Conf),
-		{_,StatFile} = lists:keyfind(statfile, 1, Conf),
+		{_,MeasFile} = lists:keyfind(measfile, 1, Conf),
 		{_,DataDir} = lists:keyfind(datadir, 1, Conf),
 		{_,What} = lists:keyfind(what, 1, Conf),
 		NS = case What of
@@ -42,9 +42,9 @@ main() ->
 			Slave
 		end, lists:sublist(Snames, N)),
 
-		% Open the statistics file.				
-		{ok, SF} = file:open(StatFile, [append]),
-		io:format(SF, "~w ", [NS]),
+		% Open the measurements file.				
+		{ok, MF} = file:open(MeasFile, [append]),
+		io:format(MF, "~w ", [NS]),
 
 		{ok, OF} = file:open(OutFile, [write]),
 
@@ -64,14 +64,14 @@ main() ->
 				),
 				receive {done,T} -> T end
 				end, lists:seq(1,Iterations)),
-			io:format(SF, "(~w) ~w ", [Bargs, median(Times)])	
+			io:format(MF, "(~w) ~w ", [Bargs, median(Times)])	
 		end,
-		lists:foreach(Fun, M:bench_args(InputSize)),
+		lists:foreach(Fun, M:bench_args(Version)),
 		file:close(OF),
 
-		% Close the statistics file.
-		io:nl(SF),
-		file:close(SF),
+		% Close the measurements file.
+		io:nl(MF),
+		file:close(MF),
 
 		% Stop the slaves.
 		lists:foreach(fun(Slave)-> slave:stop(Slave) end, Slaves)

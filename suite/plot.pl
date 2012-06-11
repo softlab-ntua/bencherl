@@ -31,12 +31,12 @@ sub main {
 
 	print PIPE "set title '$title'\n";
 	print PIPE "set autoscale\n";
-	print PIPE "set key right font ',10'\n";
+	print PIPE "set key right font ',14'\n";
 	print PIPE "set xtic auto\n";
 	print PIPE "set ytic auto\n";
 	print PIPE "set xlabel '$xaxislabel'\n";
 	print PIPE "set ylabel '$yaxislabel'\n";
-	print PIPE "set term post eps enhanced 10\n";
+	print PIPE "set term post eps enhanced 14\n";
 	print PIPE "set output '$outfile'\n";
 	print PIPE "plot ";
 	my $line = `head -n 1 $infile`;

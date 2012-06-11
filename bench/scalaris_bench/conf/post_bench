@@ -13,4 +13,4 @@ fi
 hostname=`env hostname -f`
 
 env BEAMDIR="app/scalaris/ebin" ERLC="$e1" ERL="$e2" EPMD="$e3" app/scalaris/bin/scalarisctl -n firstnode@$hostname stop > /dev/null 
-
+sleep 3

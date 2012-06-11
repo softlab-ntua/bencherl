@@ -6,8 +6,12 @@
 usage()
 {
 	cat << EOF
-Usage: bench-run [-m <mnemonic_name>]
+Usage: bench-run [OPTION..]
 Run scalability benchmarks.
+
+  -h         display this help and exit
+  -l         list all the available benchmarks
+  -m <MN>    use MN as the mnemonic name of this run
 
 For complete documentation, go to ...
 EOF
@@ -32,10 +36,21 @@ spin()
 	echo -n '...'
 }
 
+list_bms()
+{
+	echo -n "Benchmarks:"
+	for b in `ls bench`; do
+		if [ -d bench/$b ]; then
+			echo -n " $b"
+		fi
+	done
+	echo
+}
+
 rbm()
 {
 	mkdir -p $outdir
-	mkdir -p $statdir
+	mkdir -p $measdir
 
 	for otp in $OTPS; do
 
@@ -97,7 +112,7 @@ rsbm()
 
 cat > scratch/run_bench.conf << EOF
 {bench, $bench}.
-{input_size, $INPUT_SIZE}.
+{version, $VERSION}.
 {otp, "$otpv"}.
 {erl_args, "$argsv $EXTRA_ERL_ARGS +S$s:$s -noshell -pa $EXTRA_CODE_PATH suite/ebin bench/$bench/ebin -setcookie $COOKIE" }.
 {number_of_slaves, $n}.
@@ -105,7 +120,7 @@ cat > scratch/run_bench.conf << EOF
 {slaves, [$SLAVE_NODES]}.
 {iterations, $ITERATIONS}.
 {outfile, "$outdir/$otpl.$argsl.$s.$n.output"}.
-{statfile, "$statdir/$otpl.$argsl.$WHAT.time"}.
+{measfile, "$measdir/$otpl.$argsl.$WHAT.time"}.
 {datadir, "$benchdir/data"}.
 {what, $WHAT}.
 EOF
@@ -155,17 +170,17 @@ pbm()
 	fi
 
 	if [[ ("$NSLAVE_NODES" -gt "1" ) && ( "$NUMBER_OF_NUMBER_OF_SLAVE_NODES" -gt "1") ]]; then
-		for file in `ls $statdir/*.*.node.time`; do
+		for file in `ls $measdir/*.*.node.time`; do
 			fn=`basename $file .node.time`
-			cat $statdir/$fn.node.time | ./suite/speedup.awk >> $statdir/$fn.node.speedup
+			cat $measdir/$fn.node.time | ./suite/speedup.awk >> $measdir/$fn.node.speedup
 		done
 		WHAT=node.speedup
-		plot
+		psbm
 	fi
 	if [ "$NUMBER_OF_NUMBER_OF_SCHEDULERS" -gt "1" ]; then
-		for file in `ls $statdir/*.*.sched.time`; do
+		for file in `ls $measdir/*.*.sched.time`; do
 			fn=`basename $file .sched.time`
-			cat $statdir/$fn.sched.time | ./suite/speedup.awk >> $statdir/$fn.sched.speedup
+			cat $measdir/$fn.sched.time | ./suite/speedup.awk >> $measdir/$fn.sched.speedup
 		done
 		WHAT=sched.speedup
 		psbm	
@@ -190,14 +205,14 @@ psbm()
 		xal="# Nodes"
 	fi
 
-	for file in `ls $statdir/*.$WHAT`; do
+	for file in `ls $measdir/*.$WHAT`; do
 		fn=`basename $file .$WHAT`
 		otp=${fn%%.*}
 		args=${fn##*.}
 		PARGS="$PARGS $args"
 		POTPS="$POTPS $otp"
 		./suite/plot.pl "$bench - $otp - $args" \
-		"$xal" "$yal" "$statdir/$fn.$WHAT" \
+		"$xal" "$yal" "$measdir/$fn.$WHAT" \
 		"$diadir/$fn.$WHAT.ps"
 	done
 
@@ -208,38 +223,38 @@ psbm()
 
 	if [ "$NARGS" -gt "1" ]; then
 		for otp in $POTPS; do
-			for file in `ls $statdir/$otp.*.$WHAT`; do
+			for file in `ls $measdir/$otp.*.$WHAT`; do
 				fn=`basename $file .$WHAT`
 				otp=${fn%%.*}
 				args=${fn##*.}
-				cat $statdir/$fn.$WHAT | ./suite/inject.awk \
-				what=$args > $statdir/$fn.tmp
+				cat $measdir/$fn.$WHAT | ./suite/inject.awk \
+				what=$args > $measdir/$fn.tmp
 			done
-			cat `ls $statdir/$otp.*.tmp` | sort -g | ./suite/merge.awk \
-			> $statdir/$otp.$WHAT
+			cat `ls $measdir/$otp.*.tmp` | sort -g | ./suite/merge.awk \
+			> $measdir/$otp.$WHAT
 			./suite/plot.pl "$bench - $otp" \
-			"$xal" "$yal" "$statdir/$otp.$WHAT" \
+			"$xal" "$yal" "$measdir/$otp.$WHAT" \
 			"$diadir/$otp.$WHAT.ps"
 		done
 	fi
 
 	if [ $NOTPS -gt 1 ]; then
 		for args in $PARGS; do
-			for file in `ls $statdir/*.$args.$WHAT`; do
+			for file in `ls $measdir/*.$args.$WHAT`; do
 				fn=`basename $file .$WHAT`
 				otp=${fn%%.*}
 				args=${fn##*.}
-				cat $statdir/$fn.$WHAT | ./suite/inject.awk \
-				what=$otp > $statdir/$fn.tmp
+				cat $measdir/$fn.$WHAT | ./suite/inject.awk \
+				what=$otp > $measdir/$fn.tmp
 			done
-			cat `ls $statdir/*.$args.tmp` | sort -g | \
-			./suite/merge.awk > $statdir/$args.$WHAT
+			cat `ls $measdir/*.$args.tmp` | sort -g | \
+			./suite/merge.awk > $measdir/$args.$WHAT
 			./suite/plot.pl "$bench - $args" \
-			"$xal" "$yal" "$statdir/$args.$WHAT" \
+			"$xal" "$yal" "$measdir/$args.$WHAT" \
 			"$diadir/$args.$WHAT.ps"
 		done
 	fi
-	rm -rf $statdir/*.tmp
+	rm -rf $measdir/*.tmp
 }
 
 scs()
@@ -284,6 +299,10 @@ while getopts ":b:chlm:s:n:pi:" opt; do
 	case $opt in
 		h)
 			usage
+			exit 0
+			;;
+		l)
+			list_bms
 			exit 0
 			;;
 		m)
@@ -374,7 +393,7 @@ for bench in $BENCHS; do
 
 		benchresdir="$resdir/$bench"
 		outdir="$benchresdir/output"
-		statdir="$benchresdir/statistics"
+		measdir="$benchresdir/measurements"
 		diadir="$benchresdir/diagrams"
 
 		mkdir -p $benchresdir

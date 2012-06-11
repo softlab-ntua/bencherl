@@ -8,111 +8,177 @@ This is a benchmark suite for the Erlang VM.
 ### How to build just the benchmarks ###
 
 	$ make bench
+
+### How to build just the applications ###
+
+	$ make app
  
-### How to run benchmarks ###
+### How to run the benchmark suite ###
 
-Use the `run_bench` script.
+Specify what you want to run and how in `conf/run.conf`, and then use 
+`bench-run` to run the benchmark suite.
 
-### How to run specific benchmarks ###
+	$ ./bench-run
 
-Use the `-b` option of the `run_bench` script and specify the names of one or more 
-of the available benchmarks, separated with commas.
+### How to specify a mnemonic name for a run ###
 
-	e.g. ./run_bench -b bang,big
+Use the `-m` option of the `bench-run` script.
 
-### How to run all the benchmarks ###
+	$ ./bench-run -m everything-but-big
 
-Use the `run_bench` script without its `-b` option.
+### How to specify which benchmarks to run ###
 
-### How to get a list of all the available benchmarks ###
+Set the `INCLUDE_BENCH` variable in `conf/run.conf`, if you want to specify 
+which benchmarks to run.
+ 
+    INCLUDE_BENCH=bang,big
 
-Use the `-l` option of the `run_bench` script.
+Set the `EXCLUDE_BENCH` variable in `conf/run.conf`, if you want to specify
+which benchmarks not to run.
+
+   EXCLUDE_BENCH=dialyzer_bench
+
+The values of both variables are one or more benchmark names separated with 
+commas.
+
+By default, all benchmarks are run.
+
+### How list all benchmarks ###
+
+Use the `-l` option of the `bench-run` script.
 
 	$ ./run_bench -l
 
-### How to ignore one or more benchmarks ###
+### How to specify the number of schedulers to run benchmarks with ###
 
-Edit the `conf/suite.conf` file and set the value of the `IGNORE_BENCH` variable 
-to the names of the benchmarks to be ignored separated with commas.
+Set the `NUMBER_OF_SCHEDULERS` variable in `conf/run.conf`.
 
-	e.g. IGNORE_BENCH=bang,big
+The value of this variable can be either one or more integers separated with 
+commas:
+	
+	NUMBER_OF_SCHEDULERS=1,2,4,8,16,32,64
 
-### How to specify the number of schedulers to use for running benchmarks ###
+or a range of integers:
 
-Use the `-s` option of the `run_bench` script. The argument of this option is 
-either a single number (e.g. `1` -> run the benchmark with 1 scheduler), or one 
-or more numbers separated with commas (e.g. `2,3` -> run the benchmark with 2 
-and 3 schedulers), or a range of numbers (e.g. `2..4` -> run the benchmark with 
-2, 3 and 4 schedulers).
+	NUMBER_OF_SCHEDULERS=1..16
 
-	e.g. 
-
-	$ ./run_bench -s 1
-	$ ./run_bench -s 1..16
-	$ ./run_bench -s 1,2,4,8,16,32
-
-Benchmarks are executed by default with as many schedulers as the number of 
+By default, benchmarks are run with as many schedulers as the number of logical
 processors.
+ 
+### How to specify the Erlang/OTPs to run benchmarks with ###
 
-### How to specify one or more OTP's to use for running benchmarks ###
+Set the `OTPS` variable in `conf/run.conf`.
 
-Edit the `conf/suite.conf` file and set the value of the `OTPS` variable to a 
-a string that contains information about all the OTP's that should be used
-separated with commas.
-For each OTP both an alias and the path to it should be provided
-(separated with a `=`).
+The value of this variable is one or more alias-path pairs separated with commas.
 
-	e.g. OTPS="R15B=~/otps/otp_src_R15B,R15B01=~/otps/otp_src_R15B01"
+	OTPS="R14B04=/usr/local/otp_src_R14B04,R15B01=/usr/local/otp_src_R15B01"
 
-Benchmarks are executed by default using the erl program found on path.
+By default, benchmarks are compiled and run with the `erlc` and `erl` programs
+found in the OS path.
 
-### How to specify the different sets of VM arguments to use for running benchmarks ###
+### How to specify the `erl` command-line arguments to run benchmarks with ###
 
-Edit the `conf/suite.conf` file and set the value of the `ARGS` variable to a
-string that contains information abotu the different sets separated with 
+Set the `ERL_ARGS` variable in `conf/run.conf`.
+
+The value of this variable is one or more alias-arguments pairs separated with
 commas.
-An alias should be specified for each set of arguments. The alias is separated 
-from the arguments with a `=`.
 
-	e.g. ARGS="DEFAULT_BIND=+sbt db,UNBOUND=+sbt u"
+	ERL_ARGS="SOME_ARGS=+sbt db +swt low,SOME_OTHER_ARGS=+sbt u"
 
-### How to specify the Erlang compiler to use for compiling the benchmarks, the suite and the applications ###
+### How to specify the number of slave nodes to run the benchmarks with ###
 
-Use the `ERLC` environment variable.
+Set the `NUMBER_OF_SLAVE_NODES` variable in `conf/run.conf`.
 
-### What is the result of running one or more benchmarks ###
+The value of this variable can be either one or more integers separated with
+commas:
 
-A new directory in the `results` directory. The name of the directory is the
-date and time when the execution of the benchmarks took place in the format 
-ddMMyyHHmmss.
+	NUMBER_OF_SLAVE_NODES=1,2,4,6,8
 
-In the `results` directory there is one directory for each benchmark `X`, which 
-has been executed, with the same name. 
+or a range of integers:
 
-In each X directory there are 3 subdirectories:
-* a `diagrams` directory
-* an `ouput` directory
-* a `statistics` directory
+	NUMBER_OF_SLAVE_NODES=2..4
 
-The `diagrams` directory contains the time and speedup diagrams.
-The `output` directory contains the output of the benchmark for each execution.
-The `statistics` directory contains time and speedup information for the 
-execution of the benchmark.
+Benchmarks run with at most as many slave nodes as specified in the 
+`SLAVE_NODES` variable.
 
-### How to plot diagrams ###
+By default, benchmarks are run with one master node and no slave nodes.
 
-Use the `-t` and the `-d` options of the `run_bench` script. Use the `-t` option for
-time diagrams, and the `-d` option for speedup diagrams.
+### How to specify the slave nodes to run benchmarks with ###
 
-### How to run distributed benchmarks ###
+Set the `SLAVE_NODES` variable in `conf/run.conf`.
 
-Edit `conf/suite.conf` (or `X/conf/bench.conf`, where `X` is a benchmark 
-directory) and set the value of the `NODES` variable to the short names of the 
-Erlang nodes that should be used for running the benchmark. 
+The value of this variable is zero or more long node names separated with
+commas. 
 
-The suite is responsible for:
-* starting these nodes before running the benchmark
-* making them available to the benchmark (so that the benchmark can spawn 
-  processes on them)
-* stopping these nodes after having run the benchmark
+	SLAVE_NODES=somenode@somehost,someothernode@someotherhost
+
+By default, benchmarks are run with no slave nodes.
+
+### How to specify the magic cookie that master and slave nodes share ###
+
+Set the `COOKIE` variable in `conf/run.conf`.
+
+	COOKIE="some_cookie"
+
+The default cookie is `cookie`.
+
+### How to specify which version of the benchmarks to run.
+
+Set the `VERSION` variable in `conf/run.conf`.
+
+The value of this variable can be `short`, `intermediate` or `long`.
+
+	VERSION=short
+
+The default version is `short`.
+
+### How to specify whether to produce scalability graphs or not ###
+
+Set the `PLOT` variable in `conf/run.conf`.
+
+The value of this variable can be either 0 (do not produce any scalability 
+graphs) or 1 (produce scalability graphs).
+
+	PLOT=1
+
+By default, no scalability graphs are produced.
+
+### How to specify whether to perform a sanity check or not ###
+
+Set the `CHECK_SANITY` variable in `conf/run.conf`.
+
+The value of this variable can be either 0 (do not perform sanity check) or
+1 (perform sanity check).
+
+	SANITY_CHECK=1
+
+By default, the sanity of the benchmark execution results is not checked.
+
+### How to specify the number of iterations ###
+
+Set the `ITERATIONS` variable in `conf/run.conf`.
+
+The value of this variable is an integer >= 1.
+
+	ITERATIONS=5
+
+The default number of iterations is 1.
+ 
+### How to specify the compiler to use for the benchmarks, the applications and the suite ###
+
+Set the `ERLC` variable in the `Makefile`.
+
+### What is the result of running the benchmark suite ###
+
+A new directory is created under the `results` directory. The name of this 
+directory is the mnemonic name or, if no mnemonic name has been specified, a
+string that contains the date and time when the run started.
+
+In the result directory, there is one subdirectory for each one of the 
+benchmarks that was run with the same name as the benchmark. Each such 
+directory has 3 sub-directories:
+* `graphs`, which contains the scalability graphs
+* `output`, which contains the output that the benchmark produced during its execution
+* `measurements`, which contains the scalability measurements collected during the execution of the benchmark
+. 
 
