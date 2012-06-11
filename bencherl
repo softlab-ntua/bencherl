@@ -1,12 +1,12 @@
 #!/bin/bash
 
 # Runs the benchmark suite based on what is specified in conf/run.conf.
-# Usage: ./bench-run [-m <mnemonic_name>] 
+# Usage: ./bencherl [-m <mnemonic_name>] 
 
 usage()
 {
 	cat << EOF
-Usage: bench-run [OPTION..]
+Usage: bencherl [OPTION..]
 Run scalability benchmarks.
 
   -h         display this help and exit

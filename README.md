@@ -16,15 +16,15 @@ This is a benchmark suite for the Erlang VM.
 ### How to run the benchmark suite ###
 
 Specify what you want to run and how in `conf/run.conf`, and then use 
-`bench-run` to run the benchmark suite.
+`bencherl` to run the benchmark suite.
 
-	$ ./bench-run
+	$ ./bencherl
 
 ### How to specify a mnemonic name for a run ###
 
-Use the `-m` option of the `bench-run` script.
+Use the `-m` option of the `bencherl` script.
 
-	$ ./bench-run -m everything-but-big
+	$ ./bencherl -m everything-but-big
 
 ### How to specify which benchmarks to run ###
 
@@ -45,7 +45,7 @@ By default, all benchmarks are run.
 
 ### How list all benchmarks ###
 
-Use the `-l` option of the `bench-run` script.
+Use the `-l` option of the `bencherl` script.
 
 	$ ./run_bench -l
 
