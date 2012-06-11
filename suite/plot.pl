@@ -36,8 +36,9 @@ sub main {
 	print PIPE "set ytic auto\n";
 	print PIPE "set xlabel '$xaxislabel'\n";
 	print PIPE "set ylabel '$yaxislabel'\n";
-	print PIPE "set term post eps enhanced 14\n";
+	print PIPE "set term post eps enhanced color 14\n";
 	print PIPE "set output '$outfile'\n";
+	print PIPE "set grid\n";
 	print PIPE "plot ";
 	my $line = `head -n 1 $infile`;
 	my @tokens = split(/ /, $line);

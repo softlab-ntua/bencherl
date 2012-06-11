@@ -158,7 +158,7 @@ cbm()
 pbm()
 {
 
-	mkdir -p $diadir
+	mkdir -p $grdir
 
 	if [[ ( "$NSLAVE_NODES" -gt "1" ) && ( "$NUMBER_OF_NUMBER_OF_SLAVE_NODES" -gt "1" ) ]]; then
 		WHAT=node.time
@@ -213,7 +213,7 @@ psbm()
 		POTPS="$POTPS $otp"
 		./suite/plot.pl "$bench - $otp - $args" \
 		"$xal" "$yal" "$measdir/$fn.$WHAT" \
-		"$diadir/$fn.$WHAT.ps"
+		"$grdir/$fn.$WHAT.ps"
 	done
 
 	POTPS=`echo $POTPS | tr " " "\n" | sort -du | tr "\n" " "`
@@ -234,7 +234,7 @@ psbm()
 			> $measdir/$otp.$WHAT
 			./suite/plot.pl "$bench - $otp" \
 			"$xal" "$yal" "$measdir/$otp.$WHAT" \
-			"$diadir/$otp.$WHAT.ps"
+			"$grdir/$otp.$WHAT.ps"
 		done
 	fi
 
@@ -251,7 +251,7 @@ psbm()
 			./suite/merge.awk > $measdir/$args.$WHAT
 			./suite/plot.pl "$bench - $args" \
 			"$xal" "$yal" "$measdir/$args.$WHAT" \
-			"$diadir/$args.$WHAT.ps"
+			"$grdir/$args.$WHAT.ps"
 		done
 	fi
 	rm -rf $measdir/*.tmp
@@ -394,7 +394,7 @@ for bench in $BENCHS; do
 		benchresdir="$resdir/$bench"
 		outdir="$benchresdir/output"
 		measdir="$benchresdir/measurements"
-		diadir="$benchresdir/diagrams"
+		grdir="$benchresdir/diagrams"
 
 		mkdir -p $benchresdir
 
