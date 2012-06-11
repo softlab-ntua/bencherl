@@ -394,7 +394,7 @@ for bench in $BENCHS; do
 		benchresdir="$resdir/$bench"
 		outdir="$benchresdir/output"
 		measdir="$benchresdir/measurements"
-		grdir="$benchresdir/diagrams"
+		grdir="$benchresdir/graphs"
 
 		mkdir -p $benchresdir
 
