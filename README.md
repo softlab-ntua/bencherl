@@ -31,12 +31,12 @@ Use the `-m` option of the `bench-run` script.
 Set the `INCLUDE_BENCH` variable in `conf/run.conf`, if you want to specify 
 which benchmarks to run.
  
-    INCLUDE_BENCH=bang,big
+	INCLUDE_BENCH=bang,big
 
 Set the `EXCLUDE_BENCH` variable in `conf/run.conf`, if you want to specify
 which benchmarks not to run.
 
-   EXCLUDE_BENCH=dialyzer_bench
+	EXCLUDE_BENCH=dialyzer_bench
 
 The values of both variables are one or more benchmark names separated with 
 commas.
@@ -176,9 +176,9 @@ string that contains the date and time when the run started.
 
 In the result directory, there is one subdirectory for each one of the 
 benchmarks that was run with the same name as the benchmark. Each such 
-directory has 3 sub-directories:
-* `graphs`, which contains the scalability graphs
-* `output`, which contains the output that the benchmark produced during its execution
+directory has three sub-directories:
+* `graphs`, which contains the scalability graphs;
+* `output`, which contains the output that the benchmark produced during its execution;
 * `measurements`, which contains the scalability measurements collected during the execution of the benchmark
 . 
 

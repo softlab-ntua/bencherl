@@ -4,10 +4,10 @@ This is where all benchmarks reside.
 
 A benchmark directory contains:
 
-* a `Makefile` that builds the benchmark
-* a `src` directory that contains the source code of the benchmark
-* a `data` directory that contains any external data that the benchmark needs for its execution
-* a `conf` directory that contains the `bench.conf`, the `pre_bench` and the `post_bench` scripts
+* a `Makefile` that builds the benchmark;
+* a `src` directory that contains the source code of the benchmark;
+* a `data` directory that contains any external data that the benchmark needs for its execution;
+* a `conf` directory that contains the `bench.conf`, the `pre_bench` and the `post_bench` scripts.
 
 ### The structure of a benchmark handler ###
 
@@ -58,6 +58,6 @@ following variables in `conf/run.conf`.
 * `SLAVE_NODES`
 
 This file may also set the following variables:
-* `EXTRA_CODE_PATH`, which points to a directory that contains more BEAM files that are necessary for the execution of the benchmark
-* `EXTRA_ERL_ARGS`, which contains more command-line arguments to pass to the `erl` program
+* `EXTRA_CODE_PATH`, which points to a directory that contains more BEAM files that are necessary for the execution of the benchmark;
+* `EXTRA_ERL_ARGS`, which contains more command-line arguments to pass to the `erl` program.
 
