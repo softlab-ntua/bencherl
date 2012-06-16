@@ -1,5 +1,6 @@
 ERLC = erlc
 ERL = erl
+ESCRIPT = escript
 #ERL_LIB_DIR = /path/to/otp/lib
 ERLC_OPTS = +debug_info
 

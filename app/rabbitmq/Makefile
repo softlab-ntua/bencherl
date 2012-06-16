@@ -1,3 +1,7 @@
+ERLC = ${ERLC:-erlc}
+ERL = ${ERL:-erl}
+ESCRIPT = ${ESCRIPT:-escript}
+
 TMPDIR ?= /tmp
 
 RABBITMQ_NODENAME ?= rabbit
@@ -44,13 +48,13 @@ RABBIT_PLT=rabbit.plt
 ifndef USE_SPECS
 # our type specs rely on callback specs, which are available in R15B
 # upwards.
-USE_SPECS:=$(shell erl -noshell -eval 'io:format([list_to_integer(X) || X <- string:tokens(erlang:system_info(version), ".")] >= [5,9]), halt().')
+USE_SPECS:=$(shell $(ERL) -noshell -eval 'io:format([list_to_integer(X) || X <- string:tokens(erlang:system_info(version), ".")] >= [5,9]), halt().')
 endif
 
 ifndef USE_PROPER_QC
 # PropEr needs to be installed for property checking
 # http://proper.softlab.ntua.gr/
-USE_PROPER_QC:=$(shell erl -noshell -eval 'io:format({module, proper} =:= code:ensure_loaded(proper)), halt().')
+USE_PROPER_QC:=$(shell $(ERL) -noshell -eval 'io:format({module, proper} =:= code:ensure_loaded(proper)), halt().')
 endif
 
 #other args: +native +"{hipe,[o3,verbose]}" -Ddebug=true +debug_info +no_strict_record_tests
@@ -69,10 +73,10 @@ AMQP_SPEC_JSON_FILES_0_8=$(AMQP_CODEGEN_DIR)/amqp-rabbitmq-0.8.json
 
 ERL_CALL=erl_call -sname $(RABBITMQ_NODENAME) -e
 
-ERL_EBIN=erl -noinput -pa $(EBIN_DIR)
+ERL_EBIN=$(ERL) -noinput -pa $(EBIN_DIR)
 
 define usage_xml_to_erl
-  $(subst __,_,$(patsubst $(DOCS_DIR)/rabbitmq%.1.xml, $(SOURCE_DIR)/rabbit_%_usage.erl, $(subst -,_,$(1))))
+  $(subst __,_,n$(patsubst $(DOCS_DIR)/rabbitmq%.1.xml, $(SOURCE_DIR)/rabbit_%_usage.erl, $(subst -,_,$(1))))
 endef
 
 define usage_dep
@@ -101,6 +105,8 @@ ifneq "$(DEFAULT_GOAL_MAKE)" "$(firstword $(sort $(DEFAULT_GOAL_MAKE) $(MAKE_VER
 .DEFAULT_GOAL=all
 endif
 
+app: all
+
 all: $(TARGETS)
 
 .PHONY: plugins
@@ -124,7 +130,7 @@ $(EBIN_DIR)/rabbit.app: $(EBIN_DIR)/rabbit_app.in $(SOURCES) generate_app
 	escript generate_app $< $@ $(SOURCE_DIR)
 
 $(EBIN_DIR)/%.beam: $(SOURCE_DIR)/%.erl | $(DEPS_FILE)
-	erlc $(ERLC_OPTS) -pa $(EBIN_DIR) $<
+	$(ERLC) $(ERLC_OPTS) -pa $(EBIN_DIR) $<
 
 $(INCLUDE_DIR)/rabbit_framing.hrl: codegen.py $(AMQP_CODEGEN_DIR)/amqp_codegen.py $(AMQP_SPEC_JSON_FILES_0_9_1) $(AMQP_SPEC_JSON_FILES_0_8)
 	$(PYTHON) codegen.py --ignore-conflicts header $(AMQP_SPEC_JSON_FILES_0_9_1) $(AMQP_SPEC_JSON_FILES_0_8) $@
