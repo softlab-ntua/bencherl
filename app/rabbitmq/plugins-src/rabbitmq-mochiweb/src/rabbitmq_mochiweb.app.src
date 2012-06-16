@@ -1,0 +1,12 @@
+{application, rabbitmq_mochiweb,
+ [{description, "RabbitMQ Mochiweb Embedding"},
+  {vsn, "%%VSN%%"},
+  {modules, []},
+  {registered, []},
+  {mod, {rabbit_mochiweb_app, []}},
+  {env, [
+         {listeners,        [{mgmt, [{port, 55672}]}]},
+         {contexts,         [{rabbit_mgmt, mgmt}]},
+         {default_listener, [{port, 55670}]}
+        ]},
+  {applications, [kernel, stdlib, mochiweb, webmachine]}]}.

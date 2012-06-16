@@ -1,0 +1,11 @@
+--- a/src/mochiweb_request.erl
++++ b/src/mochiweb_request.erl
+@@ -44,7 +44,7 @@
+ -define(IDLE_TIMEOUT, 300000).
+ 
+ % Maximum recv_body() length of 1MB
+--define(MAX_RECV_BODY, (1024*1024)).
++-define(MAX_RECV_BODY, 104857600).
+ 
+ %% @spec get_header_value(K) -> undefined | Value
+ %% @doc Get the value of a given request header.
