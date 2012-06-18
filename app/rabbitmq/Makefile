@@ -124,10 +124,10 @@ endif
 
 $(DEPS_FILE): $(SOURCES) $(INCLUDES)
 	rm -f $@
-	echo $(subst : ,:,$(foreach FILE,$^,$(FILE):)) | escript generate_deps $@ $(EBIN_DIR)
+	echo $(subst : ,:,$(foreach FILE,$^,$(FILE):)) | $(ESCRIPT) generate_deps $@ $(EBIN_DIR)
 
 $(EBIN_DIR)/rabbit.app: $(EBIN_DIR)/rabbit_app.in $(SOURCES) generate_app
-	escript generate_app $< $@ $(SOURCE_DIR)
+	$(ESCRIPT) generate_app $< $@ $(SOURCE_DIR)
 
 $(EBIN_DIR)/%.beam: $(SOURCE_DIR)/%.erl | $(DEPS_FILE)
 	$(ERLC) $(ERLC_OPTS) -pa $(EBIN_DIR) $<
