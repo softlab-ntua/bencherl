@@ -12,10 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ERLC = ${ERLC:-erlc}
-ERL = ${ERL:-erl}
-DIALYZER = /usr/local/stow/erlang-systemtap/lib/erlang/bin/dialyzer
-ERL_LIB_DIR = {ERLANG_LIB_DIR:-/usr/local/stow/erlang-systemtap/lib/erlang/lib)
 SVN = svn
 CD = cd
 MAKE = make
