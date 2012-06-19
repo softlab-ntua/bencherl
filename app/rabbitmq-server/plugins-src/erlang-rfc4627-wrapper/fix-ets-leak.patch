@@ -1,0 +1,13 @@
+diff --git a/src/rfc4627_jsonrpc_registry.erl b/src/rfc4627_jsonrpc_registry.erl
+index 7065a7a..f9c8289 100644
+--- a/src/rfc4627_jsonrpc_registry.erl
++++ b/src/rfc4627_jsonrpc_registry.erl
+@@ -81,7 +81,7 @@ handle_info({'DOWN', _MonitorRef, process, DownPid, _Reason}, State) ->
+     case ets:lookup(?TABLE_NAME, {service_pid, DownPid}) of
+         [] ->
+             {noreply, State};
+-        [ServiceName] ->
++        [{_, ServiceName}] ->
+             ets:delete(?TABLE_NAME, {service_pid, DownPid}),
+             ets:delete(?TABLE_NAME, {service, ServiceName}),
+             {noreply, State}

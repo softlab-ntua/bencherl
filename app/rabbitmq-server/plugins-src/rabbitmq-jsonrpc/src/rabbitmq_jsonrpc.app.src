@@ -1,0 +1,8 @@
+{application, rabbitmq_jsonrpc,
+ [{description, "Rabbit JSON-RPC"},
+  {vsn, "%%VSN%%"},
+  {modules, []},
+  {registered, []},
+  {mod, {rabbit_jsonrpc, []}},
+  {env, []},
+  {applications, [kernel, stdlib, rabbitmq_mochiweb, rfc4627_jsonrpc]}]}.
