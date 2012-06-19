@@ -44,13 +44,13 @@ RABBIT_PLT=rabbit.plt
 ifndef USE_SPECS
 # our type specs rely on callback specs, which are available in R15B
 # upwards.
-USE_SPECS:=$(shell erl -noshell -eval 'io:format([list_to_integer(X) || X <- string:tokens(erlang:system_info(version), ".")] >= [5,9]), halt().')
+USE_SPECS:=$(shell $(ERL) -noshell -eval 'io:format([list_to_integer(X) || X <- string:tokens(erlang:system_info(version), ".")] >= [5,9]), halt().')
 endif
 
 ifndef USE_PROPER_QC
 # PropEr needs to be installed for property checking
 # http://proper.softlab.ntua.gr/
-USE_PROPER_QC:=$(shell erl -noshell -eval 'io:format({module, proper} =:= code:ensure_loaded(proper)), halt().')
+USE_PROPER_QC:=$(shell $(ERL) -noshell -eval 'io:format({module, proper} =:= code:ensure_loaded(proper)), halt().')
 endif
 
 #other args: +native +"{hipe,[o3,verbose]}" -Ddebug=true +debug_info +no_strict_record_tests
@@ -69,7 +69,7 @@ AMQP_SPEC_JSON_FILES_0_8=$(AMQP_CODEGEN_DIR)/amqp-rabbitmq-0.8.json
 
 ERL_CALL=erl_call -sname $(RABBITMQ_NODENAME) -e
 
-ERL_EBIN=erl -noinput -pa $(EBIN_DIR)
+ERL_EBIN=$(ERL) -noinput -pa $(EBIN_DIR)
 
 define usage_xml_to_erl
   $(subst __,_,$(patsubst $(DOCS_DIR)/rabbitmq%.1.xml, $(SOURCE_DIR)/rabbit_%_usage.erl, $(subst -,_,$(1))))
@@ -118,13 +118,13 @@ endif
 
 $(DEPS_FILE): $(SOURCES) $(INCLUDES)
 	rm -f $@
-	echo $(subst : ,:,$(foreach FILE,$^,$(FILE):)) | escript generate_deps $@ $(EBIN_DIR)
+	echo $(subst : ,:,$(foreach FILE,$^,$(FILE):)) | $(ESCRIPT) generate_deps $@ $(EBIN_DIR)
 
 $(EBIN_DIR)/rabbit.app: $(EBIN_DIR)/rabbit_app.in $(SOURCES) generate_app
-	escript generate_app $< $@ $(SOURCE_DIR)
+	$(ESCRIPT) generate_app $< $@ $(SOURCE_DIR)
 
 $(EBIN_DIR)/%.beam: $(SOURCE_DIR)/%.erl | $(DEPS_FILE)
-	erlc $(ERLC_OPTS) -pa $(EBIN_DIR) $<
+	$(ERLC) $(ERLC_OPTS) -pa $(EBIN_DIR) $<
 
 $(INCLUDE_DIR)/rabbit_framing.hrl: codegen.py $(AMQP_CODEGEN_DIR)/amqp_codegen.py $(AMQP_SPEC_JSON_FILES_0_9_1) $(AMQP_SPEC_JSON_FILES_0_8)
 	$(PYTHON) codegen.py --ignore-conflicts header $(AMQP_SPEC_JSON_FILES_0_9_1) $(AMQP_SPEC_JSON_FILES_0_8) $@
@@ -136,21 +136,21 @@ $(SOURCE_DIR)/rabbit_framing_amqp_0_8.erl: codegen.py $(AMQP_CODEGEN_DIR)/amqp_c
 	$(PYTHON) codegen.py body $(AMQP_SPEC_JSON_FILES_0_8) $@
 
 dialyze: $(BEAM_TARGETS) $(BASIC_PLT)
-	dialyzer --plt $(BASIC_PLT) --no_native --fullpath \
+	$(DIALYZER) --plt $(BASIC_PLT) --no_native --fullpath \
 	  -Wrace_conditions $(BEAM_TARGETS)
 
 # rabbit.plt is used by rabbitmq-erlang-client's dialyze make target
 create-plt: $(RABBIT_PLT)
 
 $(RABBIT_PLT): $(BEAM_TARGETS) $(BASIC_PLT)
-	dialyzer --plt $(BASIC_PLT) --output_plt $@ --no_native \
+	$(DIALYZER) --plt $(BASIC_PLT) --output_plt $@ --no_native \
 	  --add_to_plt $(BEAM_TARGETS)
 
 $(BASIC_PLT): $(BEAM_TARGETS)
 	if [ -f $@ ]; then \
 	    touch $@; \
 	else \
-	    dialyzer --output_plt $@ --build_plt \
+	    $(DIALYZER) --output_plt $@ --build_plt \
 		--apps erts kernel stdlib compiler sasl os_mon mnesia tools \
 		  public_key crypto ssl; \
 	fi

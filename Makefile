@@ -1,8 +1,14 @@
-ERLC = erlc
-ERL = erl
-ESCRIPT = escript
+#ERLC = erlc
+ERLC = /home/katerina/otps/otp_src_R15B01/bin/erlc
+#ERL = erl
+ERL = /home/katerina/otps/otp_src_R15B01/bin/erl
+#ESCRIPT = escript
+ESCRIPT = /home/katerina/otps/otp_src_R15B01/bin/escript
+#DIALYZER = dialyzer
+DIALYZER = /home/katerina/otps/otp_src_R15B01/bin/dialyzer
 #ERL_LIB_DIR = /path/to/otp/lib
-ERLC_OPTS = +debug_info
+ERL_LIB_DIR = /home/katerina/otps/otp_src_R15B01/lib
+#ERLC_OPTS = +debug_info
 
 .PHONY: all app bench clean clean-app clean-bench clean-res clean-suite suite
 
@@ -11,7 +17,7 @@ all: app suite bench
 
 # Compile only the applications.
 app:
-	@(cd app && $(MAKE) ERL=$(ERL) ERL_LIB_DIR=$(ERL_LIB_DIR) ERLANG_ROOT_DIR=$(ERLANG_ROOT_DIR) ERLC=$(ERLC) ERLC_OPTS=$(ERLC_OPTS) $@)
+	@(cd app && $(MAKE) ERL=$(ERL) ERL_LIB_DIR=$(ERL_LIB_DIR) ERLANG_ROOT_DIR=$(ERLANG_ROOT_DIR) ERLC=$(ERLC) ERLC_OPTS=$(ERLC_OPTS) DIALYZER=$(DIALYZER) ESCRIPT=$(ESCRIPT) $@)
 
 # Compile only the suite.
 suite: 
