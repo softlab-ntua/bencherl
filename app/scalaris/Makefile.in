@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+ERLC = ${ERLC:-erlc}
+ERL = ${ERL:-erl}
+DIALYZER = ${DIALYZER:-dialyzer}
+ERL_LIB_DIR = {ERL_LIB_DIR:-}
+
 SVN = svn
 CD = cd
 MAKE = make
