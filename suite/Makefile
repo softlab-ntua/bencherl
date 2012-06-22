@@ -1,4 +1,3 @@
-ERLC =
 ERLC_OPTS =
 
 EBIND = ebin
@@ -13,7 +12,7 @@ all: suite
 suite: $(BEAMF)
 
 $(EBIND)/%.beam: %.erl
-	$(ERLC) $(ERLC_OPTS) -o$(EBIND) $<
+	erlc $(ERLC_OPTS) -o$(EBIND) $<
 
 $(BEAMF): | $(EBIND)
 

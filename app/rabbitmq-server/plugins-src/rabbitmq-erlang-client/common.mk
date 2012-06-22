@@ -97,7 +97,7 @@ ifndef USE_SPECS
 USE_SPECS:=$(shell erl -noshell -eval 'io:format([list_to_integer(X) || X <- string:tokens(erlang:system_info(version), ".")] >= [5,7,2]), halt().')
 endif
 
-ERLC_OPTS=-I $(INCLUDE_DIR) -pa $(EBIN_DIR) -o $(EBIN_DIR) -Wall -v +debug_info $(if $(filter true,$(USE_SPECS)),-Duse_specs)
+override ERLC_OPTS=-I $(INCLUDE_DIR) -pa $(EBIN_DIR) -o $(EBIN_DIR) -Wall -v +debug_info $(if $(filter true,$(USE_SPECS)),-Duse_specs)
 
 RABBITMQ_NODENAME=rabbit
 PA_LOAD_PATH=-pa $(realpath $(LOAD_PATH))

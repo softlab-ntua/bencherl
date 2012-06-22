@@ -1,0 +1,4 @@
+#!/bin/bash
+
+env RABBITMQ_MNESIA_BASE=scratch/mnesia RABBITMQ_LOG_BASE=scratch/log app/rabbitmq-server/scripts/rabbitmqctl stop > /dev/null 
+

@@ -1,5 +1,4 @@
-ERLC =
-ERLC_OPTS = 
+override ERLC_OPTS = -I ../../app/rabbitmq-server/plugins-src/rabbitmq-erlang-client/dist 
 
 SRCD = src
 EBIND = ebin
@@ -14,7 +13,7 @@ all: bench
 bench: $(BEAMF)
 
 $(EBIND)/%.beam: $(SRCD)/%.erl
-	$(ERLC) $(ERLC_OPTS) -o$(EBIND) $<
+	erlc $(ERLC_OPTS) -o$(EBIND) $<
 
 $(BEAMF): | $(EBIND)
 
