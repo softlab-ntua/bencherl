@@ -1,5 +1,4 @@
 #ERL_LIB_DIR = /path/to/otp/lib
-ERL_LIB_DIR = /home/katerina/otps/otp_src_R15B01/lib
 #ERLC_OPTS = +debug_info
 
 .PHONY: all app bench clean clean-app clean-bench clean-res clean-suite suite
