@@ -99,7 +99,7 @@ rsbm()
 	IFS=$OLD_IFS
 	
 	if [ -f bench/$bench/conf/pre_bench ]; then
-		bench/$bench/conf/pre_bench $s "$otpv" "$argsv"	
+		bench/$bench/conf/pre_bench $s "$otpv" "$argsv"	"$COOKIE"
 	fi
 
 	benchdir=`cd bench/$bench; pwd`
@@ -118,6 +118,7 @@ cat > scratch/run_bench.conf << EOF
 {number_of_slaves, $n}.
 {number_of_schedulers, $s}.
 {slaves, [$SLAVE_NODES]}.
+{master, $MASTER_NODE}.
 {iterations, $ITERATIONS}.
 {outfile, "$outdir/$otpl.$argsl.$s.$n.output"}.
 {measfile, "$measdir/$otpl.$argsl.$WHAT.time"}.
@@ -131,7 +132,7 @@ EOF
 	halt
 
 	if [ -f bench/$bench/conf/post_bench ]; then
-		bench/$bench/conf/post_bench $s "$otpv" "$argsv"
+		bench/$bench/conf/post_bench $s "$otpv" "$argsv" "$COOKIE"
 	fi
 
 	IFS=$NEW_IFS

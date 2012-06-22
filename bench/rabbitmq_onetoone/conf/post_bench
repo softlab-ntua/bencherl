@@ -3,8 +3,8 @@
 if [ -z "$2" ]; then
     e1="erl"
 else
-    e="$2/bin/erl"
+    e1="$2/bin/erl"
 fi
 
-env ERL="$e1" RABBITMQ_MNESIA_BASE=scratch/mnesia RABBITMQ_LOG_BASE=scratch/log app/rabbitmq-server/scripts/rabbitmqctl stop > /dev/null 
+env RABBITMQ_CTL_ERL_ARGS="-name rabbit@`hostname -f` -setcookie $4" RABBITMQ_EBIN_ROOT="app/rabbitmq-server/ebin app/rabbitmq-server/plugins-src/rabbitmq-erlang-client/dist/amqp_client/ebin app/rabbitmq-server/plugins-src/rabbitmq-erlang-client/dist/rabbit_common/ebin" ERL="$e1" RABBITMQ_MNESIA_BASE=scratch/mnesia RABBITMQ_LOG_BASE=scratch/log app/rabbitmq-server/scripts/rabbitmqctl stop > /dev/null 
 

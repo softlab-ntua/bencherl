@@ -21,6 +21,7 @@ main() ->
 			_	-> OTP ++ "/bin/erl"
 		end,
 		{_,ErlArgs} = lists:keyfind(erl_args, 1, Conf),
+		{_,Master} = lists:keyfind(master, 1, Conf),
 		{_,Snames} = lists:keyfind(slaves, 1, Conf),
 		{_,N} = lists:keyfind(number_of_slaves, 1, Conf),
 		{_,S} = lists:keyfind(number_of_schedulers, 1, Conf),
@@ -57,7 +58,7 @@ main() ->
 				spawn(node(), fun() -> 
 					group_leader(OF, self()),
 					T0 = now(),
-					apply(M, run, [Bargs, Slaves, [{datadir, DataDir}]]), 
+					apply(M, run, [Bargs, Slaves, [{datadir, DataDir}, {master, Master}]]), 
 					T1 = now(),	
 					Coordinator ! {done, timer:now_diff(T1, T0)/1000}
 					end
