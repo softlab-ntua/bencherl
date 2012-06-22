@@ -102,8 +102,6 @@ ifneq "$(DEFAULT_GOAL_MAKE)" "$(firstword $(sort $(DEFAULT_GOAL_MAKE) $(MAKE_VER
 endif
 
 all: $(TARGETS)
-	[ -h "plugins-src/rabbitmq-erlang-client/dist/amqp_client" ] || ln -s plugins-src/rabbitmq-erlang-client/dist/amqp_client plugins-src/rabbitmq-erlang-client/dist/amqp_client-0.0.0
-	[ -h "plugins-src/rabbitmq-erlang-client/dist/rabbit_common" ] || ln -s plugins-src/rabbitmq-erlang-client/dist/rabbit_common plugins-src/rabbitmq-erlang-client/dist/rabbit_common-0.0.0
 
 .PHONY: plugins
 ifneq "$(PLUGINS_SRC_DIR)" ""
