@@ -159,6 +159,9 @@ $(DIST_DIR)/$(PACKAGE_NAME_EZ): $(TARGETS) $(EBIN_DIR)/$(PACKAGE).app | $(DIST_D
 	mkdir -p $(DIST_DIR)/$(PACKAGE_DIR)/$(INCLUDE_DIR)
 	cp -r $(INCLUDE_DIR)/* $(DIST_DIR)/$(PACKAGE_DIR)/$(INCLUDE_DIR)
 	(cd $(DIST_DIR); zip -q -r $(PACKAGE_NAME_EZ) $(PACKAGE_DIR))
+	(cd $(DIST_DIR); ln -s amqp_client-0.0.0 amqp_client)
+	(cd $(DIST_DIR); ln -s rabbit_common-0.0.0 rabbit_common)
+
 
 package: $(DIST_DIR)/$(PACKAGE_NAME_EZ)
 
