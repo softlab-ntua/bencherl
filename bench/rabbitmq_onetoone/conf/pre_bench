@@ -1,6 +1,12 @@
 #!/bin/bash
 
-env RABBITMQ_MNESIA_BASE=scratch/mnesia RABBITMQ_LOG_BASE=scratch/log app/rabbitmq-server/scripts/rabbitmq-server +S$1:$1 -detached > /dev/null 
+if [ -z "$2" ]; then
+	e1="erl"
+else
+	e="$2/bin/erl"
+fi
+
+env ERL="$e1" RABBITMQ_MNESIA_BASE=scratch/mnesia RABBITMQ_LOG_BASE=scratch/log app/rabbitmq-server/scripts/rabbitmq-server +S$1:$1 -detached > /dev/null 
 
 sleep 5s
 

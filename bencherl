@@ -125,11 +125,10 @@ cat > scratch/run_bench.conf << EOF
 {what, $WHAT}.
 EOF
 
-	hostname=`hostname -f`
-		${erl} ${argsv} ${EXTRA_ERL_ARGS} -setcookie "${COOKIE}" +S$s:$s \
-		-name master@${hostname} -noshell -pa ${EXTRA_CODE_PATH} \
-		suite/ebin bench/$bench/ebin -s run_bench main -s erlang \
-		halt
+	${erl} ${argsv} ${EXTRA_ERL_ARGS} -setcookie "${COOKIE}" +S$s:$s \
+	-name ${MASTER_NODE} -noshell -pa ${EXTRA_CODE_PATH} \
+	suite/ebin bench/$bench/ebin -s run_bench main -s erlang \
+	halt
 
 	if [ -f bench/$bench/conf/post_bench ]; then
 		bench/$bench/conf/post_bench $s "$otpv" "$argsv"
@@ -327,9 +326,12 @@ if [ -z $VERSION ]; then
 	VERSION=short
 fi
 
+MASTER="master@`hostname -f`"
+
 DEF_OTPS=${OTPS:-"DEFOTP="}
 DEF_ERL_ARGS=${ERL_ARGS:-"DEFARGS= "}
 DEF_COOKIE=${COOKIE:-"cookie"}
+DEF_MASTER_NODE=${MASTER_NODE:-$MASTER}
 DEF_SLAVE_NODES=$SLAVE_NODES
 DEF_PLOT=${PLOT:-0}
 DEF_CHECK_SANITY=${CHECK_SANITY:-0}
@@ -381,6 +383,7 @@ for bench in $BENCHS; do
 		OTPS=$DEF_OTPS
 		ERL_ARGS=$DEF_ERL_ARGS
 		COOKIE=$DEF_COOKIE
+		MASTER_NODE=$DEF_MASTER_NODE
 		SLAVE_NODES=$DEF_SLAVE_NODES
 		PLOT=$DEF_PLOT
 		CHECK_SANITY=$DEF_CHECK_SANITY
