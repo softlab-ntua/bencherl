@@ -356,7 +356,7 @@ fi
 
 if [ ! -z "$EXCLUDE_BENCH" ]; then
 	for b in `echo $EXCLUDE_BENCH | tr "," " "`; do
-		BENCHS=`echo $BENCHS | tr "," "\n" | grep -v -x "$EXCLUDE_BENCH" | tr "\n" ","`
+		BENCHS=`echo $BENCHS | tr "," "\n" | grep -v -x "$b" | tr "\n" ","`
 	done
 fi
 
