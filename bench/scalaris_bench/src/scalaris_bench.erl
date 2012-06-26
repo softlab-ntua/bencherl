@@ -2,14 +2,16 @@
 
 -include_lib("kernel/include/inet.hrl").
 
--export([bench_args/1, run/3]).
+-export([bench_args/2, run/3]).
 
-bench_args(short) ->
-	[[T,I,V] || T <- [64], I <- [50], V <- [31]];
-bench_args(intermediate) ->
-    [[T,I,V] || T <- [64], I <- [500], V <- [31]];
-bench_args(long) ->
-    [[T,I,V] || T <- [64], I <- [1000], V <- [31]].
+bench_args(Version, Conf) ->
+    {_,Schedulers} = lists:keyfind(number_of_schedulers, 1, Conf),
+	[F1, F2, F3] = case Version of
+		short -> [1, 1, 0.5];
+		intermediate -> [1, 8, 0.5];
+		long -> [1, 16, 0.5]
+	end,
+	[[T,I,V] || T <- [F1 * Schedulers], I <- [F2 * Schedulers], V <- [trunc(F3 * Schedulers)]].
 
 run([T,I,V|_], _, _) ->
 	{ok, N} = inet:gethostname(),

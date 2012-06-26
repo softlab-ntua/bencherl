@@ -46,7 +46,7 @@ main() ->
 				[] -> 
 					{ok, Hname} = inet:gethostname(), 
 					case UseLongNames of
-						true -> {ok, #hostent{h_name=H}} = inet:gethostbyname(Hname); 
+						true -> {ok, #hostent{h_name=H}} = inet:gethostbyname(Hname), {ok, H}; 
 						false -> {ok, Hname}
 					end;
 				_ -> {ok, hd(Rest)}
@@ -80,7 +80,7 @@ main() ->
 				end, lists:seq(1,Iterations)),
 			io:format(MF, "(~w) ~w ", [Bargs, median(Times)])	
 		end,
-		lists:foreach(Fun, M:bench_args(Version)),
+		lists:foreach(Fun, M:bench_args(Version, [{number_of_schedulers, S}])),
 		file:close(OF),
 
 		% Close the measurements file.

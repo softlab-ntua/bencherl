@@ -22,15 +22,17 @@
 
 -module(timer_wheel).
 
--export([bench_args/1, run/3]).
+-export([bench_args/2, run/3]).
 -export([wheel/1,no_wheel/1]).
 
-bench_args(short) ->
-	[[Wheel,N] || Wheel <- [wheel,no_wheel], N <- [1000]];
-bench_args(intermediate) ->
-    [[Wheel,N] || Wheel <- [wheel,no_wheel], N <- [2500]];
-bench_args(long) ->
-    [[Wheel,N] || Wheel <- [wheel,no_wheel], N <- [8000]].
+bench_args(Version, Conf) ->
+	{_,Schedulers} = lists:keyfind(number_of_schedulers, 1, Conf),
+	F = case Version of
+		short -> 16;
+		intermediate -> 40;
+		long -> 125
+	end,
+	[[Wheel,N] || Wheel <- [wheel,no_wheel], N <- [F * Schedulers]].
 
 run([wheel,N|_], _, _) ->
 	test(N, fun recv_loop_after/2);

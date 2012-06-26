@@ -21,14 +21,16 @@
 
 -module(serialmsg).
 
--export([bench_args/1, run/3]).
+-export([bench_args/2, run/3]).
 
-bench_args(short) ->
-	[[P,N,L] || P <- [100], N <- [1000], L <- [2000]];
-bench_args(intermediate) ->
-    [[P,N,L] || P <- [100], N <- [2000], L <- [2500]];
-bench_args(long) ->
-    [[P,N,L] || P <- [300], N <- [1000], L <- [2000]].
+bench_args(Version, Conf) ->
+	{_,Schedulers} = lists:keyfind(number_of_schedulers, 1, Conf),
+	[F1, F2, F3] = case Version of
+		short -> [2, 16, 32];  
+		intermediate -> [2, 32, 40];  
+		long -> [5, 16, 32]
+	end,
+	[[P,N,L] || P <- [F1 * Schedulers], N <- [F2 * Schedulers], L <- [F3 * Schedulers]].
 
 run([P,N,L|_], _, _) ->
 	Recvs = setup_receivers(P),

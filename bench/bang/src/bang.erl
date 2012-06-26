@@ -26,14 +26,16 @@
 
 -module(bang).
 
--export([bench_args/1, run/3]).
+-export([bench_args/2, run/3]).
 
-bench_args(short) ->
-	[[S,M] || S <- [1000], M <- [1000]];
-bench_args(intermediate) ->
-	[[S,M] || S <- [3500], M <- [3500]];
-bench_args(long) ->
-	[[S,M] || S <- [5000], M <- [5000]].
+bench_args(Version, Conf) ->
+	{_,Schedulers} = lists:keyfind(number_of_schedulers, 1, Conf),
+	F = case Version of
+		short -> 16;
+		intermediate -> 55;
+		long -> 79
+	end,
+	[[S,M] || S <- [F * Schedulers], M <- [F * Schedulers]].
 
 run([S,M|_], _, _) ->
 	Parent = self(),

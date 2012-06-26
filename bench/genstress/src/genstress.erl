@@ -23,7 +23,7 @@
 
 -behaviour(gen_server).
 
--export([bench_args/1, run/3]).
+-export([bench_args/2, run/3]).
 
 % %gen cb:s
 
@@ -33,12 +33,14 @@
 
 -record(state, {mstate}).
 
-bench_args(short) ->
-	[[Type,Np,N,Cqueue] || Type <- [proc_call,gen_call], Np <- [1000], N <- [200], Cqueue <- [500]];
-bench_args(intermediate) ->
-    [[Type,Np,N,Cqueue] || Type <- [proc_call,gen_call], Np <- [1000], N <- [600], Cqueue <- [700]];
-bench_args(long) ->
-    [[Type,Np,N,Cqueue] || Type <- [proc_call,gen_call], Np <- [1000], N <- [3000], Cqueue <- [5000]].
+bench_args(Version, Conf) ->
+	{_,Schedulers} = lists:keyfind(number_of_schedulers, 1, Conf),
+	[F1, F2, F3] = case Version of
+		short -> [16, 4, 8]; 
+		intermediate -> [16, 10, 11]; 
+		long -> [16, 47, 79]
+	end,
+    [[Type,Np,N,Cqueue] || Type <- [proc_call,gen_call], Np <- [F1 * Schedulers], N <- [F2 * Schedulers], Cqueue <- [F3 * Schedulers]].
 
 run([Type,Np,N,Cqueue|_], _, _) ->
 	Server  = start_server(Type),

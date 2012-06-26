@@ -21,7 +21,7 @@
 
 -module(mbrot).
 
--export([bench_args/1, run/3]).
+-export([bench_args/2, run/3]).
 
 -compile(native).	%% This benchmark runs faster in native code
 
@@ -30,12 +30,14 @@
 -define(RL, 2.0).
 -define(IL, 2.0).
 
-bench_args(short) ->
-	[[N,Np] || N <- [100], Np <- [200]];
-bench_args(intermediate) ->
-    [[N,Np] || N <- [200], Np <- [200]];
-bench_args(long) ->
-    [[N,Np] || N <- [400], Np <- [200]].
+bench_args(Version, Conf) ->
+	{_,Schedulers} = lists:keyfind(number_of_schedulers, 1, Conf),
+	[F1, F2] = case Version of
+		short -> [2, 4];
+		intermediate -> [4, 4];
+		long -> [7, 4]
+	end,
+	[[N,Np] || N <- [F1 * Schedulers], Np <- [F2 * Schedulers]].
 
 run([N,Np|_], _, _) ->
 	receive_workers(start_workers(N, Np)),

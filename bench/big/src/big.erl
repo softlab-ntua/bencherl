@@ -25,14 +25,16 @@
 %%%-------------------------------------------------------------------
 -module(big).
 
--export([bench_args/1, run/3]).
+-export([bench_args/2, run/3]).
 
-bench_args(short) ->
-	[[N] || N <- [500]];
-bench_args(intermediate) ->
-    [[N] || N <- [750]];
-bench_args(long) ->
-    [[N] || N <- [1500]].
+bench_args(Version, Conf) ->
+	{_,Schedulers} = lists:keyfind(number_of_schedulers, 1, Conf),
+	F = case Version of 
+		short -> 8;
+		intermediate -> 16;
+		long -> 24
+	end,
+	[[N] || N <- [F * Schedulers]].
 
 run([N|_], _, _) ->
 	Procs = spawn_procs(N),

@@ -26,18 +26,20 @@
 
 -module(ehb).
 
--export([bench_args/1, run/3]).
+-export([bench_args/2, run/3]).
 
 -define(ACK, 100).
 -define(DATA, {a,b,c,d,e,f,g,h,i,j,k,l}). %% 104 bytes on a 64-bit machine
 -define(GSIZE, 20).
 
-bench_args(short) ->
-	[[N,M] || N <- [50], M <- [250]];
-bench_args(intermediate) ->
-    [[N,M] || N <- [100], M <- [500]];
-bench_args(long) ->
-    [[N,M] || N <- [500], M <- [500]].
+bench_args(Version, Conf) ->
+	{_,Schedulers} = lists:keyfind(number_of_schedulers, 1, Conf),
+	[F1, F2] = case Version of 
+		short -> [1, 4];
+		intermediate -> [2,8];
+		long -> [8, 8]
+	end,    
+	[[N,M] || N <- [F1 * Schedulers], M <- [F2 * Schedulers]].
 
 run([N,M|_], _, _) ->
 	Master = self(),

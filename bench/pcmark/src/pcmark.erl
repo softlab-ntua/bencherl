@@ -21,19 +21,21 @@
 
 -module(pcmark).
 
--export([bench_args/1, run/3]).
+-export([bench_args/2, run/3]).
 
 -define(etstables, [ets1,ets2,ets3,ets4,ets5]).
 
 %% abstract
 %% 
 
-bench_args(short) ->
-	[[A,B,C] || A <- [200], B <- [500], C <- [500]];
-bench_args(intermediate) ->
-    [[A,B,C] || A <- [200], B <- [1200], C <- [1200]];
-bench_args(long) ->
-    [[A,B,C] || A <- [200], B <- [1800], C <- [1800]].
+bench_args(Version, Conf) ->
+	{_,Schedulers} = lists:keyfind(number_of_schedulers, 1, Conf),
+	[F1, F2, F3] = case Version of
+		short -> [4, 8, 8]; 
+		intermediate -> [4, 19, 19]; 
+		long -> [4, 29, 29]
+    end,
+	[[A,B,C] || A <- [F1 * Schedulers], B <- [F2 * Schedulers], C <- [F3 * Schedulers]].
 
 run([Size,Ongoing,Total|_], _, _) ->
 	init_ets(?etstables, Size),

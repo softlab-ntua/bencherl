@@ -26,14 +26,16 @@
 
 -module(ets_test).
 
--export([bench_args/1, run/3]).
+-export([bench_args/2, run/3]).
 
-bench_args(short) ->
-	[[N,W,R] || N <- [10000], W <- [10], R <- [500]];
-bench_args(intermediate) ->
-    [[N,W,R] || N <- [10000], W <- [2000], R <- [2000]];
-bench_args(long) ->
-    [[N,W,R] || N <- [10000], W <- [5000], R <- [2500]].
+bench_args(Version, Conf) ->
+	{_,Schedulers} = lists:keyfind(number_of_schedulers, 1, Conf),
+	[F1, F2, F3] = case Version of
+		short -> [157, 1, 8];
+		intermediate -> [157, 32, 32];
+		long -> [157, 79, 40]
+	end,
+	[[N,W,R] || N <- [F1 * Schedulers], W <- [F2 * Schedulers], R <- [F3 * Schedulers]].
 
 run([N,W,R|_], _, _) ->
 	Parent = self(),

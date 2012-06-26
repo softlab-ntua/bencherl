@@ -26,14 +26,16 @@
 
 -module(ran).
 
--export([bench_args/1, run/3]).
+-export([bench_args/2, run/3]).
 
-bench_args(short) ->
-	[[N] || N <- [30]];
-bench_args(intermediate) ->
-    [[N] || N <- [100]];
-bench_args(long) ->
-    [[N] || N <- [250]].
+bench_args(Version, Conf) ->
+	{_,Schedulers} = lists:keyfind(number_of_schedulers, 1, Conf),
+	F = case Version of
+		short -> 1;
+		intermediate -> 2;
+		long -> 4
+	end,
+	[[N] || N <- [F * Schedulers]].
 
 mk_ranlist(0, _, Acc) -> Acc;
 mk_ranlist(N, M, Acc) -> mk_ranlist(N-1, M, [random:uniform(M) | Acc]). 
