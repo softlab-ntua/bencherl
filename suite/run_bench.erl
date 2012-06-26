@@ -7,6 +7,8 @@
 
 -export([main/0]).
 
+-include_lib("kernel/include/inet.hrl").
+
 main() ->
 
 	try
@@ -30,7 +32,7 @@ main() ->
 		{_,MeasFile} = lists:keyfind(measfile, 1, Conf),
 		{_,DataDir} = lists:keyfind(datadir, 1, Conf),
 		{_,What} = lists:keyfind(what, 1, Conf),
-		{_,UseLongNames} = lists:keyfind(use_long_names, 1, Conf},
+		{_,UseLongNames} = lists:keyfind(use_long_names, 1, Conf),
 
 		NS = case What of
 				node -> N;
