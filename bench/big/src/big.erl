@@ -32,7 +32,7 @@ bench_args(short) ->
 bench_args(intermediate) ->
     [[N] || N <- [750]];
 bench_args(long) ->
-    [[N] || N <- [1150]].
+    [[N] || N <- [1500]].
 
 run([N|_], _, _) ->
 	Procs = spawn_procs(N),

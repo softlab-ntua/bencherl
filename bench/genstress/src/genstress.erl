@@ -38,7 +38,7 @@ bench_args(short) ->
 bench_args(intermediate) ->
     [[Type,Np,N,Cqueue] || Type <- [proc_call,gen_call], Np <- [1000], N <- [600], Cqueue <- [700]];
 bench_args(long) ->
-    [[Type,Np,N,Cqueue] || Type <- [proc_call,gen_call], Np <- [2000], N <- [900], Cqueue <- [500]].
+    [[Type,Np,N,Cqueue] || Type <- [proc_call,gen_call], Np <- [1000], N <- [3000], Cqueue <- [5000]].
 
 run([Type,Np,N,Cqueue|_], _, _) ->
 	Server  = start_server(Type),

@@ -30,7 +30,7 @@ bench_args(short) ->
 bench_args(intermediate) ->
     [[Wheel,N] || Wheel <- [wheel,no_wheel], N <- [2500]];
 bench_args(long) ->
-    [[Wheel,N] || Wheel <- [wheel,no_wheel], N <- [3500]].
+    [[Wheel,N] || Wheel <- [wheel,no_wheel], N <- [8000]].
 
 run([wheel,N|_], _, _) ->
 	test(N, fun recv_loop_after/2);

@@ -35,7 +35,7 @@ bench_args(short) ->
 bench_args(intermediate) ->
     [[N,Np] || N <- [200], Np <- [200]];
 bench_args(long) ->
-    [[N,Np] || N <- [250], Np <- [300]].
+    [[N,Np] || N <- [400], Np <- [200]].
 
 run([N,Np|_], _, _) ->
 	receive_workers(start_workers(N, Np)),

@@ -37,7 +37,7 @@ bench_args(short) ->
 bench_args(intermediate) ->
     [[N,M] || N <- [100], M <- [500]];
 bench_args(long) ->
-    [[N,M] || N <- [200], M <- [700]].
+    [[N,M] || N <- [500], M <- [500]].
 
 run([N,M|_], _, _) ->
 	Master = self(),
