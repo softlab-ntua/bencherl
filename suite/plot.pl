@@ -21,6 +21,7 @@ sub main {
 	}
 
 	my $title = $ARGV[0];
+	$title =~ s/_/\\_/g;
 	my $xaxislabel = $ARGV[1];
 	my $yaxislabel = $ARGV[2];
 	my $infile = $ARGV[3];
