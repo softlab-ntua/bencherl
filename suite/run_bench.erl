@@ -30,6 +30,8 @@ main() ->
 		{_,MeasFile} = lists:keyfind(measfile, 1, Conf),
 		{_,DataDir} = lists:keyfind(datadir, 1, Conf),
 		{_,What} = lists:keyfind(what, 1, Conf),
+		{_,UseLongNames} = lists:keyfind(use_long_names, 1, Conf},
+
 		NS = case What of
 				node -> N;
 				sched -> S
@@ -37,7 +39,16 @@ main() ->
 
 		% Start the slaves.
 		Slaves = lists:map(fun(Sn)->
-			[Name,Host]=string:tokens(atom_to_list(Sn), "@"),
+			[Name|Rest] = string:tokens(atom_to_list(Sn), "@"),
+			{ok, Host} = case Rest of 
+				[] -> 
+					{ok, Hname} = inet:gethostname(), 
+					case UseLongNames of
+						true -> {ok, #hostent{h_name=H}} = inet:gethostbyname(Hname); 
+						false -> {ok, Hname}
+					end;
+				_ -> {ok, hd(Rest)}
+			end, 
 			{ok, Slave} = slave:start(list_to_atom(Host), list_to_atom(Name), 
 			ErlArgs, self(), ErlProgram),
 			Slave
