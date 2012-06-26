@@ -52,7 +52,7 @@ sub main {
 			if ($ci > 2) {
 				print PIPE ", ";
 			}
-			print PIPE "\"$infile\" using 1:" . ($ci + 1) . " title \"$token\" with lines";
+			print PIPE "\"$infile\" using 1:" . ($ci + 1) . " title \"$token\" with lines lineweight 2";
 		}
 	}
 	print PIPE "\nexit\n";
