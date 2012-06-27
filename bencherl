@@ -389,6 +389,10 @@ mkdir $resdir
 IFS=$NEW_IFS
 for bench in $BENCHS; do
 
+	if [ -z $bench ]; then
+		continue;
+	fi
+
 	IFS=$OLD_IFS
 	
 	if [ ! -d bench/$bench ]; then
