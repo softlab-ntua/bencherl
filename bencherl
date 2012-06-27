@@ -79,8 +79,8 @@ rbm()
 			IFS=$OLD_IFS
 			s=`echo $NUMBER_OF_SCHEDULERS | tr "," "\n" | tail -n 1`
 			IFS=$NEW_IFS
- 
-			if [[ ( $NUMBER_OF_NUMBER_OF_SLAVE_NODES -gt 1 ) && ( $n -le $NUMBER_OF_NUMBER_OF_SLAVE_NODES ) ]]; then
+
+			if [[ ( $NUMBER_OF_NUMBER_OF_SLAVE_NODES -gt 1 ) || ( $n -ge $NUMBER_OF_NUMBER_OF_SSLAVE_NODES ) ]]; then
 				for n in $NUMBER_OF_SLAVE_NODES; do
 					if [ "$n" -gt "$NSLAVE_NODES" ]; then
 						continue
@@ -248,7 +248,7 @@ psbm()
 		done
 	fi
 
-	if [ $NOTPS -gt 1 ]; then
+	if [ "$NOTPS" -gt "1" ]; then
 		for args in $PARGS; do
 			for file in `ls $measdir/*.$args.$WHAT`; do
 				fn=`basename $file .$WHAT`

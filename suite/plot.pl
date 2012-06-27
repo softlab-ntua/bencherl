@@ -7,7 +7,7 @@
 use strict;
 
 sub usage {
-	print "Usage: plot.pl TITLE INPUT_FILE OUTPUT_FILE\n";
+	print "Usage: plot.pl TITLE X_AXIS_LABEL Y_AXIS_LABEL INPUT_FILE OUTPUT_FILE\n";
     exit(1);
 }
 
@@ -28,7 +28,7 @@ sub main {
 	my $outfile = $ARGV[4];
 
 	# Generate the gnuplot scipt that plots the diagram.
-	open PIPE, "| gnuplot" || die "Somethng went wrong with gnuplot\n";
+	open PIPE, "| gnuplot" || die "Something went wrong with gnuplot\n";
 
 	print PIPE "set title '$title'\n";
 	print PIPE "set autoscale\n";
@@ -52,7 +52,7 @@ sub main {
 			if ($ci > 2) {
 				print PIPE ", ";
 			}
-			print PIPE "\"$infile\" using 1:" . ($ci + 1) . " title \"$token\" with lines lineweight 2";
+			print PIPE "\"$infile\" using 1:" . ($ci + 1) . " title \"$token\" w l lw 2";
 		}
 	}
 	print PIPE "\nexit\n";
