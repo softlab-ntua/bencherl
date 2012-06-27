@@ -79,7 +79,7 @@ main() ->
 				),
 				receive {done,T} -> T end
 				end, lists:seq(1,Iterations)),
-			io:format(MF, "(~w) ~w ", [Bargs, min(Times)])	
+			io:format(MF, "(~w) ~w ", [Bargs, lists:min(Times)])	
 		end,
 		lists:foreach(Fun, M:bench_args(Version, [{number_of_cores, Cores}])),
 		file:close(OF),
