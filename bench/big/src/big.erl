@@ -28,13 +28,13 @@
 -export([bench_args/2, run/3]).
 
 bench_args(Version, Conf) ->
-	{_,Schedulers} = lists:keyfind(number_of_schedulers, 1, Conf),
+	{_,Cores} = lists:keyfind(number_of_cores, 1, Conf),
 	F = case Version of 
 		short -> 8;
 		intermediate -> 16;
 		long -> 24
 	end,
-	[[N] || N <- [F * Schedulers]].
+	[[N] || N <- [F * Cores]].
 
 run([N|_], _, _) ->
 	Procs = spawn_procs(N),

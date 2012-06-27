@@ -29,13 +29,13 @@
 %% 
 
 bench_args(Version, Conf) ->
-	{_,Schedulers} = lists:keyfind(number_of_schedulers, 1, Conf),
+    {_,Cores} = lists:keyfind(number_of_cores, 1, Conf),
 	[F1, F2, F3] = case Version of
 		short -> [4, 8, 8]; 
 		intermediate -> [4, 19, 19]; 
 		long -> [4, 29, 29]
     end,
-	[[A,B,C] || A <- [F1 * Schedulers], B <- [F2 * Schedulers], C <- [F3 * Schedulers]].
+	[[A,B,C] || A <- [F1 * Cores], B <- [F2 * Cores], C <- [F3 * Cores]].
 
 run([Size,Ongoing,Total|_], _, _) ->
 	init_ets(?etstables, Size),

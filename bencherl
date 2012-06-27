@@ -133,6 +133,7 @@ cat > scratch/run_bench.conf << EOF
 {datadir, "$benchdir/data"}.
 {what, $WHAT}.
 {use_long_names, $uln}.
+{number_of_cores, $CORES}.
 EOF
 
 	${erl} ${argsv} ${EXTRA_ERL_ARGS} -setcookie "${COOKIE}" +S$s:$s \

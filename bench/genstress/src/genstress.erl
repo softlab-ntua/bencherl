@@ -34,13 +34,13 @@
 -record(state, {mstate}).
 
 bench_args(Version, Conf) ->
-	{_,Schedulers} = lists:keyfind(number_of_schedulers, 1, Conf),
+    {_,Cores} = lists:keyfind(number_of_cores, 1, Conf),
 	[F1, F2, F3] = case Version of
 		short -> [16, 4, 8]; 
 		intermediate -> [16, 10, 11]; 
 		long -> [16, 47, 79]
 	end,
-    [[Type,Np,N,Cqueue] || Type <- [proc_call,gen_call], Np <- [F1 * Schedulers], N <- [F2 * Schedulers], Cqueue <- [F3 * Schedulers]].
+    [[Type,Np,N,Cqueue] || Type <- [proc_call,gen_call], Np <- [F1 * Cores], N <- [F2 * Cores], Cqueue <- [F3 * Cores]].
 
 run([Type,Np,N,Cqueue|_], _, _) ->
 	Server  = start_server(Type),

@@ -24,13 +24,13 @@
 -export([bench_args/2, run/3]).
 
 bench_args(Version, Conf) ->
-	{_,Schedulers} = lists:keyfind(number_of_schedulers, 1, Conf),
+    {_,Cores} = lists:keyfind(number_of_cores, 1, Conf),
 	[F1, F2, F3] = case Version of
 		short -> [2, 16, 32];  
 		intermediate -> [2, 32, 40];  
 		long -> [5, 16, 32]
 	end,
-	[[P,N,L] || P <- [F1 * Schedulers], N <- [F2 * Schedulers], L <- [F3 * Schedulers]].
+	[[P,N,L] || P <- [F1 * Cores], N <- [F2 * Cores], L <- [F3 * Cores]].
 
 run([P,N,L|_], _, _) ->
 	Recvs = setup_receivers(P),

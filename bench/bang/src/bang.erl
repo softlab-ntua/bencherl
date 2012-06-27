@@ -29,13 +29,13 @@
 -export([bench_args/2, run/3]).
 
 bench_args(Version, Conf) ->
-	{_,Schedulers} = lists:keyfind(number_of_schedulers, 1, Conf),
+	{_,Cores} = lists:keyfind(number_of_cores, 1, Conf),
 	F = case Version of
 		short -> 16;
 		intermediate -> 55;
 		long -> 79
 	end,
-	[[S,M] || S <- [F * Schedulers], M <- [F * Schedulers]].
+	[[S,M] || S <- [F * Cores], M <- [F * Cores]].
 
 run([S,M|_], _, _) ->
 	Parent = self(),

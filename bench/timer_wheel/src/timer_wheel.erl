@@ -26,13 +26,13 @@
 -export([wheel/1,no_wheel/1]).
 
 bench_args(Version, Conf) ->
-	{_,Schedulers} = lists:keyfind(number_of_schedulers, 1, Conf),
+    {_,Cores} = lists:keyfind(number_of_cores, 1, Conf),
 	F = case Version of
 		short -> 16;
 		intermediate -> 40;
 		long -> 125
 	end,
-	[[Wheel,N] || Wheel <- [wheel,no_wheel], N <- [F * Schedulers]].
+	[[Wheel,N] || Wheel <- [wheel,no_wheel], N <- [F * Cores]].
 
 run([wheel,N|_], _, _) ->
 	test(N, fun recv_loop_after/2);

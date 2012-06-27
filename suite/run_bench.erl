@@ -33,6 +33,7 @@ main() ->
 		{_,DataDir} = lists:keyfind(datadir, 1, Conf),
 		{_,What} = lists:keyfind(what, 1, Conf),
 		{_,UseLongNames} = lists:keyfind(use_long_names, 1, Conf),
+		{_,Cores} = lists:keyfind(number_of_cores, 1, Conf),
 
 		NS = case What of
 				node -> N;
@@ -80,7 +81,7 @@ main() ->
 				end, lists:seq(1,Iterations)),
 			io:format(MF, "(~w) ~w ", [Bargs, median(Times)])	
 		end,
-		lists:foreach(Fun, M:bench_args(Version, [{number_of_schedulers, S}])),
+		lists:foreach(Fun, M:bench_args(Version, [{number_of_cores, Cores}])),
 		file:close(OF),
 
 		% Close the measurements file.

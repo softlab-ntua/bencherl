@@ -33,13 +33,13 @@
 -define(GSIZE, 20).
 
 bench_args(Version, Conf) ->
-	{_,Schedulers} = lists:keyfind(number_of_schedulers, 1, Conf),
+    {_,Cores} = lists:keyfind(number_of_cores, 1, Conf),
 	[F1, F2] = case Version of 
 		short -> [1, 4];
 		intermediate -> [2,8];
 		long -> [8, 8]
 	end,    
-	[[N,M] || N <- [F1 * Schedulers], M <- [F2 * Schedulers]].
+	[[N,M] || N <- [F1 * Cores], M <- [F2 * Cores]].
 
 run([N,M|_], _, _) ->
 	Master = self(),
