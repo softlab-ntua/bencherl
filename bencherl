@@ -126,7 +126,7 @@ cat > scratch/run_bench.conf << EOF
 {number_of_slaves, $n}.
 {number_of_schedulers, $s}.
 {slaves, [$SLAVE_NODES]}.
-{master, $MASTER_NODE}.
+{master, '$MASTER_NODE'}.
 {iterations, $ITERATIONS}.
 {outfile, "$outdir/$otpl.$argsl.$s.$n.output"}.
 {measfile, "$measdir/$otpl.$argsl.$WHAT.time"}.
