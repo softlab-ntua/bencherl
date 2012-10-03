@@ -1,4 +1,4 @@
-This is a benchmark suite for the Erlang VM.
+`bencherl` is a scalability benchmark suite for Erlang.
 
 ### How to build the benchmark suite ###
 
@@ -43,7 +43,7 @@ commas.
 
 By default, all benchmarks are run.
 
-### How list all benchmarks ###
+### How to list all benchmarks ###
 
 Use the `-l` option of the `bencherl` script.
 
@@ -65,7 +65,7 @@ or a range of integers:
 By default, benchmarks are run with as many schedulers as the number of logical
 processors.
  
-### How to specify the Erlang/OTPs to run benchmarks with ###
+### How to specify the versions/flavors of Erlang/OTP to run benchmarks with ###
 
 Set the `OTPS` variable in `conf/run.conf`.
 
@@ -98,7 +98,7 @@ or a range of integers:
 
 	NUMBER_OF_SLAVE_NODES=2..4
 
-Benchmarks run with at most as many slave nodes as specified in the 
+Benchmarks are executed with at most as many slave nodes as specified in the 
 `SLAVE_NODES` variable.
 
 By default, benchmarks are run with one master node and no slave nodes.
@@ -107,12 +107,35 @@ By default, benchmarks are run with one master node and no slave nodes.
 
 Set the `SLAVE_NODES` variable in `conf/run.conf`.
 
-The value of this variable is zero or more long node names separated with
-commas. 
+The value of this variable is zero or more long or short node names separated 
+with commas. 
 
 	SLAVE_NODES=somenode@somehost,someothernode@someotherhost
 
+The `USE_LONG_NAMES` variable determines whether long or short names are
+expected.
+
 By default, benchmarks are run with no slave nodes.
+
+### How to specify the master node to run benchmarks with ###
+
+Set the `MASTER_NODE` variable in `conf/run.conf`.
+
+The value of this variabe is the short or the long name of the master node.
+
+    MASTER_NODE=somenode@somehost
+
+The `USE_LONG_NAMES` variable determines whether long or short names are
+expected.
+
+The default long name of the master node is:
+
+    master@`hostname -f`
+
+and its default short name:
+
+    master@`hostname`
+
 
 ### How to specify the magic cookie that master and slave nodes share ###
 
@@ -122,7 +145,7 @@ Set the `COOKIE` variable in `conf/run.conf`.
 
 The default cookie is `cookie`.
 
-### How to specify which version of the benchmarks to run.
+### How to specify which version of the benchmarks to run ###
 
 Set the `VERSION` variable in `conf/run.conf`.
 
@@ -158,16 +181,12 @@ By default, the sanity of the benchmark execution results is not checked.
 
 Set the `ITERATIONS` variable in `conf/run.conf`.
 
-The value of this variable is an integer >= 1.
+The value of this variable is an integer that is greater than or equal to 1.
 
 	ITERATIONS=5
 
 The default number of iterations is 1.
  
-### How to specify the compiler to use for the benchmarks, the applications and the suite ###
-
-Set the `ERLC` variable in the `Makefile`.
-
 ### What is the result of running the benchmark suite ###
 
 A new directory is created under the `results` directory. The name of this 
@@ -175,7 +194,7 @@ directory is the mnemonic name or, if no mnemonic name has been specified, a
 string that contains the date and time when the run started.
 
 In the result directory, there is one subdirectory for each one of the 
-benchmarks that was run with the same name as the benchmark. Each such 
+benchmarks that was run, with the same name as the benchmark. Each such 
 directory has three sub-directories:
 * `graphs`, which contains the scalability graphs;
 * `output`, which contains the output that the benchmark produced during its execution;

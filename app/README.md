@@ -1,2 +1,2 @@
-This is where any applications that need to be benchmarked can reside.
+This is where applications that are to be benchmarked may be put.
 
