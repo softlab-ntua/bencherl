@@ -164,7 +164,7 @@ graphs) or 1 (produce scalability graphs).
 
 	PLOT=1
 
-By default, no scalability graphs are produced.
+The default value is `1`.
 
 ### How to specify whether to perform a sanity check or not ###
 
