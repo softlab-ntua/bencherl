@@ -41,7 +41,7 @@ run([N|_], _, _) ->
 	RMsgs = lists:map(fun (P) -> {done, P} end, Procs),
 	send_procs(Procs, {procs, Procs, self()}),
 	receive_msgs(RMsgs),
-	lists:foreach(fun (P) -> exit(P, normal) end, Procs),
+	lists:foreach(fun (P) -> P ! die end, Procs),
 	ok.
 
 pinger([], [], true) ->
@@ -49,8 +49,13 @@ pinger([], [], true) ->
 		{procs, Procs, ReportTo} -> pinger(Procs, [], ReportTo)
     end;
 pinger([], [], false) ->
-	receive {ping, From} -> From ! {pong, self()} end,
-	pinger([],[],false);
+	receive
+		{ping, From} -> 
+			From ! {pong, self()},
+			pinger([],[],false);
+		die ->
+			ok			
+	end;
 pinger([], [], ReportTo) ->
 	ReportTo ! {done, self()},
 	pinger([],[],false);
