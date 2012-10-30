@@ -11,7 +11,7 @@ list_of_scenarios(Version) ->
                          intermediate -> 200000;
                          long         -> 2000000
                      end,
-    Scenarios = [{50,50,0}, {20,10,70}, {9,1,90}, {1,0,99}],
+    Scenarios = [{100,0,0},{50,50,0}, {20,10,70}, {9,1,90}, {1,0,99}],
     KeyRangeSizes = [NrOfOperations div round(math:pow(10, X)) || X <-lists:seq(0, 0)],%4)],
     TableTypes = [set],%, ordered_set],
     [[TableType, NrOfOperations, KeyRangeSize, Scenario] || 
