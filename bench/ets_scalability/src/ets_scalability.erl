@@ -12,7 +12,7 @@ list_of_scenarios(Version) ->
                          long         -> 2000000
                      end,
     Scenarios = [{100,0,0},{50,50,0}, {20,10,70}, {9,1,90}, {1,0,99}],
-    KeyRangeSizes = [NrOfOperations/100],
+    KeyRangeSizes = [NrOfOperations div 100],
     TableTypes = [set],
     ConcurrencyOptionsList = 
 	[[{write_concurrency,true}, {read_concurrency,true}],
@@ -29,12 +29,9 @@ run([all, Version|_], _, _) ->
               run(Scenario, nothing, nothing)
       end
       ,list_of_scenarios(Version));
-run([TableType, NrOfOperations, KeyRangeSize, Scenario|_], _, _) ->
+run([TableType, NrOfOperations, KeyRangeSize, Scenario, ConcurrencyOptions|_], _, _) ->
     Table = ets:new(test_table, 
-                    [TableType,
-                     public, 
-                     {write_concurrency,true}, 
-                     {read_concurrency,true}]),
+                    [TableType, public | ConcurrencyOptions]),
     NrOfSchedulers = erlang:system_info(schedulers),
     OperationsPerProcess = NrOfOperations div NrOfSchedulers,
     OperationsPerProcessReminder = NrOfOperations rem NrOfSchedulers,
