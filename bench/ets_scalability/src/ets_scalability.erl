@@ -12,12 +12,16 @@ list_of_scenarios(Version) ->
                          long         -> 2000000
                      end,
     Scenarios = [{100,0,0},{50,50,0}, {20,10,70}, {9,1,90}, {1,0,99}],
-    KeyRangeSizes = [NrOfOperations div round(math:pow(10, X)) || X <-lists:seq(0, 0)],%4)],
-    TableTypes = [set],%, ordered_set],
-    [[TableType, NrOfOperations, KeyRangeSize, Scenario] || 
+    KeyRangeSizes = [NrOfOperations/100],
+    TableTypes = [set],
+    ConcurrencyOptionsList = 
+	[[{write_concurrency,true}, {read_concurrency,true}],
+	[{write_concurrency,true}]],
+    [[TableType, NrOfOperations, KeyRangeSize, Scenario, ConcurrencyOptions] || 
         Scenario <- Scenarios, 
         KeyRangeSize <- KeyRangeSizes, 
-        TableType <- TableTypes].
+        TableType <- TableTypes,
+        ConcurrencyOptions <- ConcurrencyOptionsList].
 
 run([all, Version|_], _, _) ->
     lists:foreach(
@@ -28,7 +32,8 @@ run([all, Version|_], _, _) ->
 run([TableType, NrOfOperations, KeyRangeSize, Scenario|_], _, _) ->
     Table = ets:new(test_table, 
                     [TableType,
-                     public, {write_concurrency,true}, 
+                     public, 
+                     {write_concurrency,true}, 
                      {read_concurrency,true}]),
     NrOfSchedulers = erlang:system_info(schedulers),
     OperationsPerProcess = NrOfOperations div NrOfSchedulers,
