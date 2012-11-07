@@ -1,0 +1,67 @@
+{% extends "api.html" %}
+{% block api_content %}
+<p>Chicago Boss provides API functions for sending and receiving emails. No SMTP configuration or server is necessary.</p>
+
+<h2>Sending a simple email</h2>
+
+<p>The easiest way to send a message is:</p>
+
+<div class="code">
+    boss_mail:send(FromAddress, ToAddress, Subject, Body)
+</div>
+
+<p>If you want to treat Body as an io_lib format string and pass in arguments, use this format:</p>
+
+<div class="code">
+    boss_mail:send(FromAddress, ToAddress, Subject, BodyFmt, [BodyArgs])
+</div>
+
+<p>If you need to customize the email headers or wish to generate emails from Django templates, read on.</p>
+
+<h2>Sending email with templates</h2>
+<p>If the simple method doesn't meet your needs, Chicago Boss provides a way to send email using controllers and views.</p>
+<p>Mail controller logic should go into <code>src/mail/my_application_outgoing_mail_controller.erl</code> in your project directory, and templates should go into <code>src/mail/view/</code>. To send an email from a web controller, call:</p>
+<div class="code">
+    boss_mail:send_template(my_application, foo_message, [Arg1, Arg2, ...])
+</div>
+<p>That will invoke <code>outgoing_mail_controller:foo_message(Arg1, Arg2, ...)</code> and use the return value to populate the templates <code>src/mail/view/foo_message.txt</code> and <code>src/mail/view/foo_message.html</code>, then send the email in a background process. Your mail controller function should return:</div>
+<div class="code">
+    {ok, FromAddress, ToAddress, HeaderFields} | <br />
+    {ok, FromAddress, ToAddress, HeaderFields, Variables} | <br />
+    {ok, FromAddress, ToAddress, HeaderFields, Variables, Options} | <br />
+    nevermind
+</div>
+<p>If the return value is <code>nevermind</code>, no email will be sent. Otherwise,</p>
+<ul>
+    <li><p><code>FromAddress</code> is the sender's email address. The address should <em>not</em> be in "friendly" form, i.e. "foo@example.com" is OK, but "Kai Foo &lt;foo@example.com&gt;" is not.</p></li>
+    <li><p><code>ToAddress</code> is recipient's email address.</p></li>
+    <li><p><code>HeaderFields</code> is a proplist of email header fields, e.g. <code>[{"From", "SECRETARY TO CHARLES TAYLOR &lt;mo@hotmail.com&gt;"}, {"Subject", "Unclaimed Lottery Winnings"}]</code>. 
+    If you want the From: and To: fields to appear in the message, you need to provide values here; they will not be taken from <code>FromAddress</code> and <code>ToAddress</code>.
+    However, the header fields for Message-ID: and Date: will be populated automatically if not provided.
+    </p></li>
+    <li><p><code>Variables</code> (if present) will be passed to the associated Django template(s), which will form the body of the message.</p></li>
+    <li><p><code>Options</code> (if present) is a proplist of additional options, possibly containing:
+    <ul>
+        <li><p><code>attachments</code> - a list of tuples representing email attachments. Each attachment should consist of: <code>{FileName, MimeType, Contents}</code>. In this case <code>FileName</code> simply refers to how the file will be named in the email (and is not necessarily a file on the local file system). The file's <code>Contents</code> should be an io_list.</p></li>
+        <li><p><code>template</code> - a string with the name of another template to use for rendering (assuming you don't want the default template, which is just the same as the function name).</p></li>
+    </ul>
+</ul>
+<p><strong>Formatting.</strong> If templates ending only in ".txt" are present, the message will be sent in plain-text; if templates ending only in ".html" are present, the message will be sent as HTML; but if both ".txt" and ".html" templates are present, the message will be sent as a a MIME multi-part message with alternative plain-text and HTML representations.</p>
+<p><strong>I18n.</strong> To use Chicago Boss's i18n machinery in emails, specify the desired language in the "Content-Language" header field returned from the mail controller.</p>
+
+<h2>Receiving email</h2>
+
+<p>To receive email, you must first enable the SMTP server in your configuration. You can then define endpoints in <code>src/mail/my_application_incoming_mail_controller.erl</code>. Each function should take two arguments:</p>
+<ul>
+    <li>The address that the email is from</li>
+    <li>A parsed version of the email</li>
+</ul>
+<p>The return value is ignored.</p>
+<p>To implement authentication for incoming email, simply define an <code>authorize_/3</code> function in your incoming mail controller. It should take three arguments:</p>
+<ul>
+    <li>The user name of the sender</li>
+    <li>The domain name of the sender</li>
+    <li>The IP address of the sender</li>
+</ul>
+<p>The <code>authorize_/3</code> function should return <code>true</code> if the user should be permitted to send email to the controller, or <code>false</code> otherwise.</p>
+{% endblock %}
