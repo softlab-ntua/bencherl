@@ -217,8 +217,8 @@ has_blocker(Array,Pos) ->
                     false;
                 false ->
                     (array:get(Pos -1, Array) =:= ?BLACK) andalso
-                    (array:get(Pos + 1, Array) =:= ?WHITE) andalso
-                    (array:get(Pos + 2, Array) =:= ?WHITE)
+                                                            (array:get(Pos + 1, Array) =:= ?WHITE) andalso
+                                                                                                     (array:get(Pos + 2, Array) =:= ?WHITE)
             end;
         _ ->
             false
@@ -231,8 +231,8 @@ has_start_blocker(Array) ->
             false;
         false ->
             (array:get(0, Array) =:= ?BLACK) andalso
-            (array:get(1, Array) =:= ?WHITE) andalso
-            (array:get(2, Array) =:= ?WHITE)
+                                               (array:get(1, Array) =:= ?WHITE) andalso
+                                                                                  (array:get(2, Array) =:= ?WHITE)
     end.
 
 has_end_blocker(Array) ->
@@ -242,8 +242,8 @@ has_end_blocker(Array) ->
             false;
         false ->
             (array:get(Size -3, Array) =:= ?BLACK) andalso
-            (array:get(Size -2, Array) =:= ?BLACK) andalso
-            (array:get(Size -1, Array) =:= ?WHITE)
+                                                     (array:get(Size -2, Array) =:= ?BLACK) andalso
+                                                                                              (array:get(Size -1, Array) =:= ?WHITE)
     end.
 
 
