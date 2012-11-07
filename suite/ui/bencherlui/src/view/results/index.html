@@ -1,0 +1,41 @@
+{% extends "main_template.html" %}
+
+{% block javascript %}
+<link rel="stylesheet" href="/static/css/smoothness/jquery-ui-1.9.1.custom.css" />
+<script type="text/javascript" src="/static/js/flot-0.7/jquery.flot.js"></script>
+<script type="text/javascript" src="/static/js/jquery-ui-1.9.1.custom.js"></script>
+<script type="text/javascript" src="/static/js/results/results.js"></script>
+{% endblock %}
+
+{% block body %}
+<div id="results">
+
+  <div id="benchmarks" class="scrollable" style="width:200px;">
+    <h4 id="benchmarkListHeader">...</h4>
+    <div id="benchmarkListDiv"></div>
+    <h4 id="benchmarkRuns">BENCHMARK RUNS</h4>
+    <div id="benchmarkRunListDiv" style="display:none;">
+      {{benchmark_runs}}
+    </div>
+  </div>
+
+  <div id="graph">
+    <div id="placeholder"></div>
+  </div>
+
+  <div id="miniature">
+    <b>Select graphs to display:</b>
+    <ul id="overviewLegend" style="list-style-type: none;">
+    </ul>
+    <b>Select graph type:</b><br/>
+    <div id="graphTypeRadio">
+      <input type="radio" id="radio1" name="graphTypeRadio" value="time" checked="checked">
+      <label for="radio1">Time</label>
+      <input type="radio" id="radio2" name="graphTypeRadio" value="speedup">
+      <label for="radio2">Speedup</label>
+    </div>
+    Hint: Drag lower left corner to resize<br/>
+  </div>
+
+</div>
+{% endblock %}
