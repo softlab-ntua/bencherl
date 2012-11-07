@@ -13,8 +13,6 @@ bench_args(Version, _) ->
 run(Tests, _, _) ->
     lists:foreach(
       fun (String) ->
-	      io:format("Start calulating ~p ~n", [String]),
-              moves_par:moves(String),
-	      io:format("Stop calulating ~p ~n", [String])
-      end
-      , Tests).
+              moves_par:moves(String)
+      end,
+      Tests).
