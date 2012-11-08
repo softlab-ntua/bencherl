@@ -1,0 +1,21 @@
+{% extends "main_template.html" %}
+
+{% block javascript %}
+{% endblock %}
+
+{% block body %}
+<p>
+  This is the result viewer for bencherl. 
+  Click on the <a href="/results">results link</a> to browse results of the benchmarks that you have run.
+  You can find more information about how to run benchmarks etc at the <a href="http://release.softlab.ntua.gr/bencherl/">bencherl website</a>.
+</p>
+
+<p>
+  Type the following command in your bencherl base path to start the bencherl ui server:
+
+  <pre>
+    ./bencherl -ui
+  </pre>
+
+</p>
+{% endblock %}

@@ -1,0 +1,42 @@
+{variables, [{appid, "bossapp"},
+    {port, 8001},
+    {src, "../ChicagoBoss"},
+    {dest, "{{appid}}"}]}.
+{dir, "{{dest}}"}.
+{dir, "{{dest}}/log"}.
+{dir, "{{dest}}/priv/lang"}.
+{dir, "{{dest}}/ebin"}.
+{dir, "{{dest}}/include"}.
+{dir, "{{dest}}/src/lib"}.
+{dir, "{{dest}}/src/view"}.
+{dir, "{{dest}}/src/view/lib"}.
+{dir, "{{dest}}/src/view/lib/tag_html"}.
+{dir, "{{dest}}/src/view/lib/tag_modules"}.
+{dir, "{{dest}}/src/view/lib/filter_modules"}.
+{dir, "{{dest}}/src/model"}.
+{dir, "{{dest}}/src/controller"}.
+{dir, "{{dest}}/src/websocket"}.
+{dir, "{{dest}}/src/mail/view"}.
+{dir, "{{dest}}/src/test/eunit"}.
+{dir, "{{dest}}/src/test/functional"}.
+{template, "skel/start-server.bat", "{{dest}}/start-server.bat"}.
+{template, "skel/src/project.app.src", "{{dest}}/src/{{appid}}.app.src"}.
+{template, "skel/src/view/lib/tag_modules/custom_tags.erl", "{{dest}}/src/view/lib/tag_modules/{{appid}}_custom_tags.erl"}.
+{template, "skel/src/view/lib/filter_modules/custom_filters.erl", "{{dest}}/src/view/lib/filter_modules/{{appid}}_custom_filters.erl"}.
+{template, "skel/boss.config", "{{dest}}/boss.config"}.
+{template, "skel/src/mail/outgoing_mail_controller.erl", "{{dest}}/src/mail/{{appid}}_outgoing_mail_controller.erl"}.
+{template, "skel/src/mail/incoming_mail_controller.erl", "{{dest}}/src/mail/{{appid}}_incoming_mail_controller.erl"}.
+{template, "skel/priv/init/news.erl", "{{dest}}/priv/init/{{appid}}_01_news.erl"}.
+{file, "skel/priv/static/chicago-boss.png", "{{dest}}/priv/static/chicago-boss.png"}.
+{file, "skel/priv/static/favicon.ico", "{{dest}}/priv/static/favicon.ico"}.
+{file, "skel/priv/boss.routes", "{{dest}}/priv/{{appid}}.routes"}.
+{file, "skel/priv/rebar/boss_plugin.erl", "{{dest}}/priv/rebar/boss_plugin.erl"}.
+{file, "skel/src/view/lib/README", "{{dest}}/src/view/lib/README"}.
+{file, "skel/init.sh", "{{dest}}/init.sh"}.
+{file, "skel/init-dev.sh", "{{dest}}/init-dev.sh"}.
+{file, "skel/rebar", "{{dest}}/rebar"}.
+{file, "skel/rebar.cmd", "{{dest}}/rebar.cmd"}.
+{file, "skel/rebar.config", "{{dest}}/rebar.config"}.
+{chmod, 8#755, "{{dest}}/init.sh"}.
+{chmod, 8#755, "{{dest}}/init-dev.sh"}.
+{chmod, 8#755, "{{dest}}/rebar"}.
