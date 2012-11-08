@@ -25,6 +25,7 @@ $(UI_BIN):
 	echo "Building Chicago Boss" ; \
 	./rebar get-deps compile; \
 	make
+	sed -i -e "s@BENCHERL_SUITE_PATH@`pwd`@g" ui/bencherlui/boss.config
 	cd ui/bencherlui ; \
 	echo "Building UI" ; \
 	./rebar compile
