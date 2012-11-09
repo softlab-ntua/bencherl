@@ -1,0 +1,278 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;;
+    font-size: 14px;
+}
+
+ul {
+	padding-left: 18px;
+}
+
+a {
+    color: fireBrick;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+a:visited {
+    color: fireBrick;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+a:hover {
+    color: fireBrick;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+#content {
+    width: 90%;
+    margin: 0px auto;
+    background-color: #ffffff;
+}
+
+#header {
+    padding: 20px;
+}
+
+#main {
+    margin: 50px 40px 20px 40px;
+    text-align: justify;
+	min-height: 200px;
+}
+
+#logo {
+    float: left;
+}
+
+#menu {
+	clear: both;
+	width: 100%;
+}
+
+#menu ul:after {
+    clear: both;
+    display: block;
+}
+
+#menu ul {
+    list-style: none outside none;	
+    margin: 0;
+    padding: 0;	
+    width: 100%;
+}
+
+#menu li {
+    float: left;
+    position: relative;
+    width: 160px;
+    line-height: 35px;
+    margin-left: 3px;
+    background-color: fireBrick;
+    color: white;
+    text-align: center;
+}
+
+#menu li a {
+    color: white;
+    font-weight: bold;
+}
+
+#menu li.selected {
+    background-color: black;
+}
+
+#footer {
+    text-align: center;
+    font-size: 11px;
+    margin-top: 60px;
+	margin-bottom: 20px;
+}
+
+#info {
+    font-weight: bold;
+    font-size: 22px;
+    float: left;
+    margin-top: 30px;
+}
+
+#main .viewport { float: left; width: 100%; /*height: 360px;*/ overflow: hidden; position: relative; }
+#benchmarks .viewport { float: left; width: 240px; /*height: 360px;*/ overflow: hidden; position: relative; }
+#graphs .viewport { float: left; width: 100%; /*height: 360px;*/ overflow: hidden; position: relative; }
+.scrollable .overview { list-style: none; position: absolute; left: 0; top: 0; }
+.scrollable .thumb .end,
+.scrollable .thumb { background-color: fireBrick; }
+.scrollable .scrollbar { position: relative; float: right; width: 15px; }
+.scrollable .track { background-color: white; height: 100%; width:13px; position: relative; padding: 0 1px; border: 1px solid black; }
+.scrollable .thumb { height: 20px; width: 13px; cursor: pointer; overflow: hidden; position: absolute; top: 0; }
+.scrollable .thumb .end { overflow: hidden; height: 5px; width: 13px; }
+.scrollable .disable{ display: none; }
+
+.gv_galleryWrap {
+    margin-left: 100px;
+}
+
+.bench-name {
+	font-weight: bold;
+	font-family: Courier;
+	font-size: 12px;
+	vertical-align: top;
+	white-space: nowrap;
+	width: 100px;
+}
+
+.option-name {
+    font-weight: bold;
+    font-family: Courier;
+    font-size: 13px;
+    vertical-align: top;
+    white-space: nowrap;
+	width: 120px;
+}
+
+.configuration-name {
+    font-weight: bold;
+    font-family: Courier;
+    font-size: 13px;
+    vertical-align: top;
+    white-space: nowrap;
+    width: 170px;
+}
+
+.bench-description {
+	font-size: 12px;
+}
+
+.option-description {
+    font-size: 13px;
+}
+
+.configuration-description {
+    font-size: 13px;
+}
+
+h3 {
+    color: fireBrick;
+    margin-top: 30px;
+}
+
+h4 {
+    color: fireBrick;
+    margin-top: 20px;
+}
+
+#benchmarks {
+    float: left;
+}
+
+#graphs {
+    float: right;
+}
+
+#benchmarks ul {
+	list-style-type: none;
+	padding-left: 20px;
+}
+
+#benchmarks li:hover {
+	text-decoration:underline;
+}
+
+#benchmarks ul li {
+	height: 20px;
+    font-weight: bold;
+    font-family: Courier;
+    font-size: 12px;
+    white-space: nowrap;
+	cursor: pointer;
+}
+
+#benchmarks ul li.selected {
+	color: fireBrick;
+}
+
+#abstract {
+    font-size: 13px;
+}
+
+code {
+    background-color: rgb(250, 250, 250);
+    border: 1px solid rgb(200, 200, 200);
+    padding-left: 4px;
+    padding-right: 4px;
+}
+
+pre code {
+    display: block;
+    padding: 8px;
+    margin-bottom: 2em;
+}
+
+.paper {
+	margin-top: 20px;
+}
+
+.code {
+	font-family: Courier;
+}
+
+.bench-description br {
+	height: 10px;
+}
+
+.math {
+	font-family: Courier;
+	font-style: normal;
+}
+
+.math em {
+	font-style: normal;
+}
+
+.people li {
+	padding-top: 10px;
+}
+
+.paperpres a {
+	display: block;
+	float: right;
+	width: 100px;
+	text-align: right;
+}
+
+.abstract {
+	font-size: 12px;
+    margin: 0px 20px;
+}
+
+
+#graph {
+    float: left;
+}
+
+#placeholder {
+    width: 500px; 
+    height: 300px;
+}
+
+#miniature {
+    float: left; 
+    margin-left: 20px; 
+    margin-top: 50px;
+}
+
+#overviewLegend {
+    margin-left: 10px;
+}
+
+#overviewLegend li > div {
+    display: inline-block;
+    margin-right: 4px;
+}
+
+#overviewLegend li label {
+    margin-left: 3px;
+}
+​
