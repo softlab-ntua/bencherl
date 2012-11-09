@@ -49,6 +49,19 @@ Use the `-l` option of the `bencherl` script.
 
 	$ ./run_bench -l
 
+### How to run the web based user interface to see results ###
+
+Use the `-U` option of the `bencherl` script.
+
+	$ ./run_bench -U
+
+The interface is by default started at http://localhost:8001. The port can be
+changed by modifying `suite/ui/bencherlui/boss.config`.
+
+Use the `-S` option of the `bencherl` script to stop the interface.
+
+	$ ./run_bench -S
+
 ### How to specify the number of schedulers to run benchmarks with ###
 
 Set the `NUMBER_OF_SCHEDULERS` variable in `conf/run.conf`.
@@ -200,4 +213,3 @@ directory has three sub-directories:
 * `output`, which contains the output that the benchmark produced during its execution;
 * `measurements`, which contains the scalability measurements collected during the execution of the benchmark
 . 
-
