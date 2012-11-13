@@ -14,7 +14,7 @@ list_of_scenarios(Version) ->
 	    intermediate -> 2000000;
 	    long         -> 20000000
 	end,
-    TableImpels = [ets, etsm],
+    TableImpels = [ets, etsm, etsa],
     [[small_nr_fixed_keys, NrOfOperations, TableImpel] || TableImpel <- TableImpels].
 
 run_bench(NrOfOperations, TableImpel) ->
