@@ -19,7 +19,7 @@ new() ->
     lists:foldl(fun(Index, Array) ->
 			array:set(Index, AllocateETSFun(), Array)
 		end, 
-		array:new(NrOfSchedulers), 
+		array:new(NrOfSubTables), 
 		lists:seq(0, NrOfSubTables -1)).
 
 delete(EtsmID) ->
