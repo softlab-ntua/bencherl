@@ -1,69 +1,9 @@
 (function(){
 
-    var benchmarkRunList = undefined;
-    var benchmarkList = undefined;
     var selectedRun = undefined;
+    var selectedBenchmark = undefined;
     var timeResults = undefined;
     var speedupResults = undefined;
-
-    function plotAccordingToChoices() {
-        
-        var graphType = $('input[name=graphTypeRadio]:checked').val();
-        var results = undefined;
-        if(graphType === "time"){
-            results = timeResults;
-        } else if(speedupResults !== undefined){
-            results = speedupResults;
-        } else {
-            function convertTimeDataToSpeedupData(data){
-                var timeOneSched = (jQuery.grep(data, function (a) { return a[0] === 1; }))[0][1];
-                var newData = $.map( 
-                    data, 
-                    function(e){
-                        e[1] = timeOneSched / e[1];
-                        return e;
-                    });
-                return newData;
-            }
-            speedupResults = jQuery.extend(true, [], timeResults);
-            $.each( speedupResults, function(index, graphObject){
-                graphObject = convertTimeDataToSpeedupData(graphObject.data);
-            } );
-            results = speedupResults;
-        }
-        
-        var options = {
-            legend: {
-                show: true
-            },
-            series: {
-                points: {
-                    show: true
-                },
-                lines: {
-                    show: true
-                }
-            },
-            grid: {
-                hoverable: true
-            }
-        };
-        
-        var data = [];
-        
-        $("#overviewLegend").find("input:checked").each(function() {
-            var key = this.name;
-
-            for (var i = 0; i < results.length; i++) {
-                if (results[i].label === key) {
-                    data.push(results[i]);
-                    return true;
-                }
-            }
-        });
-
-        $.plot($("#placeholder"), data, options);
-    }
 
     function plotGraphs(resultsParam){
         timeResults  = resultsParam;
@@ -130,151 +70,158 @@
 
     }
     
-    function runListElementSelected(selectedRun){
-        updateRunList(benchmarkRunList, selectedRun);
-    }
-
-    function benchmarkListElementSelected(selectedBenchmark){
-        updatebenchmarkList(benchmarkList, selectedBenchmark);
-    }
-
-    function createNormalRunListElement(name){
-        var $listElement = $('<li/>');
+    function plotAccordingToChoices() {
         
-        $listElement.click( 
-            function(){
-                runListElementSelected($listElement.text());
+        var graphType = $('input[name=graphTypeRadio]:checked').val();
+        var results = undefined;
+        if(graphType === "time"){
+            results = timeResults;
+        } else if(speedupResults !== undefined){
+            results = speedupResults;
+        } else {
+            function convertTimeDataToSpeedupData(data){
+                var timeOneSched = (jQuery.grep(data, function (a) { return a[0] === 1; }))[0][1];
+                var newData = $.map( 
+                    data, 
+                    function(e){
+                        e[1] = timeOneSched / e[1];
+                        return e;
+                    });
+                return newData;
             }
-        );
-
-        $listElement.text(name);
-
-        return $listElement;
-    }
-
-    function createSelectedRunListElement(name){
-        var $listElement = $('<li/>');
-        $listElement.append($('<span/>').text(name).attr('style', 'text-decoration:overline;'));
+            speedupResults = jQuery.extend(true, [], timeResults);
+            $.each( speedupResults, function(index, graphObject){
+                graphObject = convertTimeDataToSpeedupData(graphObject.data);
+            } );
+            results = speedupResults;
+        }
         
-        $listElement.append($('<br/>'));
-
-        $.get(
-            '/results/benchmarks_for_run',
-            {run: name},
-            function(benchmarkListParam){
-                benchmarkList = benchmarkListParam;
-                $('#benchmarkListDiv').replaceWith(createBenchmarkList(benchmarkList, benchmarkList[0]));
-                $('#benchmarkListHeader').html("BENCHMARKS FOR RUN:<br/><i>" + name+"</i>");
+        var options = {
+            legend: {
+                show: true
             },
-            'json');
-
-        return $listElement;
-    }
-
-
-    function createNormalBenchmarkListElement(name){
-        var $listElement = $('<li/>');
-        
-        $listElement.click( 
-            function(){
-                benchmarkListElementSelected(name);
+            series: {
+                points: {
+                    show: true
+                },
+                lines: {
+                    show: true
+                }
+            },
+            grid: {
+                hoverable: true
             }
-        );
-
-        $listElement.text(name);
-
-        return $listElement;
-    }
-
-    function createSelectedBenchmarkListElement(name){
-        var $listElement = $('<li/>');
-        $listElement.append($('<span/>').text(name).attr('style', 'text-decoration:overline;'));
+        };
         
+        var data = [];
         
+        $("#overviewLegend").find("input:checked").each(function() {
+            var key = this.name;
 
-        $.get(
-            '/results/benchmark_results',
-            {run: selectedRun,
-             benchmark: name},
-            function(benchmarkData){
-                plotGraphs(benchmarkData);
-            },
-            'json');
+            for (var i = 0; i < results.length; i++) {
+                if (results[i].label === key) {
+                    data.push(results[i]);
+                    return true;
+                }
+            }
+        });
 
-        return $listElement;
+        $.plot($("#placeholder"), data, options);
+    }
+
+    function makeSelectable(item, action){
+        item.selectable({
+            selected: function(event, ui){            
+                action($(ui.selected).text());
+            }
+        });
+        var elements = item.find('li');
+        if(elements.length > 0){
+            var element = elements.first();
+            element.addClass('ui-selected');
+            action(element.text());
+        }
     }
 
 
-    function createBenchmarkList(benchmarkList, selectedBenchmark){
-        var $benchmarkList = $('<ul/>').attr('id', 'benchmarkListDiv');
+    function createSelectableList(nameList, selectEvent){
+        var $list = $('<ul/>');
         $.each(
-            benchmarkList,
+            nameList,
             function(index, name){
-
-                $listElement = undefined;
-                
-                if(name===selectedBenchmark){
-                    $listElement = createSelectedBenchmarkListElement(name);
-                } else {
-                    $listElement = createNormalBenchmarkListElement(name);
-                }
-
-                $benchmarkList.append($listElement);
-
+                $list.append($('<li/>').text(name));
             });
-        return $benchmarkList;
+        makeSelectable($list, selectEvent);
+        return $list;
     }
 
-    function createRunList(benchmarkRunList, selectedRun){
-        var $benchmarkRunList = $('<ul/>').attr('id', 'benchmarkRunListDiv');
-        $.each(
-            benchmarkRunList,
-            function(index, name){
+    function createRunList(benchmarkRunList){
 
-                $listElement = undefined;
-                
-                if(name===selectedRun){
-                    $listElement = createSelectedRunListElement(name);
-                } else {
-                    $listElement = createNormalRunListElement(name);
-                }
+        function elementSelected(name){
 
-                $benchmarkRunList.append($listElement);
+            selectedRun = name;
 
-            });
-        return $benchmarkRunList;
+            $.get(
+                '/results/benchmarks_for_run',
+                {run: name},
+                function(benchmarkList){
+                    $('#benchmarkListDiv').replaceWith(createBenchmarkList(benchmarkList));
+                    $('#benchmarkListHeader').html("BENCHMARKS FOR:<br/><i>" + name+"</i>");
+                },
+                'json');
+
+        }        
+        
+        return createSelectableList(benchmarkRunList, elementSelected);
     }
     
-    function updateRunList(benchmarkRunListParam, selectedRunParam){
-        if(benchmarkRunListParam === undefined){
+
+    function createBenchmarkList(benchmarkList){
+
+        function elementSelected(name){
+
+            selectedBenchmark = name;
+
             $.get(
-                '/results/benchmark_runs_json',
-                function(data){
-                    updateRunList(data);
-                }
-                , 'json');
-            return;
-        }else{
-            benchmarkRunList = benchmarkRunListParam;
-        }
-        if(selectedRunParam === undefined 
-           && benchmarkRunListParam.length > 0){
-            selectedRun = benchmarkRunList[0];
-        }else{
-            selectedRun = selectedRunParam;
-        }
-        $('#benchmarkRunListDiv').replaceWith(createRunList(benchmarkRunList, selectedRun));
+                '/results/measurement_files',
+                {run: selectedRun,
+                 benchmark: name},
+                function(measurementFileList){
+                    $('#measurementFileListDiv').replaceWith(createMeasurementFileList(measurementFileList));
+                    $('#measurementFileListHeader').html("MEASUREMENTS FOR:<br/><i>" + name+"</i>");
+                },
+                'json');
+
+        }        
+        
+        return createSelectableList(benchmarkList, elementSelected);
     }
 
 
-    function updatebenchmarkList(benchmarkList, selectedBenchmark){
-        $('#benchmarkListDiv').replaceWith(createBenchmarkList(benchmarkList, selectedBenchmark));
-    }
+    function createMeasurementFileList(measurementFileList){
 
+        function elementSelected(name){
+
+            $.get(
+                '/results/benchmark_results',
+                {run: selectedRun,
+                 benchmark: selectedBenchmark,
+                 measurementFile: name},
+                function(benchmarkData){
+                    plotGraphs(benchmarkData);
+                },
+                'json');
+
+        }        
+        
+        return createSelectableList(measurementFileList, elementSelected);
+    }
 
     $(document).ready(function(){
         
-        updateRunList($.parseJSON($('#benchmarkRunListDiv').text()));
+        var runList = $.parseJSON($('#benchmarkRunListDiv').text());
+
+        $('#benchmarkRunListDiv').replaceWith(createRunList(runList));
         
         $("#graph").resizable();
 
