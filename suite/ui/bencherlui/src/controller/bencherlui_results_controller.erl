@@ -106,14 +106,43 @@ result_file_to_json_text(FileName) ->
              dict:to_list(Dict)),
     rfc4627:encode(List).
 
+measurement_file_list(MeasurementDir) ->
+    {ok, FileNameList} = 
+        file:list_dir(MeasurementDir),
+    lists:filter(
+      fun(Name) -> 
+              case re:run(Name, "time$") of
+                  {match, _} -> true;
+                  _ -> false
+              end
+      end,
+      FileNameList).
+
+
+measurement_files('GET', []) ->
+    RunName = Req:query_param("run"),
+    BenchmarkName = Req:query_param("benchmark"),
+    MeasurementDir = lists:concat(
+                       ["../../../results/", 
+                        RunName, "/", 
+                        BenchmarkName, 
+                        "/measurements"]),
+    List =
+        [list_to_binary(lists:sublist(Name, length(Name) - length(".time"))) 
+         || Name <- measurement_file_list(MeasurementDir)], 
+    {output, rfc4627:encode(List)}.
+
 benchmark_results('GET', []) ->
     RunName = Req:query_param("run"),
     BenchmarkName = Req:query_param("benchmark"),
+    MeasurementFile = Req:query_param("measurementFile"),
     FileName = lists:concat(
                  ["../../../results/", 
                   RunName, "/", 
                   BenchmarkName, 
-                  "/measurements/DEFOTP.DEFARGS.sched.time"]),
+                  "/measurements/",
+                  MeasurementFile,
+                  ".time"]),
     {output, result_file_to_json_text(FileName)}.
 
 readlines(FileName) ->
