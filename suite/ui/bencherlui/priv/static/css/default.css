@@ -181,13 +181,17 @@ h4 {
 }
 
 #benchmarks ul li {
-	height: 20px;
+    height: 20px;
     font-weight: bold;
     font-family: Courier;
     font-size: 12px;
     white-space: nowrap;
-	cursor: pointer;
+    cursor: pointer;
 }
+
+.ui-selected {
+    text-decoration:overline;
+} 
 
 #benchmarks ul li.selected {
 	color: fireBrick;
