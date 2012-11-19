@@ -165,7 +165,8 @@
                 '/results/benchmarks_for_run',
                 {run: name},
                 function(benchmarkList){
-                    $('#benchmarkListDiv').replaceWith(createBenchmarkList(benchmarkList));
+                    $('#benchmarkListDiv').replaceWith(
+                        createBenchmarkList(benchmarkList).attr("id","benchmarkListDiv"));
                     $('#benchmarkListHeader').html("BENCHMARKS FOR:<br/><i>" + name+"</i>");
                 },
                 'json');
@@ -181,13 +182,14 @@
         function elementSelected(name){
 
             selectedBenchmark = name;
-
+ 
             $.get(
                 '/results/measurement_files',
                 {run: selectedRun,
                  benchmark: name},
                 function(measurementFileList){
-                    $('#measurementFileListDiv').replaceWith(createMeasurementFileList(measurementFileList));
+                    $('#measurementFileListDiv').replaceWith(
+                        createMeasurementFileList(measurementFileList).attr("id","measurementFileListDiv"));
                     $('#measurementFileListHeader').html("MEASUREMENTS FOR:<br/><i>" + name+"</i>");
                 },
                 'json');
