@@ -10,20 +10,40 @@ benchmark_runs_json('GET', []) ->
 list_of_files_in_dir(DirPath) ->
     {ok, FileNameList} = 
         file:list_dir(DirPath),
-    Files =lists:filter(
+    lists:filter(
              fun(Name) -> Name /= ".gitignore" end,
-             FileNameList),
-    [list_to_binary(Name) || Name <- Files].
+             FileNameList).
+
+string_date_to_date_tuple(String) ->
+    DatePattern = "^(\\d\\d)\.(\\d\\d)\.(\\d\\d)\.-(\\d\\d)\.(\\d\\d)\.(\\d\\d)",
+    case re:run(String, DatePattern) of
+        {match, [_|Positions]} ->
+            [Day,Month,Year,Hour,Minute,Second] =
+                [element(1,
+                         string:to_integer(lists:sublist(String, Start+1, Len))) 
+                 || {Start, Len} <- Positions],
+            {ok, {Year,Month,Day,Hour,Minute,Second}};
+        _ ->
+            {not_date_string, String}
+    end.
 
 benchmark_run_list() ->
-    list_of_files_in_dir("../../../results").
+    UnsortedListOfFiles = list_of_files_in_dir("../../../results"),
+    SortedListOfFiles =
+        lists:sort(
+          fun(A,B) ->
+                  string_date_to_date_tuple(A) < string_date_to_date_tuple(B)
+          end,
+          UnsortedListOfFiles),
+    [list_to_binary(Name) || Name <- SortedListOfFiles].
 
 benchmark_run_list_json_text() ->
     BenchmarkRuns = benchmark_run_list(),
     rfc4627:encode(BenchmarkRuns).
 
 benchmark_list_for_name(RunName) ->
-    list_of_files_in_dir(lists:concat(["../../../results/", RunName])).
+    [list_to_binary(Name) 
+     || Name <- list_of_files_in_dir(lists:concat(["../../../results/", RunName]))].
 
 benchmark_list_for_name_json_text(RunName) ->
     BenchmarkList = benchmark_list_for_name(RunName),
