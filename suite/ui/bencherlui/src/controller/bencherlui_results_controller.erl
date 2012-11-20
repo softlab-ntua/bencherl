@@ -32,7 +32,7 @@ benchmark_run_list() ->
     SortedListOfFiles =
         lists:sort(
           fun(A,B) ->
-                  string_date_to_date_tuple(A) < string_date_to_date_tuple(B)
+                  string_date_to_date_tuple(A) > string_date_to_date_tuple(B)
           end,
           UnsortedListOfFiles),
     [list_to_binary(Name) || Name <- SortedListOfFiles].
