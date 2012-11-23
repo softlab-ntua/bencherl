@@ -1,0 +1,13 @@
+*.beam
+scratch/
+results/
+
+# Scalaris:
+app/scalaris/Emakefile
+app/scalaris/Makefile
+app/scalaris/bin/scalarisctl
+app/scalaris/config.log
+app/scalaris/config.status
+app/scalaris/java-api/scalaris
+app/scalaris/java-api/scalaris-java.conf
+app/scalaris/variables-nonode@nohost
