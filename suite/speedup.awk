@@ -9,24 +9,23 @@
 BEGIN { base[""] = 0; }
 
 {
-	for (i = 1; i <= NF; i++) {
-		# Do not touch the first or any even field.
-		if (i == 1 || i % 2 == 0) { 
-			printf $i; 
-		}
-		else {
-			# If the first field is equal to 1, then the times found in this 
-			# line should be used as the reference point for the speedup 
-			# calculation.
-			if ($1 == 1) {
-				base[i] = $i;
-			}
-			# Calculate the speedup and replace the time with it.
-			printf("%.3f", base[i]/$i);
-		}
-		printf " "
-	}
-	printf("\n");
-	next
+    for (i = 1; i <= NF; i++) {
+        # Do not touch the first or any even field.
+        if (i == 1 || i % 2 == 0) { 
+            printf $i; 
+        }
+        else {
+            # If the first field is equal to 1, then the times found in this 
+            # line should be used as the reference point for the speedup 
+            # calculation.
+            if ($1 == 1) {
+                base[i] = $i;
+            }
+            # Calculate the speedup and replace the time with it.
+            printf("%.3f", base[i]/$i);
+        }
+        printf " "
+    }
+    printf("\n");
+    next
 }
-

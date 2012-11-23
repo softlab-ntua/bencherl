@@ -8,9 +8,8 @@
 BEGIN { sched = 0; s = ""; }
 
 {
-	if ($1 != sched) { if (s != "") { print s; }; s = $1; sched = $1; }
-	for (i = 2; i <= NF; i++) { s = s " " $i; }
+    if ($1 != sched) { if (s != "") { print s; }; s = $1; sched = $1; }
+    for (i = 2; i <= NF; i++) { s = s " " $i; }
 }
 
 END { if (s != "") { print s; } }
-

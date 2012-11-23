@@ -5,17 +5,16 @@
 # Usage: ./inject.awk what=<what> <file>
 
 {
-	for (i=1; i<= NF; i++) {
-		if (index($i, "(")) {
-			printf "(" what "," substr($i, 2)
-		}
-		else {
-			printf $i
-		}
-		if (i < NF) {
-			printf " ";
-		}
-	}
-	printf "\n";
+    for (i=1; i<= NF; i++) {
+        if (index($i, "(")) {
+            printf "(" what "," substr($i, 2)
+        }
+        else {
+            printf $i
+        }
+        if (i < NF) {
+            printf " ";
+        }
+    }
+    printf "\n";
 }
-

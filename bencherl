@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Runs the benchmark suite based on what is specified in conf/run.conf.
-# Usage: ./bencherl [-m <mnemonic_name>] 
+# Usage: ./bencherl [-m <mnemonic_name>]
 
 usage()
 {
@@ -19,106 +19,102 @@ EOF
 
 spin()
 {
-	while ps | grep $1 &>/dev/null; do
-		i=0
-		while [ "$i" -lt "3" ]; do
-			echo -n "."
-			i=$[$i+1]
-			sleep 0.5
-		done
-		i=0
-		while [ "$i" -lt "3" ]; do
+    while ps | grep $1 &>/dev/null; do
+	i=0
+	while [ "$i" -lt "3" ]; do
+	    echo -n "."
+	    i=$[$i+1]
+	    sleep 0.5
+	done
+	i=0
+	while [ "$i" -lt "3" ]; do
     	    echo -ne '\b \b'
-			i=$[$i+1]
-			sleep 0.5
-		done
+	    i=$[$i+1]
+	    sleep 0.5
+	done
     done
-	echo -n '...'
+    echo -n '...'
 }
 
 list_bms()
 {
-	echo -n "Benchmarks:"
-	for b in `ls bench`; do
-		if [ -d bench/$b ]; then
-			echo -n " $b"
-		fi
-	done
-	echo
+    echo -n "Benchmarks:"
+    for b in `ls bench`; do
+	if [ -d bench/$b ]; then
+	    echo -n " $b"
+	fi
+    done
+    echo
 }
 
 rbm()
 {
-	mkdir -p $outdir
-	mkdir -p $measdir
+    mkdir -p $outdir
+    mkdir -p $measdir
 
-	for otp in $OTPS; do
+    for otp in $OTPS; do
+	otpl=${otp%%=*}
+	otpv=${otp##*=}
 
-		otpl=${otp%%=*}
-		otpv=${otp##*=}
-		
-		for args in $ERL_ARGS; do	
-			
-			argsl=${args%%=*}
-			argsv=${args##*=}
+        for args in $ERL_ARGS; do
+	    argsl=${args%%=*}
+	    argsv=${args##*=}
+	    IFS=$OLD_IFS
+	    n=`echo $NUMBER_OF_SLAVE_NODES | tr "," "\n" | tail -n 1`
+	    IFS=$NEW_IFS
 
-			IFS=$OLD_IFS
-			n=`echo $NUMBER_OF_SLAVE_NODES | tr "," "\n" | tail -n 1`
-			IFS=$NEW_IFS                        
-
-			if [[ ( $NUMBER_OF_NUMBER_OF_SCHEDULERS -gt 1 ) || ( $NUMBER_OF_NUMBER_OF_SLAVE_NODES -eq 1 ) || ( $n -lt $NUMBER_OF_NUMBER_OF_SLAVE_NODES ) ]]; then
-				if [ "$n" -gt "$NSLAVE_NODES" ]; then
-					n=$NSLAVE_NODES
-				fi
-				for s in $NUMBER_OF_SCHEDULERS; do
-					WHAT="sched"
-					rsbm
-				done
-			fi
-
-			IFS=$OLD_IFS
-			s=`echo $NUMBER_OF_SCHEDULERS | tr "," "\n" | tail -n 1`
-			IFS=$NEW_IFS
-
-			if [[ ( $NUMBER_OF_NUMBER_OF_SLAVE_NODES -gt 1 ) || ( $n -ge $NUMBER_OF_NUMBER_OF_SLAVE_NODES ) ]]; then
-				for n in $NUMBER_OF_SLAVE_NODES; do
-					if [ "$n" -gt "$NSLAVE_NODES" ]; then
-						continue
-					fi
-					WHAT="node"
-					rsbm
-				done
-			fi
+            if [[ ( $NUMBER_OF_NUMBER_OF_SCHEDULERS -gt 1 ) || ( $NUMBER_OF_NUMBER_OF_SLAVE_NODES -eq 1 ) || ( $n -lt $NUMBER_OF_NUMBER_OF_SLAVE_NODES ) ]]; then
+		if [ "$n" -gt "$NSLAVE_NODES" ]; then
+		    n=$NSLAVE_NODES
+		fi
+		for s in $NUMBER_OF_SCHEDULERS; do
+		    WHAT="sched"
+		    rsbm
 		done
+	    fi
+
+	    IFS=$OLD_IFS
+	    s=`echo $NUMBER_OF_SCHEDULERS | tr "," "\n" | tail -n 1`
+	    IFS=$NEW_IFS
+
+	    if [[ ( $NUMBER_OF_NUMBER_OF_SLAVE_NODES -gt 1 ) || ( $n -ge $NUMBER_OF_NUMBER_OF_SLAVE_NODES ) ]]; then
+		for n in $NUMBER_OF_SLAVE_NODES; do
+		    if [ "$n" -gt "$NSLAVE_NODES" ]; then
+			continue
+		    fi
+		    WHAT="node"
+		    rsbm
+		done
+	    fi
 	done
+    done
 }
 
 rsbm()
 {
+    IFS=$OLD_IFS
 
-	IFS=$OLD_IFS
-	
-	if [ -f bench/$bench/conf/pre_bench ]; then
-		bench/$bench/conf/pre_bench $s "$otpv" "$argsv"	"$COOKIE"
-	fi
+    if [ -f bench/$bench/conf/pre_bench ]; then
+	bench/$bench/conf/pre_bench $s "$otpv" "$argsv"	"$COOKIE"
+    fi
 
-	benchdir=`cd bench/$bench; pwd`
+    benchdir=`cd bench/$bench; pwd`
 
-	if [ -z $otpv ]; then	
-		erl="erl"
-	else
-		erl="$otpv/bin/erl"
-	fi
+    if [ -z $otpv ]; then
+	erl="erl"
+    else
+	erl="$otpv/bin/erl"
+    fi
 
-	if [ "$USE_LONG_NAMES" -eq "1" ]; then
-		uln="true"
-		mn="-name ${MASTER_NODE}"
-	else
-		uln="false"
-		mn="-sname ${MASTER_NODE}"
-	fi
+    if [ "$USE_LONG_NAMES" -eq "1" ]; then
+	uln="true"
+	mn="-name ${MASTER_NODE}"
+    else
+	uln="false"
+	mn="-sname ${MASTER_NODE}"
+    fi
 
-cat > scratch/run_bench.conf << EOF
+    cat > scratch/run_bench.conf << EOF
 {bench, $bench}.
 {version, $VERSION}.
 {otp, "$otpv"}.
@@ -136,193 +132,191 @@ cat > scratch/run_bench.conf << EOF
 {number_of_cores, $CORES}.
 EOF
 
-	${erl} ${argsv} ${EXTRA_ERL_ARGS} -setcookie "${COOKIE}" +S$s:$s \
+    ${erl} ${argsv} ${EXTRA_ERL_ARGS} -setcookie "${COOKIE}" +S$s:$s \
 	$mn -noshell -pa ${EXTRA_CODE_PATH} \
 	suite/ebin bench/$bench/ebin -s run_bench main -s erlang \
 	halt
 
-	if [ -f bench/$bench/conf/post_bench ]; then
-		bench/$bench/conf/post_bench $s "$otpv" "$argsv" "$COOKIE"
-	fi
+    if [ -f bench/$bench/conf/post_bench ]; then
+	bench/$bench/conf/post_bench $s "$otpv" "$argsv" "$COOKIE"
+    fi
 
-	IFS=$NEW_IFS
+    IFS=$NEW_IFS
 }
 
 cbm()
 {
-	local succeeded=1
-	NF=`ls -1 $benchresdir/output/*.output | wc -l`
-	if [ "$NF" -gt "1" ]; then	
-		BF=`ls -1 $benchresdir/output/*.output | head -n 1`
-		for f in `ls $benchresdir/output/*.output`; do
-			diff=`diff -B -q $BF $f`
-			if [ ! -z "$diff" ]; then
-				succeeded=0
-				break
-			fi
-		done
-	fi
-	return $succeeded
+    local succeeded=1
+    NF=`ls -1 $benchresdir/output/*.output | wc -l`
+    if [ "$NF" -gt "1" ]; then
+	BF=`ls -1 $benchresdir/output/*.output | head -n 1`
+	for f in `ls $benchresdir/output/*.output`; do
+	    diff=`diff -B -q $BF $f`
+	    if [ ! -z "$diff" ]; then
+		succeeded=0
+		break
+	    fi
+	done
+    fi
+    return $succeeded
 }
 
 pbm()
 {
+    mkdir -p $grdir
 
-	mkdir -p $grdir
+    if [[ ( "$NSLAVE_NODES" -gt "1" ) && ( "$NUMBER_OF_NUMBER_OF_SLAVE_NODES" -gt "1" ) ]]; then
+	WHAT=node.time
+	psbm
+    fi
+    if [ "$NUMBER_OF_NUMBER_OF_SCHEDULERS" -gt "1" ]; then
+	WHAT=sched.time
+	psbm
+    fi
 
-	if [[ ( "$NSLAVE_NODES" -gt "1" ) && ( "$NUMBER_OF_NUMBER_OF_SLAVE_NODES" -gt "1" ) ]]; then
-		WHAT=node.time
-		psbm
-	fi
-	if [ "$NUMBER_OF_NUMBER_OF_SCHEDULERS" -gt "1" ]; then
-		WHAT=sched.time
-		psbm
-	fi
-
-	if [[ ("$NSLAVE_NODES" -gt "1" ) && ( "$NUMBER_OF_NUMBER_OF_SLAVE_NODES" -gt "1") ]]; then
-		for file in `ls $measdir/*.*.node.time`; do
-			fn=`basename $file .node.time`
-			cat $measdir/$fn.node.time | ./suite/speedup.awk >> $measdir/$fn.node.speedup
-		done
-		WHAT=node.speedup
-		psbm
-	fi
-	if [ "$NUMBER_OF_NUMBER_OF_SCHEDULERS" -gt "1" ]; then
-		for file in `ls $measdir/*.*.sched.time`; do
-			fn=`basename $file .sched.time`
-			cat $measdir/$fn.sched.time | ./suite/speedup.awk >> $measdir/$fn.sched.speedup
-		done
+    if [[ ("$NSLAVE_NODES" -gt "1" ) && ( "$NUMBER_OF_NUMBER_OF_SLAVE_NODES" -gt "1") ]]; then
+	for file in `ls $measdir/*.*.node.time`; do
+	    fn=`basename $file .node.time`
+	    cat $measdir/$fn.node.time | ./suite/speedup.awk >> $measdir/$fn.node.speedup
+	done
+	WHAT=node.speedup
+	psbm
+    fi
+    if [ "$NUMBER_OF_NUMBER_OF_SCHEDULERS" -gt "1" ]; then
+	for file in `ls $measdir/*.*.sched.time`; do
+	    fn=`basename $file .sched.time`
+	    cat $measdir/$fn.sched.time | ./suite/speedup.awk >> $measdir/$fn.sched.speedup
+	done
 		WHAT=sched.speedup
-		psbm	
+		psbm
 	fi
 }
 
 psbm()
 {
+    what1=${WHAT%%\.*}
+    what2=${WHAT##*\.}
 
-	what1=${WHAT%%\.*}
-	what2=${WHAT##*\.}
-	
-	if [ "$what2" == "time" ]; then
-		yal="Time (ms)"
-	else
-		yal="Speedup"	
-	fi
+    if [ "$what2" == "time" ]; then
+	yal="Time (ms)"
+    else
+	yal="Speedup"
+    fi
 
-	if [ "$what1" == "sched" ]; then
-		xal="# Schedulers"
-	else
+    if [ "$what1" == "sched" ]; then
+	xal="# Schedulers"
+    else
 		xal="# Nodes"
-	fi
+    fi
 
-	for file in `ls $measdir/*.$WHAT`; do
+    for file in `ls $measdir/*.$WHAT`; do
+	fn=`basename $file .$WHAT`
+	otp=${fn%%.*}
+	args=${fn##*.}
+	PARGS="$PARGS $args"
+		POTPS="$POTPS $otp"
+		./suite/plot.pl "$bench - $otp - $args" \
+		    "$xal" "$yal" "$measdir/$fn.$WHAT" \
+		    "$grdir/$fn.$WHAT.eps"
+    done
+
+    POTPS=`echo $POTPS | tr " " "\n" | sort -du | tr "\n" " "`
+    PARGS=`echo $PARGS | tr " " "\n" | sort -du | tr "\n" " "`
+    NOTPS=`echo $POTPS | wc -w`
+    NARGS=`echo $PARGS | wc -w`
+
+    if [ "$NARGS" -gt "1" ]; then
+	for otp in $POTPS; do
+	    for file in `ls $measdir/$otp.*.$WHAT`; do
+		fn=`basename $file .$WHAT`
+				otp=${fn%%.*}
+				args=${fn##*.}
+				cat $measdir/$fn.$WHAT | ./suite/inject.awk \
+				    what=$args > $measdir/$fn.tmp
+	    done
+			cat `ls $measdir/$otp.*.tmp` | sort -g | ./suite/merge.awk \
+			    > $measdir/$otp.$WHAT
+			./suite/plot.pl "$bench - $otp" \
+			    "$xal" "$yal" "$measdir/$otp.$WHAT" \
+			"$grdir/$otp.$WHAT.eps"
+	done
+    fi
+
+    if [ "$NOTPS" -gt "1" ]; then
+	for args in $PARGS; do
+	    for file in `ls $measdir/*.$args.$WHAT`; do
 		fn=`basename $file .$WHAT`
 		otp=${fn%%.*}
 		args=${fn##*.}
-		PARGS="$PARGS $args"
-		POTPS="$POTPS $otp"
-		./suite/plot.pl "$bench - $otp - $args" \
-		"$xal" "$yal" "$measdir/$fn.$WHAT" \
-		"$grdir/$fn.$WHAT.eps"
-	done
-
-	POTPS=`echo $POTPS | tr " " "\n" | sort -du | tr "\n" " "`
-	PARGS=`echo $PARGS | tr " " "\n" | sort -du | tr "\n" " "`
-	NOTPS=`echo $POTPS | wc -w`
-	NARGS=`echo $PARGS | wc -w`
-
-	if [ "$NARGS" -gt "1" ]; then
-		for otp in $POTPS; do
-			for file in `ls $measdir/$otp.*.$WHAT`; do
-				fn=`basename $file .$WHAT`
-				otp=${fn%%.*}
-				args=${fn##*.}
-				cat $measdir/$fn.$WHAT | ./suite/inject.awk \
-				what=$args > $measdir/$fn.tmp
-			done
-			cat `ls $measdir/$otp.*.tmp` | sort -g | ./suite/merge.awk \
-			> $measdir/$otp.$WHAT
-			./suite/plot.pl "$bench - $otp" \
-			"$xal" "$yal" "$measdir/$otp.$WHAT" \
-			"$grdir/$otp.$WHAT.eps"
-		done
-	fi
-
-	if [ "$NOTPS" -gt "1" ]; then
-		for args in $PARGS; do
-			for file in `ls $measdir/*.$args.$WHAT`; do
-				fn=`basename $file .$WHAT`
-				otp=${fn%%.*}
-				args=${fn##*.}
-				cat $measdir/$fn.$WHAT | ./suite/inject.awk \
-				what=$otp > $measdir/$fn.tmp
-			done
-			cat `ls $measdir/*.$args.tmp` | sort -g | \
-			./suite/merge.awk > $measdir/$args.$WHAT
-			./suite/plot.pl "$bench - $args" \
-			"$xal" "$yal" "$measdir/$args.$WHAT" \
+		cat $measdir/$fn.$WHAT | ./suite/inject.awk \
+		    what=$otp > $measdir/$fn.tmp
+	    done
+	    cat `ls $measdir/*.$args.tmp` | sort -g | \
+		./suite/merge.awk > $measdir/$args.$WHAT
+	    ./suite/plot.pl "$bench - $args" \
+		"$xal" "$yal" "$measdir/$args.$WHAT" \
 			"$grdir/$args.$WHAT.eps"
-		done
-	fi
-	rm -rf $measdir/*.tmp
+	done
+    fi
+    rm -rf $measdir/*.tmp
 }
 
 scs()
 {
-	if [[ "$NUMBER_OF_SCHEDULERS" =~ .*\.\..* ]]; then
-		min=`echo $NUMBER_OF_SCHEDULERS | cut -d'.' -f1`
-		max=`echo $NUMBER_OF_SCHEDULERS | cut -d'.' -f3`
-		NUMBER_OF_SCHEDULERS=`seq $min $max`
-	else
+    if [[ "$NUMBER_OF_SCHEDULERS" =~ .*\.\..* ]]; then
+	min=`echo $NUMBER_OF_SCHEDULERS | cut -d'.' -f1`
+	max=`echo $NUMBER_OF_SCHEDULERS | cut -d'.' -f3`
+	NUMBER_OF_SCHEDULERS=`seq $min $max`
+    else
     	NUMBER_OF_SCHEDULERS=`echo $NUMBER_OF_SCHEDULERS | sed 's/,/ /g'`
-	fi
-	x=`echo $NUMBER_OF_SCHEDULERS | tr " " "\n" | wc -l`
-	if [ $x -ne 1 ]; then
+    fi
+    x=`echo $NUMBER_OF_SCHEDULERS | tr " " "\n" | wc -l`
+    if [ $x -ne 1 ]; then
     	NUMBER_OF_SCHEDULERS="1 $NUMBER_OF_SCHEDULERS"
-	fi
-	NUMBER_OF_SCHEDULERS=`echo $NUMBER_OF_SCHEDULERS | tr " " "\n" | sort -gu | tr "\n" ","`
-	L=${#NUMBER_OF_SCHEDULERS}
-	L=$(( L - 1 ))
-	NUMBER_OF_SCHEDULERS=${NUMBER_OF_SCHEDULERS:0:L}
-	NUMBER_OF_NUMBER_OF_SCHEDULERS=`echo $NUMBER_OF_SCHEDULERS | tr "," "\n" | wc -l`
+    fi
+    NUMBER_OF_SCHEDULERS=`echo $NUMBER_OF_SCHEDULERS | tr " " "\n" | sort -gu | tr "\n" ","`
+    L=${#NUMBER_OF_SCHEDULERS}
+    L=$(( L - 1 ))
+    NUMBER_OF_SCHEDULERS=${NUMBER_OF_SCHEDULERS:0:L}
+    NUMBER_OF_NUMBER_OF_SCHEDULERS=`echo $NUMBER_OF_SCHEDULERS | tr "," "\n" | wc -l`
 }
 
 nds()
 {
-	if [[ "$NUMBER_OF_SLAVE_NODES" =~ .*\.\..* ]]; then
-		min=`echo $NUMBER_OF_SLAVE_NODES | cut -d'.' -f1`
-		max=`echo $NUMBER_OF_SLAVE_NODES | cut -d'.' -f3`
-		NUMBER_OF_SLAVE_NODES=`seq $min $max`
-	else
-		NUMBER_OF_SLAVE_NODES=`echo $NUMBER_OF_SLAVE_NODES | sed 's/,/ /g'`
-	fi
-	NUMBER_OF_SLAVE_NODES=`echo $NUMBER_OF_SLAVE_NODES | tr " " "\n" | sort -gu | tr "\n" ","`
-	L=${#NUMBER_OF_SLAVE_NODES}
-	L=$(( L - 1 ))
-	NUMBER_OF_SLAVE_NODES=${NUMBER_OF_SLAVE_NODES:0:L}
-	NUMBER_OF_NUMBER_OF_SLAVE_NODES=`echo $NUMBER_OF_SLAVE_NODES | tr "," "\n" | wc -l`
+    if [[ "$NUMBER_OF_SLAVE_NODES" =~ .*\.\..* ]]; then
+	min=`echo $NUMBER_OF_SLAVE_NODES | cut -d'.' -f1`
+	max=`echo $NUMBER_OF_SLAVE_NODES | cut -d'.' -f3`
+	NUMBER_OF_SLAVE_NODES=`seq $min $max`
+    else
+	NUMBER_OF_SLAVE_NODES=`echo $NUMBER_OF_SLAVE_NODES | sed 's/,/ /g'`
+    fi
+    NUMBER_OF_SLAVE_NODES=`echo $NUMBER_OF_SLAVE_NODES | tr " " "\n" | sort -gu | tr "\n" ","`
+    L=${#NUMBER_OF_SLAVE_NODES}
+    L=$(( L - 1 ))
+    NUMBER_OF_SLAVE_NODES=${NUMBER_OF_SLAVE_NODES:0:L}
+    NUMBER_OF_NUMBER_OF_SLAVE_NODES=`echo $NUMBER_OF_SLAVE_NODES | tr "," "\n" | wc -l`
 }
 
 START=`date +%s`
 
 while getopts ":b:chlm:s:n:pi:" opt; do
-	case $opt in
+    case $opt in
 		h)
-			usage
-			exit 0
-			;;
-		l)
-			list_bms
-			exit 0
-			;;
-		m)
-			MNEMONIC_NAME=$OPTARG
-			;;
-		\?)	
-			echo "Invalid option: -$OPTARG"	
-			exit 1
-			;;
-	esac
+	    usage
+	    exit 0
+	    ;;
+	l)
+	    list_bms
+	    exit 0
+	    ;;
+	m)
+	    MNEMONIC_NAME=$OPTARG
+	    ;;
+	\?)
+	    echo "Invalid option: -$OPTARG"
+	    exit 1
+	    ;;
+    esac
 done
 
 source conf/run.conf
@@ -334,7 +328,7 @@ if [ -z $MNEMONIC_NAME ]; then
 fi
 
 if [ -z $VERSION ]; then
-	VERSION=short
+    VERSION=short
 fi
 
 LONG_MASTER="master@`hostname -f`"
@@ -360,20 +354,20 @@ DEF_NUMBER_OF_SCHEDULERS=${NUMBER_OF_SCHEDULERS:-$CORES}
 if [ -z "$INCLUDE_BENCH" ]; then
     for b in `ls bench`; do
         if [ -d bench/$b ]; then
-			if [ -z "$BENCHS" ]; then
-				BENCHS="$b"
-			else
-				BENCHS="$BENCHS,$b"
-			fi
+	    if [ -z "$BENCHS" ]; then
+		BENCHS="$b"
+	    else
+		BENCHS="$BENCHS,$b"
+	    fi
         fi
     done
 else
-	BENCHS=$INCLUDE_BENCH
+    BENCHS=$INCLUDE_BENCH
 fi
 
 if [ ! -z "$EXCLUDE_BENCH" ]; then
-	for b in `echo $EXCLUDE_BENCH | tr "," " "`; do
-		BENCHS=`echo $BENCHS | tr "," "\n" | grep -v -x "$b" | tr "\n" ","`
+    for b in `echo $EXCLUDE_BENCH | tr "," " "`; do
+	BENCHS=`echo $BENCHS | tr "," "\n" | grep -v -x "$b" | tr "\n" ","`
 	done
 fi
 
@@ -381,7 +375,7 @@ OLD_IFS=$IFS
 NEW_IFS=$','
 
 if [ -e results/$MNEMONIC_NAME ]; then
-	rm -rf results/$MNEMONIC_NAME
+    rm -rf results/$MNEMONIC_NAME
 fi
 resdir=results/$MNEMONIC_NAME
 mkdir $resdir
@@ -389,82 +383,80 @@ mkdir $resdir
 IFS=$NEW_IFS
 for bench in $BENCHS; do
 
-	if [ -z $bench ]; then
-		continue;
+    if [ -z $bench ]; then
+	continue;
+    fi
+
+    IFS=$OLD_IFS
+
+    if [ ! -d bench/$bench ]; then
+        echo "Unknown benchmark: $bench"
+    else
+	echo "Benchmark: $bench"
+
+	USE_LONG_NAMES=$DEF_USE_LONG_NAMES
+	OTPS=$DEF_OTPS
+	ERL_ARGS=$DEF_ERL_ARGS
+	COOKIE=$DEF_COOKIE
+	MASTER_NODE=$DEF_MASTER_NODE
+	SLAVE_NODES=$DEF_SLAVE_NODES
+	PLOT=$DEF_PLOT
+	CHECK_SANITY=$DEF_CHECK_SANITY
+	ITERATIONS=$DEF_ITEARATIONS
+	NUMBER_OF_SLAVE_NODES=$DEF_NUMBER_OF_SLAVE_NODES
+	NUMBER_OF_SCHEDULERS=$DEF_NUMBER_OF_SCHEDULERS
+
+	EXTRA_CODE_PATH=
+	EXTRA_ERL_ARGS=
+
+	benchresdir="$resdir/$bench"
+	outdir="$benchresdir/output"
+	measdir="$benchresdir/measurements"
+	grdir="$benchresdir/graphs"
+
+	mkdir -p $benchresdir
+
+	if [ -f bench/$bench/conf/bench.conf ]; then
+	    source bench/$bench/conf/bench.conf
 	fi
 
-	IFS=$OLD_IFS
-	
-	if [ ! -d bench/$bench ]; then
-        echo "Unknown benchmark: $bench"
+	scs
+	nds
 
-    else
-
-		echo "Benchmark: $bench"
-
-		USE_LONG_NAMES=$DEF_USE_LONG_NAMES
-		OTPS=$DEF_OTPS
-		ERL_ARGS=$DEF_ERL_ARGS
-		COOKIE=$DEF_COOKIE
-		MASTER_NODE=$DEF_MASTER_NODE
-		SLAVE_NODES=$DEF_SLAVE_NODES
-		PLOT=$DEF_PLOT
-		CHECK_SANITY=$DEF_CHECK_SANITY
-		ITERATIONS=$DEF_ITEARATIONS
-		NUMBER_OF_SLAVE_NODES=$DEF_NUMBER_OF_SLAVE_NODES
-		NUMBER_OF_SCHEDULERS=$DEF_NUMBER_OF_SCHEDULERS
-
-		EXTRA_CODE_PATH=
-		EXTRA_ERL_ARGS=
-
-		benchresdir="$resdir/$bench"
-		outdir="$benchresdir/output"
-		measdir="$benchresdir/measurements"
-		grdir="$benchresdir/graphs"
-
-		mkdir -p $benchresdir
-
-		if [ -f bench/$bench/conf/bench.conf ]; then
-			source bench/$bench/conf/bench.conf
-		fi
-
-		scs
-		nds
-
-		if [ -z "$SLAVE_NODES" ]; then
-			NSLAVE_NODES=0
-		else
-			NSLAVE_NODES=`echo $SLAVE_NODES | tr "," "\n" | wc -l`
-		fi
-
-		IFS=$NEW_IFS
-
-		echo -n "Running"
-		rbm &
-		spin $!
-		echo " done"
-
-		IFS=$OLD_IFS
-
-		if [ "$CHECK_SANITY" == "1" ]; then
-			echo -n "Performing sanity check..."
-			cbm
-			if [ "$?" -eq "1" ]; then
-				echo " succeeded"
-			else
-				echo " failed"
-			fi
-		fi
-
-		if [[ ( "$PLOT" -eq "1" ) && ( ( "$NUMBER_OF_NUMBER_OF_SLAVE_NODES" -ne "1" ) || ( "$NUMBER_OF_NUMBER_OF_SCHEDULERS" -ne "1" ) ) ]]; then
-			echo -n "Plotting"
-			pbm &
-			spin $!
-			echo " done"
-		fi
+	if [ -z "$SLAVE_NODES" ]; then
+	    NSLAVE_NODES=0
+	else
+	    NSLAVE_NODES=`echo $SLAVE_NODES | tr "," "\n" | wc -l`
 	fi
 
 	IFS=$NEW_IFS
+
+	echo -n "Running"
+	rbm &
+	spin $!
+	echo " done"
+
+	IFS=$OLD_IFS
+
+	if [ "$CHECK_SANITY" == "1" ]; then
+	    echo -n "Performing sanity check..."
+	    cbm
+	    if [ "$?" -eq "1" ]; then
+		echo " succeeded"
+	    else
+		echo " failed"
+	    fi
+	fi
+
+	if [[ ( "$PLOT" -eq "1" ) && ( ( "$NUMBER_OF_NUMBER_OF_SLAVE_NODES" -ne "1" ) || ( "$NUMBER_OF_NUMBER_OF_SCHEDULERS" -ne "1" ) ) ]]; then
+	    echo -n "Plotting"
+	    pbm &
+	    spin $!
+	    echo " done"
+	fi
+    fi
+
+    IFS=$NEW_IFS
 done
 
 END=`date +%s`
@@ -472,4 +464,3 @@ END=`date +%s`
 ELAPSED=$(( END - START ))
 
 echo "Time elapsed: $ELAPSED sec"
-
