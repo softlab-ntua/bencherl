@@ -4,7 +4,11 @@
 .PHONY: all app bench clean clean-app clean-bench clean-res clean-suite suite
 
 # Compile everything.
-all: app suite bench
+all: directories app suite bench
+
+# Create the relevant dirs:
+directories:
+	mkdir -p scratch/
 
 # Compile only the applications.
 app:
