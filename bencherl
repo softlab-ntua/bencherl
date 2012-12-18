@@ -324,7 +324,7 @@ source conf/run.conf
 CORES=`cat /proc/cpuinfo | grep processor | wc -l`
 
 if [ -z $MNEMONIC_NAME ]; then
-	MNEMONIC_NAME=`date +%d.%m.%y.-%H.%M.%S`
+	MNEMONIC_NAME=`date +%d.%m.%y-%H.%M.%S`
 fi
 
 if [ -z $VERSION ]; then
