@@ -76,8 +76,11 @@ REPLICA_KEY_2 = 85070591730234615865843651857942052864
 REPLICA_KEY_3 = 170141183460469231731687303715884105728
 REPLICA_KEY_4 = 255211775190703847597530955573826158592
 
-all: compile
+all: mkdirs compile
 #all: compile dialyzer java test docs
+
+mkdirs:
+	mkdir -p ebin/
 
 #cp priv/xbin/*beam bin/
 compile:
