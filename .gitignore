@@ -11,3 +11,6 @@ app/scalaris/config.status
 app/scalaris/java-api/scalaris
 app/scalaris/java-api/scalaris-java.conf
 app/scalaris/variables-nonode@nohost
+
+# ChicagoBoss
+suite/ui/ChicagoBoss-*/
