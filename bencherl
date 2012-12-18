@@ -378,7 +378,7 @@ if [ -e results/$MNEMONIC_NAME ]; then
     rm -rf results/$MNEMONIC_NAME
 fi
 resdir=results/$MNEMONIC_NAME
-mkdir $resdir
+mkdir -p $resdir
 
 IFS=$NEW_IFS
 for bench in $BENCHS; do
