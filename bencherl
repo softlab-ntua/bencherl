@@ -12,8 +12,6 @@ Run scalability benchmarks.
   -h         display this help and exit
   -l         list all the available benchmarks
   -m <MN>    use MN as the mnemonic name of this run
-  -U         Start the bencherl web interface (change port in suite/ui/bencherlui/boss.config)
-  -S         Stop the bencherl web interface
 
 For complete documentation, go to ...
 EOF
@@ -301,33 +299,14 @@ nds()
 
 START=`date +%s`
 
-while getopts ":USb:chlm:s:n:pi" opt; do
+while getopts ":b:chlm:s:n:pi" opt; do
   case $opt in
-		h)
+	h)
 	    usage
 	    exit 0
 	    ;;
     l)
       list_bms
-      exit 0
-      ;;
-    U)
-      echo \
-        echo "Starting the Web UI... The port can be changed in suite/ui/bencherlui/boss.config" ";"\
-        cd suite/ui/bencherlui ";"\
-        ./init.sh start ";"\
-        echo "Web UI Started" ";"\
-        echo "Default address: http://localhost:8001" ";"\
-        echo "Use the following command to stop the user interface" ";"\
-        echo "./bencherl -S"  | /bin/bash
-      exit 0
-      ;;
-    S)
-      echo \
-        echo "Stoping the web UI" ";"\
-        cd suite/ui/bencherlui ";"\
-        ./init.sh stop ";"\
-        echo "Web UI stoped" | /bin/bash
       exit 0
       ;;
     m)

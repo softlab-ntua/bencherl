@@ -1,7 +1,7 @@
 #ERL_LIB_DIR = /path/to/otp/lib
 #ERLC_OPTS = +debug_info
 
-.PHONY: all app bench clean clean-app clean-bench clean-res clean-suite suite
+.PHONY: all app bench clean clean-app clean-bench clean-res clean-suite clean-ui suite ui
 
 # Compile everything.
 all: directories app suite bench
@@ -23,12 +23,16 @@ suite:
 	fi)
 	@(cd suite && $(MAKE) ERLC_OPTS=$(ERLC_OPTS) $@)
 
+# Compile the UI.
+ui:
+	@(cd ui && $(MAKE) ERLC_OPTS=$(ERLC_OPTS) $@)
+
 # Compile the benchmarks.
 bench: 
 	@(cd bench && $(MAKE) ERLC_OPTS=$(ERLC_OPTS) $@)
 
 # Clean up everything.
-clean: clean-app clean-bench clean-res clean-suite
+clean: clean-app clean-bench clean-res clean-suite clean-ui
 	@(cd scratch && $(RM) -rf *)
 
 # Clean up the applications.
@@ -41,12 +45,19 @@ clean-bench:
 
 # Clean up the results.
 clean-res:
-	@(cd results && $(RM) -rf *)
+	@(if [ -f results ]; then \
+		cd results; \
+		$(RM) -rf *; \
+		exit 2; \
+	fi)
 
 # Clean up the suite.
 clean-suite:
 	@(cd suite && $(MAKE) clean)
 
+# Clean up the UI.
+clean-ui:
+	@(cd ui && $(MAKE) clean)
+
 %.beam: %.erl
 	erlc $(ERLC_OPTS) $<
-

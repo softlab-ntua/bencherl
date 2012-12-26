@@ -3,7 +3,7 @@
 ### How to build the benchmark suite ###
 
 	$ make clean
-	$ make
+	$ make all
 
 ### How to build just the benchmarks ###
 
@@ -12,7 +12,11 @@
 ### How to build just the applications ###
 
 	$ make app
- 
+
+### How to build the web interface ###
+
+    $ make ui
+
 ### How to run the benchmark suite ###
 
 Specify what you want to run and how in `conf/run.conf`, and then use 
@@ -212,4 +216,19 @@ directory has three sub-directories:
 * `graphs`, which contains the scalability graphs;
 * `output`, which contains the output that the benchmark produced during its execution;
 * `measurements`, which contains the scalability measurements collected during the execution of the benchmark
-. 
+.
+
+### How to start the web server that serves the web interface of the benchmark suite ###
+
+Use `bencherlui` with the `-u` (up) option to start the web server.
+
+    $ ./bencherlui -u
+
+You can change the port of the web server in `ui/bencherlui/boss.config`.
+
+### How to stop the web server that serves the web interface of the benchmark suite ###
+
+Use `bencherlui` with the `-d` (down) option to stop the web server.
+
+    $ ./bencherlui -d
+

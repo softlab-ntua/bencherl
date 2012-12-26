@@ -8,8 +8,11 @@ benchmark_runs_json('GET', []) ->
     {json, [{benchmark_runs, benchmark_run_list()}]}.
 
 list_of_files_in_dir(DirPath) ->
-    {ok, FileNameList} = 
-        file:list_dir(DirPath),
+    FileNameList =
+        case file:list_dir(DirPath) of
+            {ok, FNList} -> FNList;
+            {error, _} -> []
+        end,    
     lists:filter(
              fun(Name) -> Name /= ".gitignore" end,
              FileNameList).
@@ -28,7 +31,7 @@ string_date_to_date_tuple(String) ->
     end.
 
 benchmark_run_list() ->
-    UnsortedListOfFiles = list_of_files_in_dir("../../../results"),
+    UnsortedListOfFiles = list_of_files_in_dir("../../results"),
     SortedListOfFiles =
         lists:sort(
           fun(A,B) ->
@@ -43,7 +46,7 @@ benchmark_run_list_json_text() ->
 
 benchmark_list_for_name(RunName) ->
     [list_to_binary(Name) 
-     || Name <- list_of_files_in_dir(lists:concat(["../../../results/", RunName]))].
+     || Name <- list_of_files_in_dir(lists:concat(["../../results/", RunName]))].
 
 benchmark_list_for_name_json_text(RunName) ->
     BenchmarkList = benchmark_list_for_name(RunName),
@@ -143,7 +146,7 @@ measurement_files('GET', []) ->
     RunName = Req:query_param("run"),
     BenchmarkName = Req:query_param("benchmark"),
     MeasurementDir = lists:concat(
-                       ["../../../results/", 
+                       ["../../results/", 
                         RunName, "/", 
                         BenchmarkName, 
                         "/measurements"]),
@@ -157,7 +160,7 @@ benchmark_results('GET', []) ->
     BenchmarkName = Req:query_param("benchmark"),
     MeasurementFile = Req:query_param("measurementFile"),
     FileName = lists:concat(
-                 ["../../../results/", 
+                 ["../../results/", 
                   RunName, "/", 
                   BenchmarkName, 
                   "/measurements/",

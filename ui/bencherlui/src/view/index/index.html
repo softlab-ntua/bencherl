@@ -1,0 +1,18 @@
+{% extends "main_template.html" %}
+
+{% block javascript %}
+{% endblock %}
+
+{% block body %}
+<p>This is the result viewer for BenchErl.</p> 
+<br/>
+<p>Click on <a href="/results">Results</a> to view the results of the benchmarks you have run.</p>
+<br/>
+<p>You can find information about how to use BenchErl <a href="http://release.softlab.ntua.gr/bencherl/">here</a>.</p>
+<br/>
+<p>In the BenchErl base directory, execute: 
+<pre>./bencherlui -u</pre> 
+to <i>start</i>, and:
+<pre>./bencherlui -d</pre>
+to <i>stop</i> the web server that serves this web interface.
+{% endblock %}

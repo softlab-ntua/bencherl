@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# Controls the web server that serves the web interface of the benchmark suite.
+
+usage()
+{
+	cat << EOF
+Usage: bencherlui [OPTION..]
+Start or stop the web server that serves bencherl UI.
+
+  -h         display this help and exit
+  -u         start the web server that serves bencherl UI (change port in ui/bencherlui/boss.config)
+  -d         stop the web server that serves bencherl UI
+
+For complete documentation, go to ...
+EOF
+}
+
+START=`date +%s`
+
+while getopts ":udh" opt; do
+  case $opt in
+    h)
+        usage   
+        exit 0
+        ;;
+    u)
+        echo "Starting web server... The port can be changed in ui/bencherlui/boss.config." 
+        cd ui/bencherlui
+        ./init.sh start
+        echo "Web server started."
+        host=`hostname -f`
+        port=`cat boss.config  | grep port | grep -v db_port | cut -d',' -f 2 | cut -d'}' -f1 |sed -e 's/^[ \t]*//'`
+        echo "Use your web browser and go to  http://$host:$port."
+        echo "Use the following command to stop the web server:"
+        echo "./bencherlui -d"  
+        exit 0
+        ;;
+    d)
+        echo "Stopping web server..."
+        cd ui/bencherlui
+        ./init.sh stop
+        echo "Web server stopped."
+        exit 0
+        ;;
+    \?)
+      echo "Invalid option: -$OPTARG"
+      exit 1
+      ;;
+  esac
+done
