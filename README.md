@@ -15,7 +15,7 @@
 
 ### How to build the web interface ###
 
-    $ make ui
+  $ make ui
 
 ### How to run the benchmark suite ###
 
@@ -52,19 +52,6 @@ By default, all benchmarks are run.
 Use the `-l` option of the `bencherl` script.
 
 	$ ./run_bench -l
-
-### How to run the web based user interface to see results ###
-
-Use the `-U` option of the `bencherl` script.
-
-	$ ./run_bench -U
-
-The interface is by default started at http://localhost:8001. The port can be
-changed by modifying `suite/ui/bencherlui/boss.config`.
-
-Use the `-S` option of the `bencherl` script to stop the interface.
-
-	$ ./run_bench -S
 
 ### How to specify the number of schedulers to run benchmarks with ###
 
@@ -217,6 +204,8 @@ directory has three sub-directories:
 * `output`, which contains the output that the benchmark produced during its execution;
 * `measurements`, which contains the scalability measurements collected during the execution of the benchmark
 .
+
+## Web interface (UI)
 
 ### How to start the web server that serves the web interface of the benchmark suite ###
 
