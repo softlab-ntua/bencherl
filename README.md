@@ -1,5 +1,13 @@
 `bencherl` is a scalability benchmark suite for Erlang.
 
+### How to get ready to build the benchmark suite ###
+
+Make sure you have the following installed on your machine:
+
+* make
+* [gnuplot](http://www.gnuplot.info/) 
+* [Erlang/OTP](http://www.erlang.org/)
+
 ### How to build the benchmark suite ###
 
 	$ make clean
