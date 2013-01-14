@@ -33,7 +33,7 @@ bench:
 
 # Clean up everything.
 clean: clean-app clean-bench clean-res clean-suite clean-ui
-	@(cd scratch && $(RM) -rf *)
+	@(if test -f scratch; then cd scratch && $(RM) -rf *; fi)
 
 # Clean up the applications.
 clean-app:
