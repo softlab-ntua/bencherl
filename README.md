@@ -23,7 +23,7 @@ Make sure you have the following installed on your machine:
 
 ### How to build the web interface ###
 
-  $ make ui
+	$ make ui
 
 ### How to run the benchmark suite ###
 
