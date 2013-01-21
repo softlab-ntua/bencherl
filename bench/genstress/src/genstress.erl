@@ -61,7 +61,7 @@ start_clients(Np, Queue) ->
 	[spawn_link(fun() -> client(Queue) end) || _ <- lists:seq(1, Np)].
 
 stop_clients(Clients) ->
-	[erlang:exit(Client, normal) || Client <- Clients],
+	[erlang:exit(Client, kill) || Client <- Clients],
 	ok.
 
 client(Queue) ->
@@ -108,6 +108,9 @@ init(_Args) ->
 %%
 %% -------------------------------------------------------------------- %%
 
+handle_call(stop, From, S) ->
+	{stop, normal, stopped, S#state{mstate=From}};
+	
 handle_call(Command, From, S)->
 	{reply, Command, S#state{mstate=From}}.
 
