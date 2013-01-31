@@ -65,22 +65,38 @@ main() ->
         {ok, OF} = file:open(OutFile, [write]),
 
 	%% Run the benchmark for all argument sets.
+        RunFun = fun(Coordinator, CurArgs) -> group_leader(OF, self()),
+                    T0 = now(),
+                    Return = apply(M, run, [CurArgs, Slaves, [{datadir, DataDir}, {master, Master}]]),
+                    Dur = timer:now_diff(now(), T0)/1000,
+                    Coordinator ! {done, {Return, Dur}}
+        end,
+        RecordFun = fun(Text, Times) -> 
+                io:format(MF, "(~w) ~w ", [Text, lists:min(Times)])
+        end,
         Fun =
             fun(Bargs) ->
-                    Times =
-                        lists:map(
-                          fun(_) -> Coordinator = self(),
-                                    %% In a new process, please.
-                                    spawn(node(),
-                                          fun() -> group_leader(OF, self()),
-                                                   T0 = now(),
-                                                   apply(M, run, [Bargs, Slaves, [{datadir, DataDir}, {master, Master}]]),
-                                                   Dur = timer:now_diff(now(), T0)/1000,
-                                                   Coordinator ! {done, Dur}
-                                          end),
-                                    receive {done,T} -> T end
-                          end, lists:seq(1,Iterations)),
-                    io:format(MF, "(~w) ~w ", [Bargs, lists:min(Times)])
+                    RunAndAggregate = fun(RecursiveRAA, CurrentState, AggregateResults) ->
+                            Coordinator = self(),
+                            %% In a new process, please.
+                            spawn(node(), fun() -> RunFun(Coordinator, case CurrentState of initial -> Bargs; {state, C} -> [C | Bargs] end) end),
+                            receive
+                                {done, {R, T}} ->
+                                    case R of
+                                        {{continue, ignore}, State} -> RecursiveRAA(RecursiveRAA, {state, State}, AggregateResults);
+                                        {{continue, Name}, State} -> RecursiveRAA(RecursiveRAA, {state, State}, orddict:append(Name, T, AggregateResults));
+                                        {{done, ignore}, _} -> AggregateResults;
+                                        {{done, Name}, _} -> orddict:append(Name, T, AggregateResults);
+                                        _ -> orddict:append(standard, T, AggregateResults)
+                                    end
+                            end
+                    end,
+                    Aggregated = orddict:new(),
+                    Times = lists:foldl(fun(_, A) -> RunAndAggregate(RunAndAggregate, initial, A) end, Aggregated, lists:seq(1,Iterations)),
+                    case orddict:to_list(Times) of
+                        [{standard, T}] -> RecordFun(Bargs, T);
+                        T -> lists:foreach(fun({Name, SubTimes}) -> RecordFun({Name, Bargs}, SubTimes) end, T)
+                    end
             end,
         lists:foreach(Fun, M:bench_args(Version, [{number_of_cores, Cores}])),
         file:close(OF),
@@ -94,7 +110,7 @@ main() ->
 
     catch
         E:D ->
-	    io:format("Exception ~p while running benchmark:\n~p\n~p\n",
+            io:format("Exception ~p while running benchmark:\n~p\n~p\n",
                       [E, D, erlang:get_stacktrace()])
     end.
 
