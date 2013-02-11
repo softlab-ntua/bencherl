@@ -1,0 +1,51 @@
+{application, de_bench,
+ [
+  {description, "A Benchmarking Suite for Distribited Erlang"},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib,
+                  lager
+                 ]},
+  {mod, { de_bench_app, []}},
+  {env, [
+
+			 %%
+			 %% Default log level
+			 %%
+			 {log_level, debug},
+
+			 %%
+			 %% Base test output directory
+			 %%
+			 {test_dir, "tests"}
+
+			 %%
+			 %% Test duration (minutes)
+			 %%
+			 %%{duration, 5},
+
+			 %%
+			 %% Number of concurrent workers
+			 %%
+			 %{concurrent, 3},
+
+			 %%
+			 %% Interval on which to report latencies and status (seconds)
+			 %%
+			 %{report_interval, 60}
+
+			 %%
+			 %% Worker processes sleep after pinging all Erlang nodes to 
+			 %% give enough time for connection establishment (seconds) 
+			 %%
+			 %{sleep_time_after_ping, 60},
+
+			 %%
+			 %% DEbench sleeps to give enough time that all Erlang nodes become stable (seconds)
+			 %%
+			 %{sleep_time_here, 3}
+
+         ]}
+ ]}.
