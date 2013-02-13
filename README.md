@@ -59,7 +59,7 @@ By default, all benchmarks are run.
 
 Use the `-l` option of the `bencherl` script.
 
-	$ ./run_bench -l
+	$ ./bencherl -l
 
 ### How to specify the number of schedulers to run benchmarks with ###
 
