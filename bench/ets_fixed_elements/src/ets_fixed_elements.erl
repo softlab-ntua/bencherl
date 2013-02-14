@@ -15,9 +15,9 @@
 bench_args(Version, _) ->
     NrOfOperations = 
 	case Version of
-	    short        -> 20000;
-	    intermediate -> 200000;
-	    long         -> 2000000
+	    short        -> 500000;
+	    intermediate -> 5000000;
+	    long         -> 50000000
 	end,
     TableImpels = [ets, etsmp],
     [[NrOfOperations, TableImpel] || TableImpel <- TableImpels].
