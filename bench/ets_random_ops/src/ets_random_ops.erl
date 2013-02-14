@@ -5,9 +5,9 @@
 bench_args(Version, _) ->
     NrOfOperations = 
         case Version of
-            short        -> 20000;
-            intermediate -> 200000;
-            long         -> 2000000
+            short        -> 150000;
+            intermediate -> 1500000;
+            long         -> 15000000
         end,
     % % Insert, % Delete, % Lookup, % NoOp
     Scenarios = [{100,0,0,0},
