@@ -1,4 +1,4 @@
-`bencherl` is a scalability benchmark suite for Erlang.
+# `bencherl` - A scalability benchmark suite for Erlang
 
 ### How to get ready to build the benchmark suite ###
 
