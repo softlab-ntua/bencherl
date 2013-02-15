@@ -61,7 +61,7 @@ main() ->
 
 	%% Open the measurements file.
         {ok, MF} = file:open(MeasFile, [append]),
-        io:format(MF, "~w ", [NS]),
+        io:format(MF, "~p ", [NS]),
         {ok, OF} = file:open(OutFile, [write]),
 
 	%% Run the benchmark for all argument sets.
@@ -80,7 +80,7 @@ main() ->
                                           end),
                                     receive {done,T} -> T end
                           end, lists:seq(1,Iterations)),
-                    io:format(MF, "(~w) ~w ", [Bargs, lists:min(Times)])
+                    io:format(MF, "(~p) ~p ", [Bargs, lists:min(Times)])
             end,
         lists:foreach(Fun, M:bench_args(Version, [{number_of_cores, Cores}])),
         file:close(OF),

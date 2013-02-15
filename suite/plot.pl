@@ -48,6 +48,7 @@ sub main {
 		$ci++;
 		$token =~ s/^\s+//;
 		$token =~ s/\s+$//;
+                $token =~ s/\"/\\\"/g;
 		if ($token && !($ci % 2)) {
 			if ($ci > 2) {
 				print PIPE ", ";
