@@ -25,6 +25,9 @@ Make sure you have the following installed on your machine:
 
 	$ make ui
 
+You have to run this command again if you move the bencherl directory
+to another path.
+
 ### How to run the benchmark suite ###
 
 Specify what you want to run and how in `conf/run.conf`, and then use 
@@ -216,6 +219,8 @@ directory has three sub-directories:
 ## Web interface (UI)
 
 ### How to start the web server that serves the web interface of the benchmark suite ###
+
+Start by building the web interface, if you have not done that already (`make ui`).
 
 Use `bencherlui` with the `-u` (up) option to start the web server.
 
