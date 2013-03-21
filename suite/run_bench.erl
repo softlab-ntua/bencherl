@@ -83,7 +83,14 @@ main() ->
                                 "~p"
                         end
                     end,
-                io:format(MF, "(~s) ~p ", [remove_whitespace_and_new_lines(io_lib:format(LabelFormat,[Text])), lists:min(Times)])
+                PTimes = lists:min(Times),
+                case Text of
+                    {Str, L} -> 
+                        io:format(MF, "(~s_~w) ~w ", [Str, L, PTimes]);
+                    _ ->
+                        FText = remove_whitespace_and_new_lines(io_lib:format(LabelFormat,[Text])),
+                        io:format(MF, "(~s) ~p ", [FText, PTimes])
+                end
         end,
         Fun =
             fun(Bargs) ->
