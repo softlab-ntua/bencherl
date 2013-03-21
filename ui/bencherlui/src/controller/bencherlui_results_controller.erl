@@ -83,7 +83,7 @@ add_data_points_to_dict(NrOfSched, Line, Dict) ->
                 {match, [{Start, _}|_]} ->
                     {Value, RestOfLine2} = 
                         string:to_float(lists:nthtail(Start, RestOfLine1)),
-                    NewDict = dict:append(Label, [NrOfSched, Value], Dict),
+                    NewDict = orddict:append(Label, [NrOfSched, Value], Dict),
                     add_data_points_to_dict(
                       NrOfSched, 
                       RestOfLine2, 
@@ -107,12 +107,12 @@ add_line_to_dict(Line, Dict) ->
 
 
 result_file_to_dict(FileName) ->
-    Lines = readlines(FileName),    
+    Lines = readlines(FileName),
     lists:foldl(
       fun(Line, Dict) ->
               add_line_to_dict(Line, Dict)
       end, 
-      dict:new(), 
+      orddict:new(), 
       Lines).
 
 result_file_to_json_text(FileName) ->
@@ -122,10 +122,10 @@ result_file_to_json_text(FileName) ->
                      dict:append_list(
                        data, Data, 
                        dict:append_list(
-                         label, list_to_binary(Label), 
+			label, binary:replace(list_to_binary(Label),<<"\"">>, <<"'">>, [global]), 
                          dict:new()))
              end,
-             dict:to_list(Dict)),
+             orddict:to_list(Dict)),
     rfc4627:encode(List).
 
 measurement_file_list(MeasurementDir) ->
