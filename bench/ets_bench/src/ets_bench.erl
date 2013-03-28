@@ -11,7 +11,7 @@ bench_args(Version, _) ->
 	[KeyRange, InsDels, Reads, PartialResults] = case Version of
 		short -> [14, 15, 16, 1];
 		intermediate -> [18, 20, 22, 1];
-		long -> [20, 24, 28, 1]
+		long -> [22, 20, 24, 1]
 	end,
 	TableTypes = case Version of
 		short -> [set, ordered_set, {gi, null}];
@@ -22,9 +22,9 @@ bench_args(Version, _) ->
 	Seed = {0,0,0},
 	%% use random seed for varying input
 	%Seed = now(),
-	ConcurrencyOptions = [no,rw], % options are: no, r, w, rw
-	%[[TT,KeyRange,InsDels,Reads,C,PartialResults,Seed] || TT <- TableTypes, C <- ConcurrencyOptions ] ++ [[set,KeyRange,InsDels,Reads,rw,PartialResults,Seed], [ordered_set,KeyRange,InsDels,Reads,rw,PartialResults,Seed], [{gi, null},KeyRange,InsDels,Reads,rw,PartialResults,Seed]].
-	[[TT,KeyRange,InsDels,Reads,C,PartialResults,Seed] || TT <- TableTypes, C <- ConcurrencyOptions ].
+	ConcurrencyOptions = [r], % options are: no, r, w, rw
+	[[TT,KeyRange,InsDels,Reads,C,PartialResults,Seed] || TT <- TableTypes, C <- ConcurrencyOptions ] ++ [[set,KeyRange,InsDels,Reads,rw,PartialResults,Seed], [ordered_set,KeyRange,InsDels,Reads,rw,PartialResults,Seed], [{gi, null},KeyRange,InsDels,Reads,rw,PartialResults,Seed]].
+	%[[TT,KeyRange,InsDels,Reads,C,PartialResults,Seed] || TT <- TableTypes, C <- ConcurrencyOptions ].
 
 run([Type, _K, _W, _R, C, _Parts, Seed], _, _) ->
 	% this is a setup
