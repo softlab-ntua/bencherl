@@ -76,14 +76,15 @@ setup([[insert, Table, P, Seed], _T, _K, _W, _R, _C, P, _S]) ->
 setup([[insert, Table, P, Seed], _T, K, W | _]) ->
 	random:seed(Seed),
 	WOps = round(math:pow(?BASE, W)),
+	KeyRange = round(math:pow(?BASE, K)),
 	Init = fun(Idx, Max) ->
-		R = WOps rem Max,
+		Remain = WOps rem Max,
 		C = if
-			(Idx < R) -> 1; % TODO check this is correct
+			(Idx < Remain) -> 1;
 			true -> 0
 		end,
 		Amount = WOps div Max + C,
-		Randoms = make_randoms(Amount, K),
+		Randoms = make_randoms(Amount, KeyRange),
 		 {Table, Randoms}
 	end,
 	Workers = make_workers(Init, fun(X) -> insert(X) end),
@@ -91,11 +92,18 @@ setup([[insert, Table, P, Seed], _T, K, W | _]) ->
 	Name = lists:flatten(["insert ", integer_to_list(WOps)]),
 	{{continue, ignore}, [run, insert, Name, Workers, Table, P, NextSeed]};
 setup([[lookup, Table, P, Seed], _T, K, _W, R | _]) ->
+	%erlang:display([ets:info(Table, size), _T, [K, _W, R]]),
 	random:seed(Seed),
 	ROps = round(math:pow(?BASE, R)),
-	Init = fun(_Idx, Max) ->
-		Amount = ROps div Max, % FIXME TODO THIS IS INEXACT
-		Randoms = make_randoms(Amount, K),
+	KeyRange = round(math:pow(?BASE, K)),
+	Init = fun(Idx, Max) ->
+		Remain = ROps rem Max,
+		C = if
+			(Idx < Remain) -> 1;
+			true -> 0
+		end,
+		Amount = ROps div Max + C,
+		Randoms = make_randoms(Amount, KeyRange),
 		{Table, Randoms}
 	end,
 	
@@ -110,9 +118,15 @@ setup([[delete, Table, P, _Seed], _T, _K, _W, _R, _C, P, _S]) ->
 setup([[delete, Table, P, Seed], _T, K, W | _ ]) ->
 	random:seed(Seed),
 	WOps = round(math:pow(?BASE, W)),
-	Init = fun(_Idx, Max) ->
-		Amount = WOps div Max, % FIXME TODO THIS IS INEXACT
-		Randoms = make_randoms(Amount, K),
+	KeyRange = round(math:pow(?BASE, K)),
+	Init = fun(Idx, Max) ->
+		Remain = WOps rem Max,
+		C = if
+			(Idx < Remain) -> 1;
+			true -> 0
+		end,
+		Amount = WOps div Max + C,
+		Randoms = make_randoms(Amount, KeyRange),
 		{Table, Randoms}
 	end,
 	
