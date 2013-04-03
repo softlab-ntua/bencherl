@@ -5,13 +5,17 @@
 -define(BASE, 2).
 -define(RAND_MAX, 65535).
 -define(TABLE_PROCESS, table_process).
+-define(SAMPLING, 10000).
 
 bench_args(Version, _) ->
 	%% positive numbers: this times number of schedulers worker processes
 	%% negative number: negative of exactly this many worker processes
 	Processes = -64,
-	%% KeyRange, Inserts/Deletes and Reads as powers of ?BASE
-	[KeyRange, InsDels, Reads] = case Version of
+	%% percentage of MixedOps that are Updates. Use 0 to measure only lookups.
+	MixedOpsUpdates = 0.2,
+	%% KeyRange, Inserts/Deletes and Lookups/MixedOps as powers of ?BASE
+	%% MixedOps are Lookups: (1-MixedOpsUpdates), Inserts: (MixedOpsUpdates/2) and Deletes (MixedOpsUpdates/2)
+	[KeyRange, InsDels, MixedOps] = case Version of
 		short -> [14, 15, 16];
 		intermediate -> [18, 20, 22];
 		long -> [22, 20, 24]
@@ -26,10 +30,10 @@ bench_args(Version, _) ->
 	%% use random seed for varying input
 	%Seed = now(),
 	ConcurrencyOptions = [r], % options are: no, r, w, rw
-	[[TT,KeyRange,InsDels,Reads,C,Processes,Seed] || TT <- TableTypes, C <- ConcurrencyOptions ] ++ [[set,KeyRange,InsDels,Reads,rw,Processes,Seed], [ordered_set,KeyRange,InsDels,Reads,rw,Processes,Seed], [{gi, null},KeyRange,InsDels,Reads,rw,Processes,Seed]].
-	%[[TT,KeyRange,InsDels,Reads,C,Processes,Seed] || TT <- TableTypes, C <- ConcurrencyOptions ].
+	%[[TT,KeyRange,InsDels,MixedOps,MixedOpsUpdates,C,Processes,Seed] || TT <- TableTypes, C <- ConcurrencyOptions ] ++ [[set,KeyRange,InsDels,MixedOps,MixedOpsUpdates,rw,Processes,Seed], [ordered_set,KeyRange,InsDels,MixedOps,MixedOpsUpdates,rw,Processes,Seed], [{gi, null},KeyRange,InsDels,MixedOps,MixedOpsUpdates,rw,Processes,Seed]].
+	[[TT,KeyRange,InsDels,MixedOps,MixedOpsUpdates,C,Processes,Seed] || TT <- TableTypes, C <- ConcurrencyOptions ].
 
-run([Type, _K, _W, _R, C, _Processes, Seed], _, _) ->
+run([Type, _K, _W, _R, _U, C, _Processes, Seed], _, _) ->
 	% this is a setup
 	{RC, WC} = case C of
 		no -> {false, false};
@@ -74,9 +78,16 @@ insert({T,[X|Xs]}) ->
 	ets:insert(T, {X}),
 	insert({T, Xs}).
 
-setup([[insert, Table, 1, Seed], _T, _K, _W, _R, _C, _Procs, _S]) ->
+
+mixed({_, []}) -> ok;
+mixed({T,[{A,X}|Xs]}) ->
+	%erlang:display(X),
+	ets:A(T, {X}),
+	insert({T, Xs}).
+
+setup([[insert, Table, 1, Seed], _T, _K, _W, _R, _U, _C, _Procs, _S]) ->
 	{{continue, ignore}, [delete, Table, 0, Seed]};
-setup([[insert, Table, P, Seed], _T, K, W, _R, _C, Procs | _]) ->
+setup([[insert, Table, P, Seed], _T, K, W, _R, _U, _C, Procs | _]) ->
 	random:seed(Seed),
 	WOps = round(math:pow(?BASE, W)),
 	KeyRange = round(math:pow(?BASE, K)),
@@ -94,31 +105,57 @@ setup([[insert, Table, P, Seed], _T, K, W, _R, _C, Procs | _]) ->
 	NextSeed = make_seed(),
 	Name = lists:flatten(["insert ", integer_to_list(WOps)]),
 	{{continue, ignore}, [run, insert, Name, Workers, Table, P, NextSeed]};
-setup([[lookup, Table, P, Seed], _T, K, _W, R, _C, Procs | _]) ->
+setup([[lookup, Table, P, Seed], _T, K, _W, R, UpdatePercentage, _C, Procs | _]) ->
 	%erlang:display([ets:info(Table, size), _T, [K, _W, R]]),
 	random:seed(Seed),
 	ROps = round(math:pow(?BASE, R)),
 	KeyRange = round(math:pow(?BASE, K)),
-	Init = fun(Idx, Max) ->
-		Remain = ROps rem Max,
-		C = if
-			(Idx < Remain) -> 1;
-			true -> 0
-		end,
-		Amount = ROps div Max + C,
-		Randoms = make_randoms(Amount, KeyRange),
-		{Table, Randoms}
-	end,
 	
-	Workers = make_workers(Init, fun(X) -> do(lookup, X) end, Procs),
+	case UpdatePercentage of
+		0 ->
+			Init = fun(Idx, Max) ->
+				Remain = ROps rem Max,
+				C = if
+					(Idx < Remain) -> 1;
+					true -> 0
+				end,
+				Amount = ROps div Max + C,
+				Randoms = make_randoms(Amount, KeyRange),
+				{Table, Randoms}
+			end,
+			Workers = make_workers(Init, fun(X) -> do(lookup, X) end, Procs),
+			Name = lists:flatten(["lookup ", integer_to_list(ROps)]);
+		_ ->
+			Init = fun(Idx, Max) ->
+				Remain = ROps rem Max,
+				C = if
+					(Idx < Remain) -> 1;
+					true -> 0
+				end,
+				Amount = ROps div Max + C,
+				Randoms = make_randoms(Amount, KeyRange),
+				Actions = make_randoms(Amount, ?SAMPLING),
+				Combine = fun(ANr, RNr) ->
+						A = if
+							ANr =< ?SAMPLING*UpdatePercentage/2 -> insert;
+							ANr =< ?SAMPLING*UpdatePercentage -> delete;
+							true -> lookup
+						end,
+						{A, RNr}
+				end,
+				RandomsActions = lists:zipwith(Combine, Actions, Randoms),
+				{Table, RandomsActions}
+			end,
+			Workers = make_workers(Init, fun(X) -> mixed(X) end, Procs),
+			Name = lists:flatten(["mixed l:",float_to_list((1-UpdatePercentage)*100, [{decimals, 4}, compact]), "%, u:", float_to_list(UpdatePercentage*100, [{decimals, 4}, compact]), "% ", integer_to_list(ROps)])
+	end,
 	NextSeed = make_seed(),
-	Name = lists:flatten(["lookup ", integer_to_list(ROps)]),
 	{{continue, ignore}, [run, lookup, Name, Workers, Table, P, NextSeed]};
-setup([[delete, Table, 1, _Seed], _T, _K, _W, _R, _C, _Procs, _S]) ->
+setup([[delete, Table, 1, _Seed], _T, _K, _W, _R, _U, _C, _Procs, _S]) ->
 	ets:delete(Table),
 	?TABLE_PROCESS ! finish,
 	{{done,ignore}, ok};
-setup([[delete, Table, P, Seed], _T, K, W, _R, _C, Procs | _ ]) ->
+setup([[delete, Table, P, Seed], _T, K, W, _R, _U, _C, Procs | _ ]) ->
 	random:seed(Seed),
 	WOps = round(math:pow(?BASE, W)),
 	KeyRange = round(math:pow(?BASE, K)),
