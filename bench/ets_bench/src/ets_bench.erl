@@ -7,11 +7,14 @@
 -define(TABLE_PROCESS, table_process).
 
 bench_args(Version, _) ->
+	%% positive numbers: this times number of schedulers worker processes
+	%% negative number: negative of exactly this many worker processes
+	Processes = -64,
 	%% KeyRange, Inserts/Deletes and Reads as powers of ?BASE
-	[KeyRange, InsDels, Reads, PartialResults] = case Version of
-		short -> [14, 15, 16, 1];
-		intermediate -> [18, 20, 22, 1];
-		long -> [22, 20, 24, 1]
+	[KeyRange, InsDels, Reads] = case Version of
+		short -> [14, 15, 16];
+		intermediate -> [18, 20, 22];
+		long -> [22, 20, 24]
 	end,
 	TableTypes = case Version of
 		short -> [set, ordered_set, {gi, null}];
@@ -23,10 +26,10 @@ bench_args(Version, _) ->
 	%% use random seed for varying input
 	%Seed = now(),
 	ConcurrencyOptions = [r], % options are: no, r, w, rw
-	[[TT,KeyRange,InsDels,Reads,C,PartialResults,Seed] || TT <- TableTypes, C <- ConcurrencyOptions ] ++ [[set,KeyRange,InsDels,Reads,rw,PartialResults,Seed], [ordered_set,KeyRange,InsDels,Reads,rw,PartialResults,Seed], [{gi, null},KeyRange,InsDels,Reads,rw,PartialResults,Seed]].
-	%[[TT,KeyRange,InsDels,Reads,C,PartialResults,Seed] || TT <- TableTypes, C <- ConcurrencyOptions ].
+	[[TT,KeyRange,InsDels,Reads,C,Processes,Seed] || TT <- TableTypes, C <- ConcurrencyOptions ] ++ [[set,KeyRange,InsDels,Reads,rw,Processes,Seed], [ordered_set,KeyRange,InsDels,Reads,rw,Processes,Seed], [{gi, null},KeyRange,InsDels,Reads,rw,Processes,Seed]].
+	%[[TT,KeyRange,InsDels,Reads,C,Processes,Seed] || TT <- TableTypes, C <- ConcurrencyOptions ].
 
-run([Type, _K, _W, _R, C, _Parts, Seed], _, _) ->
+run([Type, _K, _W, _R, C, _Processes, Seed], _, _) ->
 	% this is a setup
 	{RC, WC} = case C of
 		no -> {false, false};
@@ -71,9 +74,9 @@ insert({T,[X|Xs]}) ->
 	ets:insert(T, {X}),
 	insert({T, Xs}).
 
-setup([[insert, Table, P, Seed], _T, _K, _W, _R, _C, P, _S]) ->
+setup([[insert, Table, 1, Seed], _T, _K, _W, _R, _C, _Procs, _S]) ->
 	{{continue, ignore}, [delete, Table, 0, Seed]};
-setup([[insert, Table, P, Seed], _T, K, W | _]) ->
+setup([[insert, Table, P, Seed], _T, K, W, _R, _C, Procs | _]) ->
 	random:seed(Seed),
 	WOps = round(math:pow(?BASE, W)),
 	KeyRange = round(math:pow(?BASE, K)),
@@ -87,11 +90,11 @@ setup([[insert, Table, P, Seed], _T, K, W | _]) ->
 		Randoms = make_randoms(Amount, KeyRange),
 		 {Table, Randoms}
 	end,
-	Workers = make_workers(Init, fun(X) -> insert(X) end),
+	Workers = make_workers(Init, fun(X) -> insert(X) end, Procs),
 	NextSeed = make_seed(),
 	Name = lists:flatten(["insert ", integer_to_list(WOps)]),
 	{{continue, ignore}, [run, insert, Name, Workers, Table, P, NextSeed]};
-setup([[lookup, Table, P, Seed], _T, K, _W, R | _]) ->
+setup([[lookup, Table, P, Seed], _T, K, _W, R, _C, Procs | _]) ->
 	%erlang:display([ets:info(Table, size), _T, [K, _W, R]]),
 	random:seed(Seed),
 	ROps = round(math:pow(?BASE, R)),
@@ -107,15 +110,15 @@ setup([[lookup, Table, P, Seed], _T, K, _W, R | _]) ->
 		{Table, Randoms}
 	end,
 	
-	Workers = make_workers(Init, fun(X) -> do(lookup, X) end),
+	Workers = make_workers(Init, fun(X) -> do(lookup, X) end, Procs),
 	NextSeed = make_seed(),
 	Name = lists:flatten(["lookup ", integer_to_list(ROps)]),
 	{{continue, ignore}, [run, lookup, Name, Workers, Table, P, NextSeed]};
-setup([[delete, Table, P, _Seed], _T, _K, _W, _R, _C, P, _S]) ->
+setup([[delete, Table, 1, _Seed], _T, _K, _W, _R, _C, _Procs, _S]) ->
 	ets:delete(Table),
 	?TABLE_PROCESS ! finish,
 	{{done,ignore}, ok};
-setup([[delete, Table, P, Seed], _T, K, W | _ ]) ->
+setup([[delete, Table, P, Seed], _T, K, W, _R, _C, Procs | _ ]) ->
 	random:seed(Seed),
 	WOps = round(math:pow(?BASE, W)),
 	KeyRange = round(math:pow(?BASE, K)),
@@ -130,7 +133,7 @@ setup([[delete, Table, P, Seed], _T, K, W | _ ]) ->
 		{Table, Randoms}
 	end,
 	
-	Workers = make_workers(Init, fun(X) -> do(delete, X) end),
+	Workers = make_workers(Init, fun(X) -> do(delete, X) end, Procs),
 	NextSeed = make_seed(),
 	Name = lists:flatten(["delete ", integer_to_list(WOps)]),
 	{{continue, ignore}, [run, delete, Name, Workers, Table, P, NextSeed]}.
@@ -157,10 +160,14 @@ run_delete([Name, Workers, Table, Part, Seed | _]) ->
 	wait_for(Workers),
 	{{continue, Name}, [delete, Table, Part+1, Seed]}.
 
-make_workers(Init, Work) ->
-	Schedulers = erlang:system_info(schedulers),
-	Randoms = lists:map(fun make_seed/1, lists:seq(1, Schedulers)),
-	make_workers(Init, Work, Randoms, 0, Schedulers, []).
+make_workers(Init, Work, Procs) ->
+	WCount = if
+		Procs < 0 -> -Procs;
+		Procs > 0 -> Procs * erlang:system_info(schedulers);
+		true -> erlang:error(invalid_process_count)
+	end,
+	Randoms = lists:map(fun make_seed/1, lists:seq(1, WCount)),
+	make_workers(Init, Work, Randoms, 0, WCount, []).
 
 make_workers(_I, _W, [], M, M, Agg) ->
 	ready(Agg),
