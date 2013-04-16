@@ -10,7 +10,7 @@
 bench_args(Version, _) ->
 	%% positive numbers: this times number of schedulers worker processes
 	%% negative number: negative of exactly this many worker processes
-	Processes = -64,
+	Processes = -8192,
 	%% percentage of MixedOps that are Updates. Use 0 to measure only lookups.
 	MixedOpsUpdates = 0.2,
 	%% KeyRange, Inserts/Deletes and Lookups/MixedOps as powers of ?BASE
@@ -82,8 +82,8 @@ insert({T,[X|Xs]}) ->
 mixed({_, []}) -> ok;
 mixed({T,[{A,X}|Xs]}) ->
 	%erlang:display(X),
-	ets:A(T, {X}),
-	insert({T, Xs}).
+	ets:A(T, X),
+	mixed({T, Xs}).
 
 setup([[insert, Table, 1, Seed], _T, _K, _W, _R, _U, _C, _Procs, _S]) ->
 	{{continue, ignore}, [delete, Table, 0, Seed]};
@@ -136,12 +136,11 @@ setup([[lookup, Table, P, Seed], _T, K, _W, R, UpdatePercentage, _C, Procs | _])
 				Randoms = make_randoms(Amount, KeyRange),
 				Actions = make_randoms(Amount, ?SAMPLING),
 				Combine = fun(ANr, RNr) ->
-						A = if
-							ANr =< ?SAMPLING*UpdatePercentage/2 -> insert;
-							ANr =< ?SAMPLING*UpdatePercentage -> delete;
-							true -> lookup
-						end,
-						{A, RNr}
+						if
+							ANr =< ?SAMPLING*UpdatePercentage/2 -> {insert, {RNr}};
+							ANr =< ?SAMPLING*UpdatePercentage -> {delete, RNr};
+							true -> {lookup, RNr}
+						end
 				end,
 				RandomsActions = lists:zipwith(Combine, Actions, Randoms),
 				{Table, RandomsActions}
