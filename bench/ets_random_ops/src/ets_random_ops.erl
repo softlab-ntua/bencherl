@@ -13,17 +13,12 @@ bench_args(Version, _) ->
     Scenarios = [{100,0,0,0},
                  {50,50,0,0},
                  {20,10,70,0},
-                 {9,1,90,0},
-                 {1,0,99,0},
-                 {0,0,0,100}],
-    KeyRangeSizes = 
-        [NrOfOperations div round(math:pow(10, X)) 
-         || X <-lists:seq(0, 3)],
+                 {1,0,99,0}],
+    KeyRangeSizes = [1000000],
     TableTypes = [set, ordered_set],
     WorkerHeapSizes = [233],
     ConcurrencyOptionsList = 
-	[[{write_concurrency,true}, {read_concurrency,true}],
-         [{write_concurrency,true}]],
+	[[{write_concurrency,true}, {read_concurrency,true}]],
     [[TableType, 
       NrOfOperations, 
       KeyRangeSize, 
