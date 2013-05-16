@@ -63,7 +63,7 @@ find_first_parentheses_help([],[$(|Rest], 0) ->
 find_first_parentheses_help([],[_|Rest], 0) ->
     find_first_parentheses_help([], Rest, 0);
 find_first_parentheses_help(SoFar, Remaining, 0) ->
-    {lists:reverse(SoFar), Remaining};
+    {re:replace(lists:reverse(SoFar),"\"","'",[global]), Remaining};
 find_first_parentheses_help(SoFar, [$(|Rest], N) ->
     find_first_parentheses_help([$(|SoFar], Rest, N +1);
 find_first_parentheses_help(SoFar, [$)|Rest], N) ->
@@ -109,8 +109,7 @@ add_line_to_dict(Line, Dict) ->
 result_file_to_dict(FileName) ->
     Lines = readlines(FileName),    
     lists:foldl(
-      fun(Line, Dict) -> 
-              io:format("Line: ~p ~n", [Line]),
+      fun(Line, Dict) ->
               add_line_to_dict(Line, Dict)
       end, 
       dict:new(), 

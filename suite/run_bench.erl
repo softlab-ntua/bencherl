@@ -80,7 +80,18 @@ main() ->
                                           end),
                                     receive {done,T} -> T end
                           end, lists:seq(1,Iterations)),
-                    io:format(MF, "(~p) ~p ", [Bargs, lists:min(Times)])
+                    LabelFormat = 
+                        begin
+                            IsIntList =
+                                lists:all(fun(Elem)->is_integer(Elem) end, Bargs),
+                            case IsIntList of
+                                true ->
+                                    "~w";
+                                false ->
+                                    "~p"
+                            end
+                        end,
+                    io:format(MF, "(~s) ~p ", [remove_whitespace_and_new_lines(io_lib:format(LabelFormat,[Bargs])), lists:min(Times)])
             end,
         lists:foreach(Fun, M:bench_args(Version, [{number_of_cores, Cores}])),
         file:close(OF),
@@ -98,6 +109,9 @@ main() ->
                       [E, D, erlang:get_stacktrace()])
     end.
 
+
+remove_whitespace_and_new_lines(Str) ->
+    re:replace(Str,"\\s","",[global,{return,list}]).
 
 median(L) ->
     SL = lists:sort(L),
