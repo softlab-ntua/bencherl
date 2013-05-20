@@ -74,19 +74,24 @@ main() ->
         RecordFun = fun(Text, Times) ->
                 LabelFormat = 
                     begin
-                        IsIntList =
-                            lists:all(fun(Elem)->is_integer(Elem) end, Bargs),
-                        case IsIntList of
-                            true ->
-                                "~w";
-                            false ->
-                                "~p"
+                        case Text of
+                            {_, _} -> "~p";
+                            _ ->
+                                IsIntList =
+                                    lists:all(fun(Elem)->is_integer(Elem) end, Text),
+                                case IsIntList of
+                                    true ->
+                                        "~w";
+                                    false ->
+                                        "~p"
+                                end
                         end
                     end,
                 PTimes = lists:min(Times),
                 case Text of
                     {Str, L} -> 
-                        io:format(MF, "(~s_~w) ~w ", [Str, L, PTimes]);
+                        FStr = remove_whitespace_and_new_lines(io_lib:format(LabelFormat,[Str])),
+                        io:format(MF, "(~s-~w) ~w ", [FStr, L, PTimes]);
                     _ ->
                         FText = remove_whitespace_and_new_lines(io_lib:format(LabelFormat,[Text])),
                         io:format(MF, "(~s) ~p ", [FText, PTimes])
@@ -134,7 +139,8 @@ main() ->
 
 
 remove_whitespace_and_new_lines(Str) ->
-    re:replace(Str,"\\s","",[global,{return,list}]).
+    S = re:replace(Str," ","=",[global,{return,list}]),
+    re:replace(S,"\\s","",[global,{return,list}]).
 
 median(L) ->
     SL = lists:sort(L),
