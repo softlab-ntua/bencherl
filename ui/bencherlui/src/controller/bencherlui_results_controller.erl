@@ -63,7 +63,7 @@ find_first_parentheses_help([],[$(|Rest], 0) ->
 find_first_parentheses_help([],[_|Rest], 0) ->
     find_first_parentheses_help([], Rest, 0);
 find_first_parentheses_help(SoFar, Remaining, 0) ->
-    {re:replace(lists:reverse(SoFar),"\"","'",[global]), Remaining};
+    {lists:reverse(SoFar), Remaining};
 find_first_parentheses_help(SoFar, [$(|Rest], N) ->
     find_first_parentheses_help([$(|SoFar], Rest, N +1);
 find_first_parentheses_help(SoFar, [$)|Rest], N) ->
@@ -122,7 +122,7 @@ result_file_to_json_text(FileName) ->
                      dict:append_list(
                        data, Data, 
                        dict:append_list(
-			label, binary:replace(list_to_binary(Label),<<"\"">>, <<"'">>, [global]), 
+                         label, binary:replace(list_to_binary(Label),<<"\"">>, <<"'">>, [global]), 
                          dict:new()))
              end,
              orddict:to_list(Dict)),
