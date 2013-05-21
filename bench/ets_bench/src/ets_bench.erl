@@ -137,7 +137,7 @@ setup([[lookup, Table, P, Seed], _T, K, _W, R, UpdatePercentage, _C, Procs | _])
 				{Table, RandomsActions}
 			end,
 			Workers = make_workers(Init, fun(X) -> mixed(X) end, Procs),
-			Name = lists:flatten(["mixed l:",float_to_list((1-UpdatePercentage)*100, [{decimals, 4}, compact]), "%, u:", float_to_list(UpdatePercentage*100, [{decimals, 4}, compact]), "% ", integer_to_list(ROps)])
+			Name = lists:flatten([io_lib:format("mixed l:~.2f%, u:~.2f% ", [(1-UpdatePercentage)*100, UpdatePercentage*100]), integer_to_list(ROps)])
 	end,
 	NextSeed = make_seed(),
 	{{continue, ignore}, [run, lookup, Name, Workers, Table, P, NextSeed]};
