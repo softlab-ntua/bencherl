@@ -10,30 +10,29 @@
 bench_args(Version, _) ->
 	%% positive numbers: this times number of schedulers worker processes
 	%% negative number: negative of exactly this many worker processes
-	Processes = -8192,
+	Processes = 1,
 	%% percentage of MixedOps that are Updates. Use 0 to measure only lookups.
-	MixedOpsUpdates = 0.2,
+	MixedOpsUpdates = [0, 0.01, 0.1],
 	%% KeyRange, Inserts/Deletes and Lookups/MixedOps as powers of ?BASE
 	%% MixedOps are Lookups: (1-MixedOpsUpdates), Inserts: (MixedOpsUpdates/2) and Deletes (MixedOpsUpdates/2)
 	[KeyRange, InsDels, MixedOps] = case Version of
-		short -> [14, 15, 16];
-		intermediate -> [18, 20, 22];
-		long -> [22, 20, 24]
+		short -> [14, 15, 17];
+		intermediate -> [18, 18, 21];
+		long -> [21, 20, 22]
 	end,
 	TableTypes = case Version of
-		short -> [set, ordered_set, {gi, null}];
+		short -> [set, ordered_set];
 		intermediate -> [set, ordered_set ];
 		long -> [set, ordered_set ]
 	end,
 	%% use deterministic seed for reproducable results
 	Seed = {0,0,0},
 	%% use random seed for varying input
-	%Seed = now(),
-	ConcurrencyOptions = [r], % options are: no, r, w, rw
-	%[[TT,KeyRange,InsDels,MixedOps,MixedOpsUpdates,C,Processes,Seed] || TT <- TableTypes, C <- ConcurrencyOptions ] ++ [[set,KeyRange,InsDels,MixedOps,MixedOpsUpdates,rw,Processes,Seed], [ordered_set,KeyRange,InsDels,MixedOps,MixedOpsUpdates,rw,Processes,Seed], [{gi, null},KeyRange,InsDels,MixedOps,MixedOpsUpdates,rw,Processes,Seed]].
-	[[TT,KeyRange,InsDels,MixedOps,MixedOpsUpdates,C,Processes,Seed] || TT <- TableTypes, C <- ConcurrencyOptions ].
+	%Seed = now(), % this currently breaks graph creation
+	ConcurrencyOptions = [no, rw], % options are: no, r, w, rw
+	[[TT,KeyRange,InsDels,MixedOps,M,C,Processes,Seed] || TT <- TableTypes, C <- ConcurrencyOptions, M <- MixedOpsUpdates ].
 
-run([Type, _K, _W, _R, _U, C, _Processes, Seed], _, _) ->
+run([TableType, _K, _W, _R, _U, C, _Processes, Seed], _, _) ->
 	% this is a setup
 	{RC, WC} = case C of
 		no -> {false, false};
@@ -41,19 +40,13 @@ run([Type, _K, _W, _R, _U, C, _Processes, Seed], _, _) ->
 		w -> {false, true};
 		rw -> {true, true}
 	end,
-	ConcurrencyOptions = [{read_concurrency, RC}, {write_concurrency, WC}],
-	{TableType, SubType} = case Type of
-		{gi, Sub} -> {generic_interface, [{gi_type, Sub}]};
-		_ -> {Type, []}
-	end,
-	Options = SubType ++ ConcurrencyOptions,
+	Options = [{read_concurrency, RC}, {write_concurrency, WC}],
 	Self = self(),
 	spawn(fun() -> table_process(Self, [TableType, public | Options]) end),
 	Table = receive {table, T} -> T end,
 	
 	{{continue, ignore}, [insert, Table, 0, Seed]};
 run([[run | State ] | Config], _, _) ->
-	%erlang:display(State ++ Config),
 	run_bench(State ++ Config);
 run(State, _, _) ->
 	setup(State).
@@ -74,14 +67,12 @@ do(Action, {T,[X|Xs]}) ->
 
 insert({_, []}) -> ok;
 insert({T,[X|Xs]}) ->
-	%erlang:display(X),
 	ets:insert(T, {X}),
 	insert({T, Xs}).
 
 
 mixed({_, []}) -> ok;
 mixed({T,[{A,X}|Xs]}) ->
-	%erlang:display(X),
 	ets:A(T, X),
 	mixed({T, Xs}).
 
