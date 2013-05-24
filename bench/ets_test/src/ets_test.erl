@@ -28,6 +28,9 @@
 
 -export([bench_args/2, run/3]).
 
+-define(READ_CONCURRENCY_VERSION, "R14B").
+-define(WRITE_CONCURRENCY_VERSION, "R13B02-1").
+
 bench_args(Version, Conf) ->
     {_,Cores} = lists:keyfind(number_of_cores, 1, Conf),
 	[F1, F2, F3] = case Version of
@@ -39,7 +42,13 @@ bench_args(Version, Conf) ->
 
 run([N,W,R|_], _, _) ->
 	Parent = self(),
-	T = ets:new(x, [public]),
+	Version = erlang:system_info(otp_release),
+	Options = if
+		Version >= ?READ_CONCURRENCY_VERSION -> [{read_concurrency, true}, {write_concurrency, true}];
+		Version >= ?WRITE_CONCURRENCY_VERSION -> [{write_concurrency, true}];
+		true -> []
+	end,
+	T = ets:new(x, [public | Options]),
 	w(T, N, init),
 	Ws = lists:map(fun (_) ->
 			spawn_link(fun () ->

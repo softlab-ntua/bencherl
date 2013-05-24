@@ -2,6 +2,9 @@
 
 -export([bench_args/2, run/3]).
 
+-define(READ_CONCURRENCY_VERSION, "R14B").
+-define(WRITE_CONCURRENCY_VERSION, "R13B02-1").
+
 bench_args(Version, _) ->
     NrOfOperations = 
         case Version of
@@ -17,8 +20,12 @@ bench_args(Version, _) ->
     KeyRangeSizes = [1000000],
     TableTypes = [set, ordered_set],
     WorkerHeapSizes = [233],
-    ConcurrencyOptionsList = 
-	[[{write_concurrency,true}, {read_concurrency,true}]],
+    ReleaseVersion = erlang:system_info(otp_release),
+    ConcurrencyOptionsList = if
+	ReleaseVersion >= ?READ_CONCURRENCY_VERSION -> [[{read_concurrency, true}, {write_concurrency, true}]];
+	ReleaseVersion >= ?WRITE_CONCURRENCY_VERSION -> [[{write_concurrency, true}]];
+	true -> [[]]
+    end,
     [[TableType, 
       NrOfOperations, 
       KeyRangeSize, 

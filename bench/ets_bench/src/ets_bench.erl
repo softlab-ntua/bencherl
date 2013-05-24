@@ -7,6 +7,9 @@
 -define(TABLE_PROCESS, table_process).
 -define(SAMPLING, 10000).
 
+-define(READ_CONCURRENCY_VERSION, "R14B").
+-define(WRITE_CONCURRENCY_VERSION, "R13B02-1").
+
 bench_args(Version, _) ->
 	%% positive numbers: this times number of schedulers worker processes
 	%% negative number: negative of exactly this many worker processes
@@ -29,7 +32,12 @@ bench_args(Version, _) ->
 	Seed = {0,0,0},
 	%% use random seed for varying input
 	%Seed = now(), % this currently breaks graph creation
-	ConcurrencyOptions = [no, rw], % options are: no, r, w, rw
+	ReleaseVersion = erlang:system_info(otp_release),
+	ConcurrencyOptions = if % options are: no, r, w, rw
+		ReleaseVersion >= ?READ_CONCURRENCY_VERSION -> [no, rw];
+		ReleaseVersion >= ?WRITE_CONCURRENCY_VERSION -> [no, w];
+		true -> [no]
+	end,
 	[[TT,KeyRange,InsDels,MixedOps,M,C,Processes,Seed] || TT <- TableTypes, C <- ConcurrencyOptions, M <- MixedOpsUpdates ].
 
 run([TableType, _K, _W, _R, _U, C, _Processes, Seed], _, _) ->
@@ -40,7 +48,12 @@ run([TableType, _K, _W, _R, _U, C, _Processes, Seed], _, _) ->
 		w -> {false, true};
 		rw -> {true, true}
 	end,
-	Options = [{read_concurrency, RC}, {write_concurrency, WC}],
+	Version = erlang:system_info(otp_release),
+	Options = if
+		Version >= ?READ_CONCURRENCY_VERSION -> [{read_concurrency, RC}, {write_concurrency, WC}];
+		Version >= ?WRITE_CONCURRENCY_VERSION -> [{write_concurrency, WC}];
+		true -> []
+	end,
 	Self = self(),
 	spawn(fun() -> table_process(Self, [TableType, public | Options]) end),
 	Table = receive {table, T} -> T end,
