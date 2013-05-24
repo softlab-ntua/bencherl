@@ -39,9 +39,7 @@ bench_args(Version, Conf) ->
 
 run([N,W,R|_], _, _) ->
 	Parent = self(),
-    io:format("xxxxxx"),
 	T = ets:new(x, [public]),
-	io:format("xxx"),
 	w(T, N, init),
 	Ws = lists:map(fun (_) ->
 			spawn_link(fun () ->
@@ -72,7 +70,7 @@ run([N,W,R|_], _, _) ->
 r(_T, 0) ->
 	ok;
 r(T, N) ->
-	[{N, _}] = ets:lookup(T, N),
+	ets:lookup(T, N),
 	r(T, N-1).
 
 w(_T, 0, _V) ->
