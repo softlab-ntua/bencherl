@@ -90,10 +90,10 @@ main() ->
                 PTimes = lists:min(Times),
                 case Text of
                     {Str, L} -> 
-                        FStr = remove_whitespace_and_new_lines(io_lib:format(LabelFormat,[Str])),
+			FStr = remove_whitespace_and_new_lines(lists:flatten(io_lib:format(LabelFormat,[Str]))),
                         io:format(MF, "(~s-~w) ~w ", [FStr, L, PTimes]);
                     _ ->
-                        FText = remove_whitespace_and_new_lines(io_lib:format(LabelFormat,[Text])),
+			FText = remove_whitespace_and_new_lines(lists:flatten(io_lib:format(LabelFormat,[Text]))),
                         io:format(MF, "(~s) ~p ", [FText, PTimes])
                 end
         end,
