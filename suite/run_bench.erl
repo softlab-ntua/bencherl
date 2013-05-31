@@ -139,8 +139,17 @@ main() ->
 
 
 remove_whitespace_and_new_lines(Str) ->
-    S = re:replace(Str," ","=",[global,{return,list}]),
-    re:replace(S,"\\s","",[global,{return,list}]).
+    lists:reverse(remove_whitespace_and_new_lines([], Str)).
+
+remove_whitespace_and_new_lines(Compl, []) ->
+    Compl;
+remove_whitespace_and_new_lines(Compl, [C | Str]) ->
+    case C of
+        $\s -> remove_whitespace_and_new_lines([$=|Compl], Str);
+        $\n -> remove_whitespace_and_new_lines(Compl, Str);
+        $\t -> remove_whitespace_and_new_lines(Compl, Str);
+        _   -> remove_whitespace_and_new_lines([C|Compl], Str)
+    end.
 
 median(L) ->
     SL = lists:sort(L),
