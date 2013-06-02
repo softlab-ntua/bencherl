@@ -8,7 +8,7 @@
 -define(SAMPLING, 10000).
 
 -define(READ_CONCURRENCY_VERSION, "R14B").
--define(WRITE_CONCURRENCY_VERSION, "R13B02-1").
+-define(WRITE_CONCURRENCY_VERSION, "R13B02").
 
 bench_args(Version, _) ->
 	%% positive numbers: this times number of schedulers worker processes

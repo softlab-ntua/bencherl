@@ -2,6 +2,9 @@
 
 -export([moves/1, test/0]).
 
+-define(READ_CONCURRENCY_VERSION, "R14B").
+-define(WRITE_CONCURRENCY_VERSION, "R13B02").
+
 -define(WHITE, 119).
 -define(EMPTY, 101).
 -define(BLACK, 98).
@@ -12,7 +15,13 @@ moves(String) ->
     moves(String, erlang:system_info(schedulers)).
 
 moves(String, NrOfWorkers) ->    
-    moves(String, NrOfWorkers, [set, public, {write_concurrency,true}, {read_concurrency,true}]).
+    Version = erlang:system_info(otp_release),
+    Options = if
+	    Version >= ?READ_CONCURRENCY_VERSION -> [{read_concurrency, true}, {write_concurrency, true}];
+	    Version >= ?WRITE_CONCURRENCY_VERSION -> [{write_concurrency, true}];
+	    true -> []
+    end,
+    moves(String, NrOfWorkers, [set, public | Options]).
 
 moves(String, NrOfWorkers, ETSOptions) ->    
     Array = array:from_list(String),

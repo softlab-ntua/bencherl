@@ -3,7 +3,7 @@
 -export([bench_args/2, run/3]).
 
 -define(READ_CONCURRENCY_VERSION, "R14B").
--define(WRITE_CONCURRENCY_VERSION, "R13B02-1").
+-define(WRITE_CONCURRENCY_VERSION, "R13B02").
 
 bench_args(Version, _) ->
     NrOfOperations = 
