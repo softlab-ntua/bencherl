@@ -69,7 +69,11 @@ table_process(Pid, Opts) ->
 	Table = ets:new(?MODULE, Opts),
 	Pid ! {table, Table},
 	receive
-		finish -> ok
+		{finish, Sender} -> 
+			ets:delete(Table),
+			unregister(?TABLE_PROCESS),
+			Sender ! finished,
+			ok
 	end,
 	ok.
 
@@ -154,9 +158,9 @@ setup([[lookup, Table, P, Seed], _T, K, _W, R, UpdatePercentage, _C, Procs | _])
 	end,
 	NextSeed = make_seed(),
 	{{continue, ignore}, [run, lookup, Name, Workers, Table, P, NextSeed]};
-setup([[delete, Table, 1, _Seed], _T, _K, _W, _R, _U, _C, _Procs, _S]) ->
-	ets:delete(Table),
-	?TABLE_PROCESS ! finish,
+setup([[delete, _Table, 1, _Seed], _T, _K, _W, _R, _U, _C, _Procs, _S]) ->
+	?TABLE_PROCESS ! {finish, self()},
+	receive finished -> ok end,
 	{{done,ignore}, ok};
 setup([[delete, Table, P, Seed], _T, K, W, _R, _U, _C, Procs | _ ]) ->
 	random:seed(Seed),
