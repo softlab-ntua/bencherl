@@ -87,14 +87,14 @@ main() ->
                                 end
                         end
                     end,
-                PTimes = lists:min(Times),
+                PTimes = [lists:sum(Times) / length(Times), lists:min(Times), lists:max(Times)],
                 case Text of
                     {Str, L} -> 
-			FStr = remove_whitespace_and_new_lines(lists:flatten(io_lib:format(LabelFormat,[Str]))),
-                        io:format(MF, "(~s-~w) ~w ", [FStr, L, PTimes]);
+                        FStr = remove_whitespace_and_new_lines(lists:flatten(io_lib:format(LabelFormat,[Str]))),
+                        io:format(MF, "(~s-~w) ~w ~w ~w ", [FStr, L] ++ PTimes);
                     _ ->
-			FText = remove_whitespace_and_new_lines(lists:flatten(io_lib:format(LabelFormat,[Text]))),
-                        io:format(MF, "(~s) ~p ", [FText, PTimes])
+                        FText = remove_whitespace_and_new_lines(lists:flatten(io_lib:format(LabelFormat,[Text]))),
+                        io:format(MF, "(~s) ~p ~p ~p ", [FText] ++ PTimes)
                 end
         end,
         Fun =

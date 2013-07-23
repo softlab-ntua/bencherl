@@ -37,8 +37,9 @@ sub main {
 	print PIPE "set ytic auto\n";
 	print PIPE "set xlabel '$xaxislabel'\n";
 	print PIPE "set ylabel '$yaxislabel'\n";
-	print PIPE "set term post eps enhanced color 14\n";
-	print PIPE "set output '$outfile'\n";
+#	print PIPE "set term post eps enhanced color 14\n";
+	print PIPE "set term svg size 720,432 dynamic\n";
+	print PIPE "set output '$outfile.svg'\n";
 	print PIPE "set grid\n";
 	print PIPE "plot ";
 	my $line = `head -n 1 $infile`;
@@ -49,11 +50,11 @@ sub main {
 		$token =~ s/^\s+//;
 		$token =~ s/\s+$//;
                 $token =~ s/\"/\\\"/g;
-		if ($token && !($ci % 2)) {
+		if ($token && !(($ci+2) % 4)) {
 			if ($ci > 2) {
 				print PIPE ", ";
 			}
-			print PIPE "\"$infile\" using 1:" . ($ci + 1) . " title \"$token\" w l lw 2";
+			print PIPE "\"$infile\" using 1:" . ($ci + 1) . ":" . ($ci + 2) . ":" . ($ci + 3) ." title \"$token\" w yerrorlines lw 2";
 		}
 	}
 	print PIPE "\nexit\n";
