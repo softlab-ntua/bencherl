@@ -219,6 +219,20 @@
         return createSelectableList(measurementFileList, elementSelected);
     }
 
+    function deselectAllGraphs(){
+        $.each(timeResults, function(key, val) {
+            $("[id=\"" + val.label + "\"]").attr('checked', false);
+        });
+        plotAccordingToChoices();
+    }
+    
+    function selectAllGraphs(){
+        $.each(timeResults, function(key, val) {
+            $("[id=\"" + val.label + "\"]").attr('checked', true);
+        });
+        plotAccordingToChoices();
+    }
+
     $(document).ready(function(){
         
         var runList = $.parseJSON($('#benchmarkRunListDiv').text());
@@ -235,6 +249,9 @@
 
         $( "#graphTypeRadio" ).buttonset();
         $( "#graphTypeRadio" ).click(plotAccordingToChoices);
+
+        $( "#selectAllButton" ).click(selectAllGraphs);
+        $( "#deselectAllButton" ).click(deselectAllGraphs);
         
     });    
 
