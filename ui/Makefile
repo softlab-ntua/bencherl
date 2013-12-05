@@ -19,11 +19,14 @@ $(EBIND):
 	mkdir -p $(EBIND)
 
 $(UI_BIN):
-	echo "Building Chicago Boss" ; \
-	rm -rf ChicagoBoss-0.8.0 ; \
-	tar xvzf ChicagoBoss-0.8.0.tar.gz
-	cd ChicagoBoss-0.8.0 ; \
-	make
+	if [ ! -d "ChicagoBoss" ]; then \
+		echo "Downloading Chicago Boss" ; \
+		git clone https://github.com/ChicagoBoss/ChicagoBoss.git ; \
+		cd ChicagoBoss ; \
+		git checkout 93f757576edd957aef0bd713f05d58cea52ddfcd ; \
+		./rebar get-deps ; \
+		./rebar compile ; \
+	fi
 	rm -rf bencherlui/boss.config
 	cp bencherlui/boss.config.in bencherlui/boss.config
 	sed -i -e "s@BENCHERL_UI_PATH@`pwd`@g" bencherlui/boss.config
