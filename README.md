@@ -23,6 +23,14 @@ Make sure you have the following installed on your machine:
 
 ### How to build the web interface ###
 
+The web interface requires OTP R14A or later.
+
+	$ make ui
+
+You have to build the web interface again if you move your bencherl folder:
+
+	$ cd ui
+	$ make clean
 	$ make ui
 
 ### How to run the benchmark suite ###
@@ -215,11 +223,16 @@ directory has three sub-directories:
 
 ## Web interface (UI)
 
+The web interface can be used to view graphs for benchmark results
+stored in the `results` folder.
+
 ### How to start the web server that serves the web interface of the benchmark suite ###
 
 Use `bencherlui` with the `-u` (up) option to start the web server.
 
     $ ./bencherlui -u
+
+By default the web interface can be found at "`http://localhost:8001`".
 
 You can change the port of the web server in `ui/bencherlui/boss.config`.
 
