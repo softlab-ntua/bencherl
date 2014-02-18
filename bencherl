@@ -130,6 +130,7 @@ rsbm()
 {what, $WHAT}.
 {use_long_names, $uln}.
 {number_of_cores, $CORES}.
+{output_format, $OUTPUT_FORMAT}.
 EOF
 
     ${erl} ${argsv} ${EXTRA_ERL_ARGS} -setcookie "${COOKIE}" +S$s:$s \
@@ -329,6 +330,10 @@ fi
 
 if [ -z $VERSION ]; then
     VERSION=short
+fi
+
+if [ -z $OUTPUT_FORMAT ]; then
+    OUTPUT_FORMAT=min
 fi
 
 LONG_MASTER="master@`hostname -f`"

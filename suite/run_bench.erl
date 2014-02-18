@@ -16,6 +16,7 @@ main() ->
         {_,M} = lists:keyfind(bench, 1, Conf),
         {_,Version} = lists:keyfind(version, 1, Conf),
         {_,OTP} = lists:keyfind(otp, 1, Conf),
+        {_,OutputFormat} = lists:keyfind(output_format, 1, Conf),
         ErlProgram = case OTP of
                          [] -> "erl";
                          _  -> OTP ++ "/bin/erl"
@@ -61,7 +62,6 @@ main() ->
 
 	%% Open the measurements file.
         {ok, MF} = file:open(MeasFile, [append]),
-        io:format(MF, "~p ", [NS]),
         {ok, OF} = file:open(OutFile, [write]),
 
 	%% Run the benchmark for all argument sets.
@@ -87,15 +87,27 @@ main() ->
                                 end
                         end
                     end,
-                PTimes = [lists:sum(Times) / length(Times), lists:min(Times), lists:max(Times)],
+		PTimes = case OutputFormat of
+			min -> [lists:min(Times)];
+			max -> [lists:max(Times)];
+			avg -> [lists:sum(Times) / length(Times)];
+			avg_min_max ->
+				[ lists:sum(Times) / length(Times),
+				  lists:min(Times),
+				  lists:max(Times)
+			        ];
+			plain -> Times
+		end,
                 case Text of
                     {Str, L} -> 
                         FStr = remove_whitespace_and_new_lines(lists:flatten(io_lib:format(LabelFormat,[Str]))),
-                        io:format(MF, "(~s-~w) ~w ~w ~w ", [FStr, L] ++ PTimes);
+                        io:format(MF, "~p\t~s\t~w\t", [NS, FStr, L]);
                     _ ->
                         FText = remove_whitespace_and_new_lines(lists:flatten(io_lib:format(LabelFormat,[Text]))),
-                        io:format(MF, "(~s) ~p ~p ~p ", [FText] ++ PTimes)
-                end
+                        io:format(MF, "~p\t~s\t", [NS, FText])
+                end,
+		io:format(MF, string:join([io_lib:format("~w", [A]) || A <- PTimes], " "), []),
+		io:nl(MF)
         end,
         Fun =
             fun(Bargs) ->
@@ -125,7 +137,6 @@ main() ->
         file:close(OF),
 
 	%% Close the measurements file.
-        io:nl(MF),
         file:close(MF),
 
 	%% Stop the slaves.
