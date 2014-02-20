@@ -44,7 +44,9 @@ plot() {
 	    else
 		echo -n ", "
 	    fi
-	    echo -n "'-' using 1:2:3:4 title '$line' w yerrorlines lw 2"
+	    echo -n "'-' using 1:2 title '$line' w l lw 2"
+	    # for errorbars instead use:
+	    #echo -n "'-' using 1:2:3:4 title '$line' w yerrorlines lw 2"
 	done
 	echo ""
 	for line in $lines
