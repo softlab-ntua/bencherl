@@ -17,6 +17,47 @@ For complete documentation, go to ...
 EOF
 }
 
+plot() {
+	lines=$(cut -f1,2 $4 | sort | uniq)
+    gnuplot <(
+        echo "set title '$1'"
+	echo "set autoscale"
+	echo "set key right font ',14'"
+	echo "set xtic auto"
+	echo "set ytic auto"
+	echo "set xlabel '$2'"
+	echo "set ylabel '$3'"
+	echo "set term svg size 720,432 dynamic"
+	echo "set object 1 rect from screen 0, 0, 0 to screen 1, 1, 0 behind"
+	echo "set object 1 rect fc  rgb 'white'  fillstyle solid 1.0"
+	echo "set output '$5'"
+	echo "set grid"
+	echo -n "plot "
+	first=1
+	OLDIFS=$IFS
+	IFS=$'\n'
+	for line in $lines
+	do
+	    if [ $first -eq 1 ]
+	    then
+		first=0
+	    else
+		echo -n ", "
+	    fi
+	    echo -n "'-' using 1:2:3:4 title '$line' w yerrorlines lw 2"
+	done
+	echo ""
+	for line in $lines
+	do
+	    grstr=$(echo "$line" | sed -e 's/\([][]\)/\\\1/g')
+	    grep "$grstr" $4 | cut -f3,4
+	    echo "e"
+	done
+	echo ""
+	echo "exit"
+	IFS=$OLDIFS
+	)
+}
 spin()
 {
     while ps | grep $1 &>/dev/null; do
@@ -181,7 +222,7 @@ pbm()
 	    cat $measdir/$fn.node.time | ./suite/speedup.awk >> $measdir/$fn.node.speedup
 	done
 	WHAT=node.speedup
-	psbm
+	#psbm
     fi
     if [ "$NUMBER_OF_NUMBER_OF_SCHEDULERS" -gt "1" ]; then
 	for file in `ls $measdir/*.*.sched.time`; do
@@ -189,7 +230,7 @@ pbm()
 	    cat $measdir/$fn.sched.time | ./suite/speedup.awk >> $measdir/$fn.sched.speedup
 	done
 		WHAT=sched.speedup
-		psbm
+		#psbm
 	fi
 }
 
@@ -215,10 +256,10 @@ psbm()
 	otp=${fn%%.*}
 	args=${fn##*.}
 	PARGS="$PARGS $args"
-		POTPS="$POTPS $otp"
-		./suite/plot.pl "$bench - $otp - $args" \
-		    "$xal" "$yal" "$measdir/$fn.$WHAT" \
-		    "$grdir/$fn.$WHAT.eps"
+	POTPS="$POTPS $otp"
+	plot "$bench - $otp - $args" \
+	    "$xal" "$yal" "$measdir/$fn.$WHAT" \
+	    "$grdir/$fn.$WHAT.svg"
     done
 
     POTPS=`echo $POTPS | tr " " "\n" | sort -du | tr "\n" " "`
@@ -229,34 +270,34 @@ psbm()
     if [ "$NARGS" -gt "1" ]; then
 	for otp in $POTPS; do
 	    for file in `ls $measdir/$otp.*.$WHAT`; do
-		fn=`basename $file .$WHAT`
-				otp=${fn%%.*}
-				args=${fn##*.}
-				cat $measdir/$fn.$WHAT | ./suite/inject.awk \
-				    what=$args > $measdir/$fn.tmp
+		while IFS='' read -r line
+		do
+		    fn=`basename $file .$WHAT`
+		    line_part1=$(echo "$line" | cut -d$'\t' -f1)
+		    line_part2=$(echo "$line" | cut -d$'\t' -f2-)
+		    echo -e "$line_part1\t$fn $line_part2" >> $measdir/$otp.$WHAT
+		done < $file
 	    done
-			cat `ls $measdir/$otp.*.tmp` | sort -g | ./suite/merge.awk \
-			    > $measdir/$otp.$WHAT
-			./suite/plot.pl "$bench - $otp" \
-			    "$xal" "$yal" "$measdir/$otp.$WHAT" \
-			"$grdir/$otp.$WHAT.eps"
+	    plot "$bench - $otp" \
+		"$xal" "$yal" "$measdir/$otp.$WHAT" \
+		"$grdir/$otp.$WHAT.svg"
 	done
     fi
 
     if [ "$NOTPS" -gt "1" ]; then
 	for args in $PARGS; do
 	    for file in `ls $measdir/*.$args.$WHAT`; do
-		fn=`basename $file .$WHAT`
-		otp=${fn%%.*}
-		args=${fn##*.}
-		cat $measdir/$fn.$WHAT | ./suite/inject.awk \
-		    what=$otp > $measdir/$fn.tmp
+		while IFS='' read -r line
+		do
+		    fn=`basename $file .$WHAT`
+		    line_part1=$(echo "$line" | cut -d$'\t' -f1)
+		    line_part2=$(echo "$line" | cut -d$'\t' -f2-)
+		    echo -e "$line_part1\t$fn $line_part2" >> $measdir/$args.$WHAT
+		done < $file
 	    done
-	    cat `ls $measdir/*.$args.tmp` | sort -g | \
-		./suite/merge.awk > $measdir/$args.$WHAT
-	    ./suite/plot.pl "$bench - $args" \
+	    plot "$bench - $args" \
 		"$xal" "$yal" "$measdir/$args.$WHAT" \
-			"$grdir/$args.$WHAT.eps"
+		"$grdir/$args.$WHAT.svg"
 	done
     fi
     rm -rf $measdir/*.tmp

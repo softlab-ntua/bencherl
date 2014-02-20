@@ -101,10 +101,10 @@ main() ->
                 case Text of
                     {Str, L} -> 
                         FStr = remove_whitespace_and_new_lines(lists:flatten(io_lib:format(LabelFormat,[Str]))),
-                        io:format(MF, "~p\t~s\t~w\t", [NS, FStr, L]);
+                        io:format(MF, "~s\t~w\t~p\t", [FStr, L, NS]);
                     _ ->
                         FText = remove_whitespace_and_new_lines(lists:flatten(io_lib:format(LabelFormat,[Text]))),
-                        io:format(MF, "~p\t~s\t", [NS, FText])
+                        io:format(MF, "\t~s\t~p\t", [FText, NS])
                 end,
 		io:format(MF, string:join([io_lib:format("~w", [A]) || A <- PTimes], " "), []),
 		io:nl(MF)
