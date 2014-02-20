@@ -58,6 +58,28 @@ plot() {
 	IFS=$OLDIFS
 	)
 }
+
+speedup() {
+    OLDIFS=$IFS
+    IFS=$'\n'
+    for line in $(cat $1)
+    do
+	name=$(echo $line | cut -f1,2)
+	sched=$(echo $line | cut -f3)
+	echo -n -e "$name\t$sched\t"
+	IFS=" "
+	read -a nums <<< $(echo $line | cut -f4-)
+	grstr=$(echo "$name" | sed -e 's/\([][]\)/\\\1/g')
+	read -a seqrun <<< $(grep "${grstr}	1" $1 | cut -f4-)
+	for ((i=0;i<${#nums[@]};i++))
+	do
+	    bc -l <<< "${seqrun[i]}/${nums[i]}" | tr '\n' ' '
+	done
+	echo ""
+    done
+    IFS=$OLDIFS
+}
+
 spin()
 {
     while ps | grep $1 &>/dev/null; do
@@ -219,18 +241,18 @@ pbm()
     if [[ ("$NSLAVE_NODES" -gt "1" ) && ( "$NUMBER_OF_NUMBER_OF_SLAVE_NODES" -gt "1") ]]; then
 	for file in `ls $measdir/*.*.node.time`; do
 	    fn=`basename $file .node.time`
-	    cat $measdir/$fn.node.time | ./suite/speedup.awk >> $measdir/$fn.node.speedup
+	    speedup $measdir/$fn.node.time >> $measdir/$fn.node.speedup
 	done
 	WHAT=node.speedup
-	#psbm
+	psbm
     fi
     if [ "$NUMBER_OF_NUMBER_OF_SCHEDULERS" -gt "1" ]; then
 	for file in `ls $measdir/*.*.sched.time`; do
 	    fn=`basename $file .sched.time`
-	    cat $measdir/$fn.sched.time | ./suite/speedup.awk >> $measdir/$fn.sched.speedup
+	    speedup $measdir/$fn.sched.time >> $measdir/$fn.sched.speedup
 	done
 		WHAT=sched.speedup
-		#psbm
+		psbm
 	fi
 }
 
