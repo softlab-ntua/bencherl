@@ -114,9 +114,9 @@ do_operations(Table,
         N when N =< PercentageInserts ->
             ets:insert(Table, {Key});
         N when N =< (PercentageInserts + PercentageDeletes) ->
-            ets:delete(Table, {Key});
+            ets:delete(Table, Key);
         N when N =< (PercentageInserts + PercentageDeletes + PercentageLookups) ->
-            ets:lookup(Table, {Key});
+            ets:lookup(Table, Key);
         _ ->
             nothing
     end,
