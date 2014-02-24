@@ -4,7 +4,7 @@
 %%% Purpose :
 %%% Created :  5 Feb 2002 by Claes Wikstrom <klacke@hyber.org>
 %%% Modified: 13 Jan 2004 by Martin Bjorklund <mbj@bluetail.com>
-%%% Modified:    Jan 2006 by Sébastien Bigot <sebastien.bigot@tremplin-utc.net>
+%%% Modified:    Jan 2006 by SÃ©bastien Bigot <sebastien.bigot@tremplin-utc.net>
 %%%----------------------------------------------------------------------
 
 -module(yaws_ls).

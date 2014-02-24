@@ -723,7 +723,7 @@ prop_split_is_continuous(X, Y, Parts) ->
                         Acc andalso ?implies(not intervals:is_empty(SubI), intervals:is_continuous(SubI)) 
                 end, true, S).    
 
-% funktional union ok, subset von org, nciht überlappend = adjazent
+% funktional union ok, subset von org, nciht Ã¼berlappend = adjazent
 -spec prop_split(intervals:key(), intervals:key(), 1..100) -> true.
 prop_split(X, Y, Parts) ->
     I = intervals:new('[', X, Y, ']'),
