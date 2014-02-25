@@ -1,5 +1,5 @@
 -module(bencherlui_results_controller, [Req]).
--compile(export_all).
+-export([benchmarks_for_run/2, benchmark_results/2, benchmark_runs_json/2, index/2, measurement_files/2]).
 
 index('GET', []) ->
     {ok, [{benchmark_runs, benchmark_run_list_json_text()}]}.
@@ -56,55 +56,13 @@ benchmarks_for_run('GET', []) ->
     RunName = Req:query_param("run"),
     {output, benchmark_list_for_name_json_text(RunName)}.
 
-find_first_parentheses_help([], [], _) ->
-    no_match;
-find_first_parentheses_help([],[$(|Rest], 0) ->
-    find_first_parentheses_help([$(], Rest, 1);
-find_first_parentheses_help([],[_|Rest], 0) ->
-    find_first_parentheses_help([], Rest, 0);
-find_first_parentheses_help(SoFar, Remaining, 0) ->
-    {lists:reverse(SoFar), Remaining};
-find_first_parentheses_help(SoFar, [$(|Rest], N) ->
-    find_first_parentheses_help([$(|SoFar], Rest, N +1);
-find_first_parentheses_help(SoFar, [$)|Rest], N) ->
-    find_first_parentheses_help([$)|SoFar], Rest, N -1);
-find_first_parentheses_help(SoFar, [Char|Rest], N) ->
-    find_first_parentheses_help([Char|SoFar], Rest, N);
-find_first_parentheses_help(_, [], _) ->
-    no_match.
-
-find_first_parentheses(String) ->
-    find_first_parentheses_help([], String, 0).
-
-add_data_points_to_dict(NrOfSched, Line, Dict) ->
-    case find_first_parentheses(Line) of
-        {Label, RestOfLine1} ->
-            case re:run(RestOfLine1,"\\d+") of
-                {match, [{Start, _}|_]} ->
-                    {Value, RestOfLine2} = 
-                        string:to_float(lists:nthtail(Start, RestOfLine1)),
-                    NewDict = orddict:append(Label, [NrOfSched, Value], Dict),
-                    add_data_points_to_dict(
-                      NrOfSched, 
-                      RestOfLine2, 
-                      NewDict);
-                _ ->
-                    Dict
-            end;
-        _ ->
-            Dict
-    end.
-
 add_line_to_dict(Line, Dict) ->
-    case re:run(Line,"\\d+") of
-        {match, [{Start, _}|_]} ->
-            {NrOfSched, RestOfLine} = 
-                string:to_integer(lists:nthtail(Start, Line)),
-            add_data_points_to_dict(NrOfSched, RestOfLine, Dict);
-        _ ->
-            Dict
-    end.
-
+    Toks = re:split(Line, [$\t], [{return,list}]),
+    [Name, Params, SchedsStr | Times ] = Toks,
+    [TimeStr | _ ] = Times,
+    {Scheds, _} = string:to_integer(SchedsStr),
+    {Time, _} = string:to_float(TimeStr),
+    orddict:append(Name++Params, [Scheds, Time], Dict).
 
 result_file_to_dict(FileName) ->
     Lines = readlines(FileName),
