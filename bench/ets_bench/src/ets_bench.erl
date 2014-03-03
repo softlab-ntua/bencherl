@@ -2,13 +2,12 @@
 
 -export([bench_args/2, run/3]).
 
+-include("../../../benchutil/ets.hrl").
+
 -define(BASE, 2).
 -define(RAND_MAX, 65535).
 -define(TABLE_PROCESS, table_process).
 -define(SAMPLING, 10000).
-
--define(READ_CONCURRENCY_VERSION, "R14B").
--define(WRITE_CONCURRENCY_VERSION, "R13B02").
 
 bench_args(Version, _) ->
 	%% positive numbers: this times number of schedulers worker processes
@@ -33,9 +32,10 @@ bench_args(Version, _) ->
 	%% use random seed for varying input
 	%Seed = now(), % this currently breaks graph creation
 	ReleaseVersion = erlang:system_info(otp_release),
+	{ReadConc, WriteConc} = supports_ets_concurrency(ReleaseVersion),
 	ConcurrencyOptions = if % options are: no, r, w, rw
-		ReleaseVersion >= ?READ_CONCURRENCY_VERSION -> [no, rw];
-		ReleaseVersion >= ?WRITE_CONCURRENCY_VERSION -> [no, w];
+		ReadConc -> [no, rw];
+		WriteConc -> [no, w];
 		true -> [no]
 	end,
 	[[TT,KeyRange,InsDels,MixedOps,M,C,Processes,Seed] || TT <- TableTypes, C <- ConcurrencyOptions, M <- MixedOpsUpdates ].
@@ -49,9 +49,10 @@ run([TableType, _K, _W, _R, _U, C, _Processes, Seed], _, _) ->
 		rw -> {true, true}
 	end,
 	Version = erlang:system_info(otp_release),
+	{ReadConc, WriteConc} = supports_ets_concurrency(Version),
 	Options = if
-		Version >= ?READ_CONCURRENCY_VERSION -> [{read_concurrency, RC}, {write_concurrency, WC}];
-		Version >= ?WRITE_CONCURRENCY_VERSION -> [{write_concurrency, WC}];
+		ReadConc -> [{read_concurrency, RC}, {write_concurrency, WC}];
+		WriteConc -> [{write_concurrency, WC}];
 		true -> []
 	end,
 	Self = self(),

@@ -28,8 +28,7 @@
 
 -export([bench_args/2, run/3]).
 
--define(READ_CONCURRENCY_VERSION, "R14B").
--define(WRITE_CONCURRENCY_VERSION, "R13B02").
+-include("../../../benchutil/ets.hrl").
 
 bench_args(Version, Conf) ->
     {_,Cores} = lists:keyfind(number_of_cores, 1, Conf),
@@ -43,9 +42,10 @@ bench_args(Version, Conf) ->
 run([N,W,R|_], _, _) ->
 	Parent = self(),
 	Version = erlang:system_info(otp_release),
+	{ReadConc, WriteConc} = supports_ets_concurrency(Version),
 	Options = if
-		Version >= ?READ_CONCURRENCY_VERSION -> [{read_concurrency, true}, {write_concurrency, true}];
-		Version >= ?WRITE_CONCURRENCY_VERSION -> [{write_concurrency, true}];
+		ReadConc -> [{read_concurrency, true}, {write_concurrency, true}];
+		WriteConc -> [{write_concurrency, true}];
 		true -> []
 	end,
 	T = ets:new(x, [public | Options]),

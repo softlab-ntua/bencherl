@@ -2,8 +2,7 @@
 
 -export([bench_args/2, run/3]).
 
--define(READ_CONCURRENCY_VERSION, "R14B").
--define(WRITE_CONCURRENCY_VERSION, "R13B02").
+-include("../../../benchutil/ets.hrl").
 
 bench_args(Version, _) ->
     NrOfOperations = 
@@ -21,9 +20,10 @@ bench_args(Version, _) ->
     TableTypes = [set, ordered_set],
     WorkerHeapSizes = [233],
     ReleaseVersion = erlang:system_info(otp_release),
+    {ReadConc, WriteConc} = supports_ets_concurrency(ReleaseVersion),
     ConcurrencyOptionsList = if
-	ReleaseVersion >= ?READ_CONCURRENCY_VERSION -> [[{read_concurrency, true}, {write_concurrency, true}]];
-	ReleaseVersion >= ?WRITE_CONCURRENCY_VERSION -> [[{write_concurrency, true}]];
+	ReadConc -> [[{read_concurrency, true}, {write_concurrency, true}]];
+	WriteConc -> [[{write_concurrency, true}]];
 	true -> [[]]
     end,
     [[TableType, 
