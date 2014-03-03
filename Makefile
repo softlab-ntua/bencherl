@@ -3,19 +3,19 @@ ERLC_OPTS =
 
 .PHONY: all clean clean-app clean-bench clean-res clean-suite clean-ui ui
 
-# Make everything.
-all: directories
-
 # Create the relevant dirs.
 directories:
 	mkdir -p scratch/
+
+# Make everything. Not the default as maybe not required by everyone.
+all: directories ui
 
 # Compile the UI.
 ui:
 	@(cd ui && $(MAKE) ERLC=$(ERLC) ERLC_OPTS=$(ERLC_OPTS) $@)
 
 # Clean up everything.
-clean: clean-app clean-bench clean-res clean-suite clean-ui
+clean: clean-app clean-bench clean-suite clean-ui
 	@(if test -f scratch; then cd scratch && $(RM) -rf *; fi)
 
 # Clean up the applications.
@@ -27,7 +27,7 @@ clean-bench:
 	for d in $(wildcard bench/*/); do (if [ -d $$d ]; then cd $$d && $(MAKE) clean; fi); done
 
 # Clean up the results.
-clean-res:
+clean-all-results:
 	@(if [ -d results ]; then \
 		cd results; \
 		$(RM) -rf *; \
