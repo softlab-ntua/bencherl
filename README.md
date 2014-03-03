@@ -10,7 +10,10 @@ Make sure you have the following installed on your machine:
 
 ### How to build the benchmark suite ###
 
+	$ make all
+	or just
 	$ make
+	to omit the web interface. If you want to add that later, see the next section.
 
 ### How to build the web interface ###
 
@@ -195,7 +198,21 @@ The value of this variable is an integer that is greater than or equal to 1.
 	ITERATIONS=5
 
 The default number of iterations is 1.
- 
+
+### What number to use if multiple iterations are run ###
+
+By default, only the minimum runtime of any of the runs is reported.
+Set the `OUTPUT_FORMAT` variable in `conf/run.conf` to change this behaviour.
+
+The value of this variable can be any of the following five options:
+	`min` reports only the minimum runtime
+	`max` reports only the maximum runtime
+	`avg` reports the arithmetic mean of all iterations' runtimes
+	`avg_min_max` reports all three of the above, in the order `avg`, `min`, `max`
+	`plain` reports the runtime of each iteration individually
+
+Note that the web interface only shows the first reported value and ignores any further numbers.
+
 ### What is the result of running the benchmark suite ###
 
 A new directory is created under the `results` directory. The name of this 
