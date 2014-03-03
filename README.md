@@ -10,16 +10,7 @@ Make sure you have the following installed on your machine:
 
 ### How to build the benchmark suite ###
 
-	$ make clean
-	$ make all
-
-### How to build just the benchmarks ###
-
-	$ make bench
-
-### How to build just the applications ###
-
-	$ make app
+	$ make
 
 ### How to build the web interface ###
 
@@ -29,8 +20,7 @@ The web interface requires OTP R14A or later.
 
 You have to build the web interface again if you move your bencherl folder:
 
-	$ cd ui
-	$ make clean
+	$ make clean-ui
 	$ make ui
 
 ### How to run the benchmark suite ###
@@ -85,7 +75,7 @@ or a range of integers:
 By default, benchmarks are run with as many schedulers as the number of logical
 processors.
  
-### How to specify the versions/flavors of Erlang/OTP to run benchmarks with ###
+### How to specify the versions/flavors of Erlang/OTP to compile and run benchmarks with ###
 
 Set the `OTPS` variable in `conf/run.conf`.
 
@@ -156,7 +146,6 @@ and its default short name:
 
     master@`hostname`
 
-
 ### How to specify the magic cookie that master and slave nodes share ###
 
 Set the `COOKIE` variable in `conf/run.conf`.
@@ -221,7 +210,7 @@ directory has three sub-directories:
 * `measurements`, which contains the scalability measurements collected during the execution of the benchmark
 .
 
-## Web interface (UI)
+## Web interface (UI) ##
 
 The web interface can be used to view graphs for benchmark results
 stored in the `results` folder.

@@ -59,6 +59,7 @@ following variables in `conf/run.conf`.
 * `SLAVE_NODES`
 
 This file may also set the following variables:
-* `EXTRA_CODE_PATH`, which points to a directory that contains more BEAM files that are necessary for the execution of the benchmark;
-* `EXTRA_ERL_ARGS`, which contains more command-line arguments to pass to the `erl` program for the execution of the benchmark.
+* `DEPENDENCIES`: This variable is used to specify the applications that are internal to `bencherl` (i.e. reside in the `app` directory) and that the benchmark depends on. Its value is zero or more application names separated with commas.
+* `EXTRA_CODE_PATH`: This variable is used to specify any extra directories that should be added to the code path when running the benchmark. Its value is zero or more directories separated with spaces.
+* `EXTRA_ERL_ARGS`: This variable is used to specify any extra command-line arguments that should be passed to the `erl` program when running the benchmark. Its value are the arguments separated with spaces.
 
