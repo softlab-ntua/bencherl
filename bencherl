@@ -13,7 +13,7 @@ Run scalability benchmarks.
   -l         list all the available benchmarks
   -m <MN>    use MN as the mnemonic name of this run
 
-For complete documentation, go to ...
+For complete documentation, go to http://release.softlab.ntua.gr/bencherl/
 EOF
 }
 
