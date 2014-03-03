@@ -1,16 +1,26 @@
-ERLC_OPTS =
+ERLC = erlc
+ERLC_OPTS = -DVSN=\"42\" +native
+ERL = erl
+ERL_LIB_DIR = 
 
-SOURCES=$(wildcard src/*.erl)
-BEAMS=$(SOURCES:src/%.erl=ebin/%.beam)
+SRCD = src
+EBIND = ebin-$(OTP)
 
-all: $(BEAMS)
+ERLF = $(wildcard $(SRCD)/*.erl)
+BEAMF = $(patsubst $(SRCD)/%.erl,$(EBIND)/%.beam,$(ERLF))
 
-ebin/%.beam: src/%.erl src/dialyzer.hrl | ebin
-	erlc -DVSN=\"42\" +native -o ebin $<
+.PHONY: app clean
+
+app: $(BEAMF)
+
+$(EBIND)/%.beam: $(SRCD)/%.erl $(SRCD)/dialyzer.hrl
+	$(ERLC) $(ERLC_OPTS) -o$(EBIND) $<
+
+$(BEAMF): | $(EBIND)
+
+$(EBIND):
+	mkdir -p $(EBIND)
 
 clean:
-	rm -rf ebin
-
-ebin:
-	mkdir $@
+	$(RM) -rf ebin-*
 

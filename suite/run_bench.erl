@@ -161,12 +161,3 @@ remove_whitespace_and_new_lines(Compl, [C | Str]) ->
         $\t -> remove_whitespace_and_new_lines(Compl, Str);
         _   -> remove_whitespace_and_new_lines([C|Compl], Str)
     end.
-
-median(L) ->
-    SL = lists:sort(L),
-    Length = length(SL),
-    case Length band 1 of
-        1 -> lists:nth(round((Length + 1) / 2), SL);
-        0 -> [A,B] = lists:sublist(SL, round(Length / 2), 2),
-             (A + B) / 2
-    end.

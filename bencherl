@@ -98,7 +98,6 @@ spin()
 	    sleep 0.5
 	done
     done
-    echo -n '...'
 }
 
 list_bms()
@@ -110,6 +109,34 @@ list_bms()
 	fi
     done
     echo
+}
+
+cbm()
+{
+    benchdir=`cd bench/$bench; pwd`
+
+    for otp in $OTPS; do
+        otpl=${otp%%=*}
+        otpv=${otp##*=}
+        if [ -z $otpv ]; then
+            erl="erl"
+            erlc="erlc"
+        else
+            erl="$otpv/bin/erl"
+            erlc="$otpv/bin/erlc"
+        fi
+        erl_lib_dir=`$erl -noshell -eval "io:format(\"~s~n\", [code:lib_dir()]), halt()."`
+
+        cd bench/$bench 
+        make bench ERLC=${erlc} ERL=${erl} ERL_LIB_DIR=${erl_lib_dir} OTP=${otpl}
+        cd ../..
+   
+        for app in $DEPENDENCIES; do
+            cd app/$app
+            make app ERLC=${erlc} ERL=${erl} ERL_LIB_DIR=${erl_lib_dir} OTP=${otpl}
+            cd ../..
+        done
+    done
 }
 
 rbm()
@@ -179,11 +206,17 @@ rsbm()
 	mn="-sname ${MASTER_NODE}"
     fi
 
+    if [ ! -z "$DEPENDENCIES" ]; then
+        for app in $DEPENDENCIES; do
+            DEPS_PATHS="$DEPS_PATHS app/$app/ebin-$otpl"
+        done
+    fi
+
     cat > scratch/run_bench.conf << EOF
 {bench, $bench}.
 {version, $VERSION}.
 {otp, "$otpv"}.
-{erl_args, "$argsv $EXTRA_ERL_ARGS +S$s:$s -noshell -pa $EXTRA_CODE_PATH suite/ebin bench/$bench/ebin -setcookie $COOKIE" }.
+{erl_args, "$argsv $EXTRA_ERL_ARGS +S$s:$s -noshell -pa $EXTRA_CODE_PATH $DEPS_PATH suite/ebin-$otpl bench/$bench/ebin-$otpl -setcookie $COOKIE" }.
 {number_of_slaves, $n}.
 {number_of_schedulers, $s}.
 {slaves, [$SLAVE_NODES]}.
@@ -199,8 +232,8 @@ rsbm()
 EOF
 
     ${erl} ${argsv} ${EXTRA_ERL_ARGS} -setcookie "${COOKIE}" +S$s:$s \
-	$mn -noshell -pa ${EXTRA_CODE_PATH} \
-	suite/ebin bench/$bench/ebin -s run_bench main -s erlang \
+	$mn -noshell -pa ${EXTRA_CODE_PATH} ${DEPS_PATH} \
+	suite/ebin-$otpl bench/$bench/ebin-$otpl -s run_bench main -s erlang \
 	halt
 
     if [ -f bench/$bench/conf/post_bench ]; then
@@ -210,7 +243,7 @@ EOF
     IFS=$NEW_IFS
 }
 
-cbm()
+chkbm()
 {
     local succeeded=1
     NF=`ls -1 $benchresdir/output/*.output | wc -l`
@@ -424,20 +457,20 @@ DEF_NUMBER_OF_SCHEDULERS=${NUMBER_OF_SCHEDULERS:-$CORES}
 if [ -z "$INCLUDE_BENCH" ]; then
     for b in `ls bench`; do
         if [ -d bench/$b ]; then
-	    if [ -z "$BENCHS" ]; then
-		BENCHS="$b"
+	    if [ -z "$BENCHES" ]; then
+		BENCHES="$b"
 	    else
-		BENCHS="$BENCHS,$b"
+		BENCHES="$BENCHES,$b"
 	    fi
         fi
     done
 else
-    BENCHS=$INCLUDE_BENCH
+    BENCHES=$INCLUDE_BENCH
 fi
 
 if [ ! -z "$EXCLUDE_BENCH" ]; then
     for b in `echo $EXCLUDE_BENCH | tr "," " "`; do
-	BENCHS=`echo $BENCHS | tr "," "\n" | grep -v -x "$b" | tr "\n" ","`
+	BENCHES=`echo $BENCHES | tr "," "\n" | grep -v -x "$b" | tr "\n" ","`
 	done
 fi
 
@@ -451,7 +484,29 @@ resdir=results/$MNEMONIC_NAME
 mkdir -p $resdir
 
 IFS=$NEW_IFS
-for bench in $BENCHS; do
+
+echo -e "\n===> Compiling suite"
+cd suite
+for otp in $DEF_OTPS; do
+
+    otpl=${otp%%=*}
+    otpv=${otp##*=}
+
+    if [ -z $otpv ]; then
+        erl="erl"
+        erlc="erlc"
+    else
+        erl="$otpv/bin/erl"
+        erlc="$otpv/bin/erlc"
+    fi
+    erl_lib_dir=`$erl -noshell -eval "io:format(\"~s~n\", [code:lib_dir()]), halt()."`
+
+    make suite ERLC=${erlc} ERL=${erl} ERL_LIB_DIR=${erl_lib_dir} OTP=${otpl}
+
+done
+cd ..
+
+for bench in $BENCHES; do
 
     if [ -z $bench ]; then
 	continue;
@@ -460,9 +515,9 @@ for bench in $BENCHS; do
     IFS=$OLD_IFS
 
     if [ ! -d bench/$bench ]; then
-        echo "Unknown benchmark: $bench"
+        echo -e "\n*** Unknown benchmark: $bench\n"
     else
-	echo "Benchmark: $bench"
+	echo -e "\n*** Benchmark: $bench\n"
 
 	USE_LONG_NAMES=$DEF_USE_LONG_NAMES
 	OTPS=$DEF_OTPS
@@ -476,6 +531,7 @@ for bench in $BENCHS; do
 	NUMBER_OF_SLAVE_NODES=$DEF_NUMBER_OF_SLAVE_NODES
 	NUMBER_OF_SCHEDULERS=$DEF_NUMBER_OF_SCHEDULERS
 
+        DEPENDENCIES=
 	EXTRA_CODE_PATH=
 	EXTRA_ERL_ARGS=
 
@@ -501,28 +557,31 @@ for bench in $BENCHS; do
 
 	IFS=$NEW_IFS
 
-	echo -n "Running"
+        echo -e "===> Compiling benchmark"
+        cbm
+        echo "Done."
+
+	echo -e "===> Running benchmark"
 	rbm &
 	spin $!
-	echo " done"
+	echo "Done."
 
 	IFS=$OLD_IFS
 
 	if [ "$CHECK_SANITY" == "1" ]; then
-	    echo -n "Performing sanity check..."
-	    cbm
+	    echo -e "===> Performing sanity check"
+	    chkbm
 	    if [ "$?" -eq "1" ]; then
-		echo " succeeded"
+		echo "Succeeded."
 	    else
-		echo " failed"
+		echo "Failed."
 	    fi
 	fi
 
 	if [[ ( "$PLOT" -eq "1" ) && ( ( "$NUMBER_OF_NUMBER_OF_SLAVE_NODES" -ne "1" ) || ( "$NUMBER_OF_NUMBER_OF_SCHEDULERS" -ne "1" ) ) ]]; then
-	    echo -n "Plotting"
-	    pbm &
-	    spin $!
-	    echo " done"
+	    echo -e "===> Plotting results"
+	    pbm
+	    echo "Done."
 	fi
     fi
 
@@ -533,4 +592,4 @@ END=`date +%s`
 
 ELAPSED=$(( END - START ))
 
-echo "Time elapsed: $ELAPSED sec"
+echo -e "\nTime elapsed: $ELAPSED sec"

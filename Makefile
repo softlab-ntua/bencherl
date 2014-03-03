@@ -1,35 +1,18 @@
-#ERL_LIB_DIR = /path/to/otp/lib
-#ERLC_OPTS = +debug_info
+ERLC = 
+ERLC_OPTS = 
 
-.PHONY: all app bench clean clean-app clean-bench clean-res clean-suite clean-ui suite ui
+.PHONY: all clean clean-app clean-bench clean-res clean-suite clean-ui ui
 
-# Compile everything.
-all: directories app suite bench
+# Make everything.
+all: directories
 
-# Create the relevant dirs:
+# Create the relevant dirs.
 directories:
 	mkdir -p scratch/
 
-# Compile only the applications.
-app:
-	@(cd app && $(MAKE) ERL_LIB_DIR=$(ERL_LIB_DIR) ERLC_OPTS=$(ERLC_OPTS) $@)
-
-# Compile only the suite.
-suite: 
-	@(GNUPLOT=`which gnuplot`; \
-	if [ -z $$GNUPLOT ]; then \
-		echo "where is gnuplot?"; \
-		exit 1; \
-	fi)
-	@(cd suite && $(MAKE) ERLC_OPTS=$(ERLC_OPTS) $@)
-
 # Compile the UI.
 ui:
-	@(cd ui && $(MAKE) ERLC_OPTS=$(ERLC_OPTS) $@)
-
-# Compile the benchmarks.
-bench: 
-	@(cd bench && $(MAKE) ERLC_OPTS=$(ERLC_OPTS) $@)
+	@(cd ui && $(MAKE) ERLC=$(ERLC) ERLC_OPTS=$(ERLC_OPTS) $@)
 
 # Clean up everything.
 clean: clean-app clean-bench clean-res clean-suite clean-ui
@@ -37,18 +20,17 @@ clean: clean-app clean-bench clean-res clean-suite clean-ui
 
 # Clean up the applications.
 clean-app:
-	@(cd app && $(MAKE) clean)
+	for d in $(wildcard app/*/); do (if [ -d $$d ]; then cd $$d && $(MAKE) clean; fi); done
 
 # Clean up the benchmarks.
 clean-bench:
-	@(cd bench && $(MAKE) clean)
+	for d in $(wildcard bench/*/); do (if [ -d $$d ]; then cd $$d && $(MAKE) clean; fi); done
 
 # Clean up the results.
 clean-res:
-	@(if [ -f results ]; then \
+	@(if [ -d results ]; then \
 		cd results; \
 		$(RM) -rf *; \
-		exit 2; \
 	fi)
 
 # Clean up the suite.
@@ -60,4 +42,4 @@ clean-ui:
 	@(cd ui && $(MAKE) clean)
 
 %.beam: %.erl
-	erlc $(ERLC_OPTS) $<
+	$(ERLC) $(ERLC_OPTS) $<

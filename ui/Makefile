@@ -6,7 +6,7 @@ UI_BIN = bencherlui/ebin/bencherlui.app
 ERLF = $(wildcard *.erl)
 BEAMF = $(patsubst %.erl,$(EBIND)/%.beam,$(ERLF))
 
-.PHONY: all clean suite
+.PHONY: clean ui
 
 ui: $(UI_BIN) $(BEAMF)
 
@@ -31,12 +31,10 @@ $(UI_BIN):
 	cp bencherlui/boss.config.in bencherlui/boss.config
 	sed -i -e "s@BENCHERL_UI_PATH@`pwd`@g" bencherlui/boss.config
 	cd bencherlui ; \
-	echo "Building UI" ; \
 	./rebar compile
 
 clean:
 	$(RM) -rf $(EBIND)
 	cd bencherlui ; \
-	echo "Cleaning UI" ; \
 	./rebar clean; \
 	rm -rf boss.config;
