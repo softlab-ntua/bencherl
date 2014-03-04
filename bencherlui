@@ -27,13 +27,18 @@ while getopts ":udh" opt; do
     u)
         echo "Starting web server... The port can be changed in ui/bencherlui/boss.config." 
         cd ui/bencherlui
-        ./init.sh start
-        echo "Web server started."
-        host=`hostname -f`
-        port=`cat boss.config  | grep port | grep -v db_port | cut -d',' -f 2 | cut -d'}' -f1 |sed -e 's/^[ \t]*//'`
-        echo "Use your web browser and go to  http://$host:$port."
-        echo "Use the following command to stop the web server:"
-        echo "./bencherlui -d"  
+        START_OUTPUT=$( { ./init.sh start; } 2>&1)
+        if [ "$START_OUTPUT" == 'starting boss in production mode...' ];
+        then
+            echo "Web server started."
+            host=`hostname -f`
+            port=`cat boss.config  | grep port | grep -v db_port | cut -d',' -f 2 | cut -d'}' -f1 |sed -e 's/^[ \t]*//'`
+            echo "Use your web browser and go to  http://$host:$port."
+            echo "Use the following command to stop the web server:"
+            echo "./bencherlui -d"  
+        else
+            echo $START_OUTPUT
+        fi
         exit 0
         ;;
     d)
