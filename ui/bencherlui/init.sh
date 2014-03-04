@@ -19,15 +19,24 @@ do_start () {
     fi
 }
 
+test_up () {
+	./uptest.escript "bencherlui@$(hostname)"
+	echo $?
+}
 
 cd `dirname $0`
 
 case "${1:-''}" in
   'start')
         # Start Boss in production mode
-        echo "starting boss in production mode..."
-        START=$(./rebar boss c=start_cmd|grep -v "==>")
-        do_start "$START"
+        if test $(test_up) -eq 0
+        then
+	    echo "boss already running!"
+        else
+            echo "starting boss in production mode..."
+            START=$(./rebar boss c=start_cmd|grep -v "==>")
+            do_start "$START"
+        fi
         ;;
         
   'start-dev')
