@@ -96,7 +96,7 @@ result_file_to_json_text(FileName) ->
 
 count_periods_in_string([]) ->
     0;
-count_periods_in_string(['.'|Rest]) ->
+count_periods_in_string([$.|Rest]) ->
     1 + count_periods_in_string(Rest);
 count_periods_in_string([_|Rest]) ->
     count_periods_in_string(Rest).
