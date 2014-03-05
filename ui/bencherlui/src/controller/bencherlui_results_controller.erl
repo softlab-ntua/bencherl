@@ -45,8 +45,14 @@ benchmark_run_list_json_text() ->
     rfc4627:encode(BenchmarkRuns).
 
 benchmark_list_for_name(RunName) ->
-    [list_to_binary(Name) 
-     || Name <- list_of_files_in_dir(lists:concat(["../../results/", RunName]))].
+    UnsortedFileList = list_of_files_in_dir(lists:concat(["../../results/", RunName])),
+    SortedFileList =
+        lists:sort(
+          fun(A,B) ->
+                  A < B
+          end,
+          UnsortedFileList),
+    [list_to_binary(Name) || Name <- SortedFileList].
 
 benchmark_list_for_name_json_text(RunName) ->
     BenchmarkList = benchmark_list_for_name(RunName),
@@ -86,17 +92,37 @@ result_file_to_json_text(FileName) ->
              orddict:to_list(Dict)),
     rfc4627:encode(List).
 
+
+
+count_periods_in_string([]) ->
+    0;
+count_periods_in_string(['.'|Rest]) ->
+    1 + count_periods_in_string(Rest);
+count_periods_in_string([_|Rest]) ->
+    count_periods_in_string(Rest).
+
+
 measurement_file_list(MeasurementDir) ->
     {ok, FileNameList} = 
         file:list_dir(MeasurementDir),
-    lists:filter(
-      fun(Name) -> 
-              case re:run(Name, "time$") of
-                  {match, _} -> true;
-                  _ -> false
-              end
-      end,
-      FileNameList).
+    FilteredList = lists:filter(
+                     fun(Name) -> 
+                             case re:run(Name, "time$") of
+                                 {match, _} -> true;
+                                 _ -> false
+                             end
+                     end,
+                     FileNameList),
+    lists:sort(
+          fun(A,B) ->
+                  NrOfPeriodsA = count_periods_in_string(A),
+                  NrOfPeriodsB = count_periods_in_string(B),
+                  case {NrOfPeriodsA, NrOfPeriodsB} of
+                      {C1, C2} when C1 =:= C2 -> A < B;
+                      {C1, C2} -> C1 < C2
+                  end
+          end,
+          FilteredList).
 
 
 measurement_files('GET', []) ->

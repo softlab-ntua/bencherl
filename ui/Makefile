@@ -9,6 +9,8 @@ BEAMF = $(patsubst %.erl,$(EBIND)/%.beam,$(ERLF))
 .PHONY: clean ui
 
 ui: $(UI_BIN) $(BEAMF)
+	cd bencherlui ; \
+	./rebar compile
 
 $(EBIND)/%.beam: %.erl
 	erlc $(ERLC_OPTS) -o$(EBIND) $<
