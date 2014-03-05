@@ -2,8 +2,7 @@
 
 -export([moves/1, test/0]).
 
--define(READ_CONCURRENCY_VERSION, "R14B").
--define(WRITE_CONCURRENCY_VERSION, "R13B02").
+-include("../../../benchutil/ets.hrl").
 
 -define(WHITE, 119).
 -define(EMPTY, 101).
@@ -16,10 +15,11 @@ moves(String) ->
 
 moves(String, NrOfWorkers) ->    
     Version = erlang:system_info(otp_release),
+    {ReadConc, WriteConc} = supports_ets_concurrency(Version),
     Options = if
-	    Version >= ?READ_CONCURRENCY_VERSION -> [{read_concurrency, true}, {write_concurrency, true}];
-	    Version >= ?WRITE_CONCURRENCY_VERSION -> [{write_concurrency, true}];
-	    true -> []
+            ReadConc -> [{read_concurrency, true}, {write_concurrency, true}];
+            WriteConc -> [{write_concurrency, true}];
+            true -> []
     end,
     moves(String, NrOfWorkers, [set, public | Options]).
 
