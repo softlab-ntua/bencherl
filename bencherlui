@@ -12,16 +12,17 @@ Start or stop the web server that serves bencherl UI.
   -u         start the web server that serves bencherl UI (change port in ui/bencherlui/boss.config)
   -d         stop the web server that serves bencherl UI
 
-For complete documentation, go to ...
+For complete documentation, see the README.md file.
 EOF
 }
 
 START=`date +%s`
+cd "$( dirname "${BASH_SOURCE[0]}" )"
 
 while getopts ":udh" opt; do
   case $opt in
     h)
-        usage   
+        usage
         exit 0
         ;;
     u)
@@ -45,7 +46,6 @@ while getopts ":udh" opt; do
         echo "Stopping web server..."
         cd ui/bencherlui
         ./init.sh stop
-        echo "Web server stopped."
         exit 0
         ;;
     \?)

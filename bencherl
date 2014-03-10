@@ -397,6 +397,7 @@ nds()
 }
 
 START=`date +%s`
+cd "$( dirname "${BASH_SOURCE[0]}" )"
 
 while getopts ":b:chlm:s:n:pi" opt; do
   case $opt in
