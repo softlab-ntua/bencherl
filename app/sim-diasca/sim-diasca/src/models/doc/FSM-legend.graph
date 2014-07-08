@@ -1,0 +1,76 @@
+digraph legend_for_finite_state_machines {
+
+	graph [ size = "7,7", fontsize = "14.0", label = "Legend of Finite-State Machines (FSM)" ];
+
+	node [ height = 1, width = 1, fixedsize = true, shape = circle, color = lightgrey, style = filled ] ;	
+
+
+	node [ fillcolor = green, shape = circle ];
+	
+	
+	subgraph clusterState
+	{
+	
+		graph [ label = "Node Colors" ];
+		
+		node [ fillcolor = pink ];
+		EndingState    [ label = "Ending\nState" ]
+	
+		node [ fillcolor = lightblue ];
+		NormalState    [ label = "Intermediate\nState" ]  
+
+		node [ fillcolor = green ];
+		StartingState  [ label = "Starting\nState" ]	
+					
+	}
+
+
+	subgraph clusterCorrect
+	{
+	
+		graph [ label = "Node Shapes" ];
+	
+		node [ fillcolor = lightgrey ];
+
+		IncorrectState [ label = "Incorrect\nState", shape = octagon ]
+	
+		CorrectState [ label = "Correct\nState", shape = circle ]  
+				
+	}
+
+
+	subgraph clusterEdges
+	{
+	
+		graph [ label = "Node Edges" ];
+	
+		node [ fillcolor = lightgrey ];
+
+		subgraph clusterExample1
+		{
+
+			graph [ label = "FSM A" ];
+	
+			A1 [ label = "State\nA1" ] ; 
+			A2 [ label = "State\nA2" ] ; 
+		}
+		
+		
+		subgraph clusterExample2
+		{
+
+			graph [ label = "FSM B" ];
+			
+			B [ label = "State\nB" ] ; 
+		}
+		
+		A1 -> A2 [ label = "Event-based\nstate\ntransition" ]
+		
+		A1 -> B [ label = "Message\npassing", width = 2, style = dashed ]
+		
+	
+		
+	}
+
+	
+}	

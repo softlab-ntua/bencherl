@@ -1,0 +1,35 @@
+% This settings file allows to specify a list of eligible computing hosts that
+% may take part to a Sim-Diasca distributed simulation.
+
+% Each line must either contain:
+%
+%  - a 'Hostname' atom (between single quotes, preferably) which designates the
+% host name of a candidate computing host (preferably a FQDN)
+%
+%  - or a '{ Hostname, Comment }' pair where Comment is a plain string (just for
+% reference purpose)
+%
+%  - or a '{ Hostname, Username, Comment }' triplet where Username is an atom
+% designating the user name that should be used on that computer (if having to
+% rely on a different UNIX user name than the one used on the launching host)
+%
+% Each line must finish with an end-of-line dot.
+
+
+% So:
+%
+% -type host_name() :: atom().
+% -type user_name() :: atom().
+% -type comment() :: string().
+%
+% -type host_spec() :: host_name() | { host_name(), comment() }
+%                            |  { host_name(), user_name(), comment() }.
+
+
+% Example:
+%
+{'my_host.example.org',"Used by Olivier Boudeville, in B-226."}.
+'my_second_host.example.org'.
+{'my_third_host.example.org',"Usually shut down each week-end."}.
+'my_fourth_host.example.org'.
+{'my_fifth_host.example.org', 'boudevil', "Another computer."}.

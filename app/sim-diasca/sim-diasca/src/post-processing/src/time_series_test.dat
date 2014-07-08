@@ -1,0 +1,26 @@
+# Warning: using immediate writes here, thus the next header might be inaccurate,
+# should subsequent curve reordering or addition be performed.
+# This time series data file has been written on 14/4/2011, at 18:48:51.
+# Probe name: Supplier2 uc7 message delay
+# Probe title: Supplier2 uc7 example message delay
+# First column corresponds to the abscissa, expressed in tick offsets.
+# Next columns correspond to curve names:
+# - curve #1: uc7 message delay
+# - curve #2: uc7-t443 message delay
+# - curve #3: uc7-t444 message delay
+# - curve #4: uc7-t445 message delay
+# - curve #5: uc7-t446 message delay
+# - curve #6: uc7-t447 message delay
+
+0  4 1 0 1.0 0 0
+1  4 2 0 2.0 0 1
+2  4 3 0 1.0 0 undefined
+3  4 4 0 2.0 0 3.0
+4  4 5 0 1.0 0 0
+5  4 6 0 2.0 0 1.0
+6  4 7 0 1.0 0 undefined
+7  4 8 0 2.0 0 3.0
+9  4 10 0 2.0 0 1
+10  4 10 0 1.0 0 undefined
+11  4 11 0 2.0 0 3.0
+12  4 12 0 1.0 0 0

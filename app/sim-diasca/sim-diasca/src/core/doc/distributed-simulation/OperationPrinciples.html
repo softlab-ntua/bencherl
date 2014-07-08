@@ -1,0 +1,700 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+"http://www.w3.org/TR/html4/loose.dtd">
+<!--    Ce document fait partie du projet Référentiel.
+				Pour toute remarque, envoyer un courriel à olivier.boudeville@edf.fr
+-->
+<!--
+		Date de création : Wednesday, October 10, 2007
+		Auteur : Olivier Boudeville (olivier.boudeville@edf.fr)
+		Version : 0.1
+-->
+
+<html lang="FR">
+<head>
+  <title>Référentiel - Sim-Diasca - Principe de fonctionnement</title>
+  <meta http-equiv="Content-Type" content=
+  "text/html; charset=iso-8859-1">
+  <meta name="description" content="Referentiel">
+  <meta name="keywords" content="Referentiel">
+  <link rel="stylesheet" type="text/css" href=
+  "../../../../../../../../common/css/Referentiel.css">
+  <link href="../../../../../../../../images/Referentiel-icon.png" rel=
+  "Referentiel icon">
+</head>
+
+<body>
+  <div class="banner">
+	<p><em>Courts-circuits</em> <a href="../../../../../../../../common/black.html"
+	onclick="parent.toolbar.location='../../../../../MainMenu.html'">Page
+	principale</a> <a href="../../../../../Map.html">Plan du site</a> <a href= "mailto:olivier.boudeville@edf.fr?subject=[Référentiel]%20Fonctionnement%20de%20Sim-Diasca">
+	écrivez-nous</a></p>
+  </div><a name="_top_"></a>
+
+<body>
+
+
+<h1>Principes de fonctionnement technique de Sim-Diasca : modélisation du temps</h1>
+
+
+<center>
+	<table summary="Code" style="border : none">
+		<tr>
+		  <td>
+			<div class="box">
+<code><pre>
+Document de travail - réflexions en cours
+</pre></code>
+			</div>
+		  </td>
+		</tr>
+	</table>
+</center>
+
+
+<a name="maintoc"></a>
+<center>
+		<table summary="Table of contents" style="border: none">
+		<tr>
+		  <td>
+				<div class="box">
+					   <a href="#intro">Exposé du problème</a><br>
+					   <a href="#modelasync">Modélisation asynchrone</a><br>
+					   <a href="#modelsync">Modélisation synchrone</a><br>
+					   <a href="#implsync">Implémentation synchrone</a><br>
+					   <a href="#references">Références</a>
+
+<!--
+					   <a href="#"></a><br>
+-->
+
+				</div>
+
+		  </td>
+		</tr>
+	  </table>
+
+<!--
+[<a href="#maintoc">Retour à la table des matières principale</a>]
+-->
+</center>
+
+
+<!--
+<p><center>[<a href="#maintoc">Retour à la table des matières</a>]</center></p><br><br>
+-->
+
+
+<a name="intro"></a>
+<h2>Exposé du problème</h2>
+
+<p>
+<b>Sim-Diasca</b> propose un squelette d'application (<em>framework</em> composé d'un noyau générique et de briques réutilisables) facilitant le développement de simulations :
+<ul>
+
+	<li><b>dynamiques</b> (plutôt qu'en régime stationnaire)</li>
+
+	<li><b>discrètes</b> (plutôt que continues)</li>
+
+	<li><b>événementielles</b> (l'évolution des modèles est ponctuelle et peut survenir à tout moment)</li>
+
+	<li><b>réparties</b> (parallèles, tirant partie des processeurs multicoeurs et des SMP, et pouvant être distribuées sur un ensemble de machines reliées par un réseau)</li>
+
+	<li><b>causales</b> (un ordre total sur les événements distribués est reconstruit pour préserver les liens de causalité)</li>
+
+	<li><b>reproductibles</b> (quel que soit le jeu de conditions d'exécution il est garanti que la simulation se déroulera identiquement, indépendamment des ordonnancements locaux et de la distribution des traitements)</li>
+
+
+	<li><b>de grande échelle</b> (systèmes composés de milliers voire de millions d'éléments)</li>
+
+<!--
+	<li><b></b> </li>
+-->
+
+</ul>
+</p>
+
+<p>
+Sim-Diasca se prête plus particulièrement à la simulation de systèmes multi-agents (SMA), composés d'acteurs au moins partiellement autonomes, modélisés individuellement, et en interaction concurrente par échange de messages.
+</p>
+
+<p>
+Ce document est centré sur un point-clé de ces simulations : la modélisation du temps, c'est-à-dire la <b>gestion de la synchronisation des événements dans un contexte distribué</b>.
+</p>
+
+<p>
+L'hypothèse technique sous-jacente, vérifiée dans la quasi-totalité des cas d'application, est que, pour les différents noeuds de traitement prenant en charge la simulation répartie, il n'est pas possible de disposer d'une <b>horloge commune</b>, en tout cas pas une qui soit suffisamment précise au regard de la finesse des intervalles de temps à gérer dans une simulation.
+</p>
+
+<p>
+Le problème central vient alors des faits suivants:
+<ol>
+<!--
+	<li><b></b> : </li>
+-->
+
+	<li>à cause de la latence induite par le réseau, l'ordre de réception des messages ne reflète plus nécessairement l'ordre de leur envoi. Sans mesure particulière, les liens de causalité ne sont dès lors plus préservés (une cause pouvant ainsi survenir après ses effets), et toute garantie de correction et de reproductibilité est perdue (note : ces deux propriétés sont distinctes et aucune n'implique l'autre)</li>
+
+	<li>faute de disposer d'une horloge commune, par défaut la notion de temps global n'existe pas dans le système distribué. Cela interdit la seule solution simple au point précédent, l'horodatage des messages, qui, s'il avait été fiable, aurait permis leur traitement par ordre chronologique d'émission, seule restitution correcte de la réalité</li>
+
+</ol>
+</p>
+
+<p>
+En conséquence il va s'agir d'adopter ici un mode de fonctionnement de la simulation qui soit spécialement conçu afin de restaurer la causalité dans le système distribué, sans préjudice des autres propriétés déjà évoquées, comme l'interactivité ou le caractère reproductible de la simulation.
+</p>
+
+<p>
+Ce dernier trait est essentiel, car les simulations servent notamment à confronter des résultats obtenus en faisant varier des paramètres du problème (ex : ses entrées, ses modélisations, etc.). Sans comportement reproductible il devient problématique d'interpréter les écarts entre résultats : ces écarts sont-ils imputables aux différences dans les paramètres, ou simplement au fait que, d'une fois sur l'autre, la simulation s'est déroulée différemment ?
+</p>
+
+<p>
+En terme de gestion du temps et de la causalité, les simulations réparties peuvent être mises en oeuvre principalement selon deux approches : l'approche <b>asynchrone</b> (ou <em>event-sequencing</em>) et l'approche <b>synchrone</b> (ou <em>time-slicing</em>).
+</p>
+
+<p><center>[<a href="#maintoc">Retour à la table des matières</a>]</center></p><br><br>
+
+
+
+
+
+<a name="modelasync"></a>
+<h2>Modélisation asynchrone, dite "événementielle"</h2>
+
+<h3>Principe</h3>
+<p>
+Dans cette approche on ne recherche pas de notion explicite d'un temps global : les événements s'échangent entre acteurs sans qu'une correspondance particulière entre le temps réel et le temps de la simulation soit respectée, sans même que le temps de la simulation s'écoule de manière uniforme. Ainsi entre deux événements successifs, une durée très faible ou très grande a pu s'écouler dans le système simulé : le principe est de passer directement d'un événement au prochain, quelle que soit sa date future, sans prendre en compte le temps global, qui semble donc progresser par sauts de longueurs variables.
+</p>
+
+
+<h3>Qualités</h3>
+<p>
+Par comparaison avec l'approche synchrone (découpage du temps en pas de longueur constante) qui sera développée par la suite, la technique asynchrone a pour avantage la simplicité (au premier abord) et, dans certains cas, la rapidité : si en moyenne il y a moins d'un événement par pas de temps synchrone, cette dernière approche examine des situations sans intérêt, là où l'approche asynchrone n'examine par construction que les cas pertinents.
+</p>
+
+<p>
+D'un autre côté il est souvent possible d'ajuster le pas de temps synchrone pour qu'il ne soit pas trop faible au regard de la fréquence de survenue des événements (sous réserve qu'ils suivent une distribution de probabilité qui s'y prête) et/ou de définir des fréquences d'activation inférieures (la durée des pas des acteurs concernés étant alors un multiple de celle du pas fondamental), voire des activations non périodiques (décidées de proche en proche).
+</p>
+
+
+<h3>Limites</h3>
+<p>
+En revanche l'approche asynchrone comporte des limites assez contraignantes. Là où une simulation synchrone pouvait à volonté se caler sur le temps utilisateur, (et donc être interactive), ou aller aussi vite que possible, permettant dès lors d'aller plus vite que le temps réel (en passant immédiatement au pas de temps suivant dès lors que le pas courant était traité), l'approche asynchrone ne permet pas l'interactivité, sa vitesse ne pouvant même pas être définie dans le cas général, faute de disposer de la notion de temps.
+</p>
+
+<p>
+Un autre problème induit par ces sauts temporels est celui de la stabilité numérique : la résolution de certaines équations devient fausse si le pas de temps augmente trop (ex: intégration numérique), ou devient trop faible (ex: accumulation d'erreurs d'arrondis). Il devient alors nécessaire, dans le premier cas, d'utiliser des méthodes numériques plus sophistiquées (ex: intégrateur de Runge-Kutta d'ordre 4).
+</p>
+
+
+<p>
+Plus encore, dans cette approche asynchrone, par défaut l'absence d'un temps global explicite ne permet plus de retracer la causalité des événements. Ainsi, si deux acteurs, A et B, envoient chacun un message à un acteur C, il n'existe pas de garantie informatique que leur ordre de réception par C respectera leur ordre d'envoi, et donc les liens de causalité sous-jacents.
+</p>
+
+
+<p>
+Ainsi, si, sans que C le sache, la règle de comportement était que B envoie un message à C, puis (implication causale) B envoie un message à A qui, du fait de sa réception (à nouveau cause/conséquence) envoie un message à C, alors C peut recevoir le message en provenance de A avant de recevoir celui en provenance de B (l'un doublant l'autre en empruntant un lien de communication différent), selon le schéma suivant :
+
+<center>
+	<img src="Causality.png" alt="Causalité"></img>
+</center>
+
+Malheureusement, du point de vue de C, il y a eu dans ce cas perte de la relation de causalité : les conséquences pouvant survenir avant leur cause, la simulation n'a plus aucune pertinence.
+</p>
+
+<p>
+Les simulateurs militaires présentent ce cas à trois acteurs sous un angle frappant et très intuitif, pour illustrer en quoi la causalité est essentielle à préserver, en dépit de la complexité algorithmique que cela entraîne.
+</p>
+
+<p>
+Supposons que l'acteur A est un tank, B un lance-missile, et C un observateur : quand le lance-missile (B) tire sur le tank, il envoie un message signalant ce tir à tous les témoins potentiels (le tank et l'observateur, A et C). Le tank (A), à la réception de ce message, détermine qu'il est détruit et le notifie à l'observateur (C), qui n'a pas encore reçu la notification du tir. En conséquence, cet observateur voit successivement un tank exploser sans la moindre raison puis un tir de missile qui cible un acteur qui n'existe même plus.
+</p>
+
+<p>
+Confronté à des faits incohérents, l'observateur a toutes les chances de réagir de manière incorrecte (par exemple dès la réception du premier message). Certains mécanismes peuvent lui faire prendre conscience, lors de la réception du second message, qu'il y a eu inversion. Encore faudrait-il qu'il puisse remonter le temps et reprendre le fil correct des événements...
+</p>
+
+<p>
+Ceci constitue l'exemple le plus simple, à trois acteurs et trois messages, illustrant les problèmes de causalité. Ces risques sont démultipliés dès lors que la simulation est répartie sur plusieurs machines et qu'elle repose sur l'interaction de nombreux acteurs.
+</p>
+
+<p>
+Pour restaurer ces relations de causalité dans un tel système événementiel, il est nécessaire de mettre en place au moins un ordre partiel sur les événéments. La question soulève des défis théoriques importants, évoqués dans <a href="#4">[4]</a> au côté d'une solution qui est devenue une référence : les <a href="http://en.wikipedia.org/wiki/Lamport_clock" target="_blank">horloges logiques de Lamport</a>, ou leur généralisation, les <a href="http://en.wikipedia.org/wiki/Vector_clocks" target="_blank">horloges vectorielles</a>.
+</p>
+
+<p>
+Ces substituts à une horloge globale (algorithmes dits <em>conservative</em> ou <em>optimistic</em>) sont complexes et assortis de propriétés et de contraintes qui rendent leur mise en oeuvre rapidement problématique. Une approche synchrone a donc semblé plus simple et plus robuste.
+</p>
+
+
+<p><center>[<a href="#maintoc">Retour à la table des matières</a>]</center></p><br><br>
+
+
+
+
+
+<a name="modelsync"></a>
+<h2>Modélisation synchrone</h2>
+
+<h3>Principe</h3>
+<p>
+L'approche synchrone, à l'heure actuelle retenue pour Sim-Diasca, consiste à segmenter le temps de la simulation (le temps "virtuel", par opposition au temps "réel", celui de l'utilisateur), en intervalles et à les cadencer par une horloge globale.
+</p>
+
+<p>
+Un intervalle de temps simulé est choisi pour être au plus du même ordre de grandeur que la durée caractéristique d'évolution du système, voire suffisamment court pour qu'on puisse considérer que l'état du système est globalement invariant pendant cette durée.
+</p>
+
+<!--
+<p>
+Cela signifie, pour certaines simulations synchrones, qu'à l'intérieur de cette tranche de temps aucune information n'est mise à jour, seules les valeurs de l'itération précédente étant dès lors à prendre en compte. Retenir cette hypothèse permet de rendre à moindre effort ces simulations insensibles à l'ordre d'exécution des agents à l'intérieur de cette tranche de temps, ouvrant la possibilité de distribuer autant que voulu les traitements tout en ayant des simulations reproductibles à l'identique.
+</p>
+
+<p>
+Nous verrons par la suite que néanmoins, dans nombre de systèmes, cette hypothèse d'invariance fait peser des contraintes trop fortes sur la modélisation des phénomènes et/ou sur la finesse du pas de temps à retenir, et qu'il est plus intéressant d'adopter une variante de fonctionnement synchrone un peu plus complexe, mais reproduisant mieux la réalité.
+</p>
+-->
+
+<p>
+On a vu que, pour toutes les simulations synchrones, il existe une horloge globale qui rythme la vie du système. Cette base de temps commune à toute la simulation peut être corrélée ou non au temps réel (i.e. celui de l'utilisateur), permettant l'exécution interactive (on cale alors le temps virtuel sur le temps réel, si les performances de la simulation le permettent) ou non (on enchaîne alors les pas de temps simulés aussi vite que possible, potentiellement en allant plus vite que le temps réel).
+</p>
+
+
+<p>
+Enfin, que la simulation synchrone soit interactive ou non, elle peut être effectuée à pas constant ou non, le point sera développé par la suite.
+</p>
+
+
+
+
+<h3>Synchronisation par consensus sur le pas de temps</h3>
+
+
+<h4>Principe &amp; difficultés</h4>
+
+<p>
+Le principe directeur est, pour une tranche de temps virtuel donnée, de laisser chaque acteur de la simulation agir selon ses règles de comportement, en lui accordant tout le temps (réel) nécessaire aux traitements qu'il doit effectuer lors de ce pas de temps.
+</p>
+
+<p>
+Sachant que, pour une même durée de temps virtuel, la durée effective de simulation est généralement variable (un élément simulé pouvant induire, d'un pas de temps à l'autre, plus ou moins de traitements), l'objectif est que la durée, en temps "réel", du pas de simulation soit aussi faible que possible (pour que la simulation soit performante) tout en s'assurant qu'elle reste suffisamment grande pour que tous les acteurs aient pu achever leur programme d'actions pour ce pas de temps.
+</p>
+
+<p>
+Dans les faits cette durée est choisie au plus juste, c'est-à-dire qu'un pas de temps est cadencé de telle sorte qu'il se termine aussitôt que tous les acteurs ont achevé leur programme. L'objectif est de favoriser une exécution parallèle  des acteurs pendant chaque pas de temps, pour tirer parti de la concurrence naturelle du système : le cas le moins favorable serait de devoir simuler les acteurs les uns après les autres (un pas de temps global durerait dès lors autant que la <b>somme</b> des temps de traitement de tous les acteurs pour ce pas de temps), alors que le cas le plus favorable serait un parallélisme parfait, c'est-à-dire un pas de temps global dont la durée serait égale au plus long des temps de traitement unitaires, choisis parmi tous les acteurs pour ce pas donné. Dans des systèmes comportant un nombre très important d'agents, la seconde approche offre des performances incomparablement supérieures à la première.
+</p>
+
+<p>
+Une des difficultés à surmonter vient du fait que la durée de transit effective d'un message entre deux acteurs donnés peut être arbitrairement importante. Sans mécanisme particulier, la réception de ce message, non maîtrisée, peut intervenir trop tard, c'est-à-dire après que le pas de temps prévu pour son arrivée soit pris en compte.
+</p>
+
+<p>
+Détecter de tels décalages temporels est facile : il suffit par exemple de joindre à chaque message un horodatage, libellé en temps de la simulation, soit du moment d'émission, soit du moment de réception prévu.
+</p>
+
+<p>
+Au-delà de leur détection, il est plus épineux de bâtir un système qui, sans trop sacrifier les performances, rende la survenue de ces décalages impossible.
+</p>
+
+<p>
+Plusieurs méthodes permettent d'empêcher la survenue de tels "messages du passé" : on peut ainsi considérer qu'un acteur n'aura pas fini son action pour un pas de temps donné aussi longtemps qu'il n'aura eu pas une assurance raisonnable que chacun de ses messages est bien arrivé à son destinataire.
+</p>
+
+<p>
+Cela peut s'obtenir en s'assurant que la fin du pas de temps ne se pas décrétée avant qu'une durée, au moins égale à une borne supérieure du temps de transit entre cet émetteur et ce récepteur (si une telle valeur existe), se soit écoulée.
+</p>
+
+<p>
+Une solution plus simple est, bien que le médium de communication soit fiable (i.e. sans perte de message), de demander et attendre pour chaque envoi de message un accusé de réception du destinataire : un acteur donné ne pourra dès lors notifier l'ordonnanceur de la fin de ses actions pour le pas de temps courant que s'il a reçu un accusé de réception pour chacun de ses envois.
+</p>
+
+
+
+<h4>Algorithme macroscopique (inter-pas de temps)</h4>
+<p>
+L'objectif est d'obtenir un consensus fiable entre les acteurs sur la fin du pas courant (terminaison des actions de chacun) en consommant aussi peu de ressources (notamment en nombre de messages échangés et en temps attendu) que possible.
+</p>
+
+<p>
+L'algorithme repose sur le fait que les messages sont affectés par des temps de latence variables, mais que les communications d'un acteur vers un autre se produisent sans déséquencement, c'est-à-dire que des messages envoyés de l'un vers l'autre sont reçus dans l'ordre de leur émission.
+</p>
+
+<p>
+Son principe de fonctionnement est simple. Si une horloge sert de base à n acteurs, alors à chaque itération en temps (<code>tick</code> d'horloge) <code>2.n</code> messages de synchronisation sont échangés :
+<ol>
+
+	<li>
+l'horloge (le gestionnaire de temps, <em>TimeManager</em>) envoie à chaque acteur un message de <b>début de pas de temps</b> : <code>{beginTick,Tick}</code> avec <code>Tick</code> correspondant au numéro du nouveau pas de simulation.
+	</li>
+
+	<li>
+<p>
+A la réception de ce message de l'horloge, qui implique que tous les messages inter-acteurs du pas précédent (<code>Tick-1</code>) ont été reçus, l'acteur prend en compte chacun de ces messages, et met à jour son état en conséquence.
+</p>
+
+<p>
+Les messages précédemment reçus sont traités dans un ordre spécifique, fondé sur l'identifiant de leur émetteur, pour assurer la reproductibilité de la simulation : ces messages traduisent des événements concurrents, i.e. sans liens de causalité direct, dès lors l'ordre de leur prise en compte est indifférent du point de vue de la logique. Il suffit en conséquence de mettre en place un critère de classement arbitraire mais déterministe de ces messages pour qu'en plus leur prise en compte soit reproductible.
+</p>
+
+
+<p>
+L'acteur, une fois son état mis à jour consécutivement au traitement de ces messages, agit alors selon ses propres règles de comportement, appliquées au pas de temps courant (<code>Tick</code>), c'est-à-dire en envoyant aux autres acteurs les messages correspondant à son activité du moment et en modifiant son état.
+</p>
+
+<p>
+Chaque acteur, connaissant la durée de ce pas de temps simulé, a pour responsabilité d'agir conformément à sa modélisation, en adaptant la nature et le nombre d'actions en rapport avec cette durée (i.e. les acteurs simulés n'ont pas tous la même réactivité).
+</p>
+
+<p>
+Il existe une situation de concurrence (<em>race condition</em>) implicite ici : un acteur pourrait recevoir son avis de début de pas de temps, traiter ses messages et en envoyer de nouveaux avant qu'un de ses destinataires ait reçu son propre avis de début de pas de temps, entraînant le risque que ces messages soient interprétés comme appartenant au pas de temps précédent plutôt qu'au pas de temps courant. La solution employée est d'horodater systématiquement les messages inter-acteurs avec le pas de temps courant, car il n'existe pas de critère permettant à un acteur donné de savoir, entre le moment où il a prononcé sa fin de pas et celui où il recevra une notification de début de pas, si un message inter-acteurs reçu a été émis avant ou après l'avénement du nouveau pas.
+</p>
+
+<p>
+A l'intérieur de ce pas de temps, par construction le temps ne s'écoule pas et il n'y a pas de notion de séquencement des actions : tous les messages envoyés sont horodatés identiquement et leur analyse ne doit pas dépendre de leur ordre d'émission ou de réception à l'intérieur de ce pas.
+</p>
+
+<p>
+Son action éventuelle achevée pour ce pas de temps, l'acteur envoie à l'horloge globale soit un <b>message de fin de pas normale</b>, c'est-à-dire <code>{done,{Tick,Pid}}</code>, <code>Pid</code> étant l'identifiant du processus de simulation de cet acteur, soit un <b>message de fin de pas avec terminaison</b>, c'est-à-dire <code>{terminated,{Tick,Pid}}</code> si, à la suite de ses actions, cet élément a déterminé qu'il doit disparaître de la simulation.
+</p>
+
+<p>
+Même dans ce cas, il devra néanmoins subsister jusqu'à la prochaine notification de début de pas de temps, pour que tout acteur lui envoyant un message dans le tour courant puisse néanmoins recevoir un accusé de réception.
+</p>
+
+<!--
+<p>
+Cet acteur peut être encore en activité au pas suivant ou non. Si sa disparition a été programmée pendant le pas courant, certes l'acteur logique doit disparaître dès le pas suivant (<code>Tick+1</code>), mais l'acteur informatique ne disparaîtra dans les faits qu'au début du pas de temps d'après (<code>Tick+2</code>), puisque pendant tout <code>Tick+1</code> d'autres acteurs peuvent vouloir interagir avec lui, tel qu'il était pendant <code>Tick</code>. Il restera donc dans cet état pendant tout <code>Tick+1</code>
+</p>
+-->
+	</li>
+
+	<li>
+enfin, l'horloge ayant reçu les notifications de fin de pas de tous les acteurs (ou ayant géré les éventuels crashs ou non terminaison d'acteurs), annonce à chaque acteur n'ayant pas déclaré de terminaison l'avénement du nouveau pas de temps : <code>{beginTick,Tick+1}</code></code> : retour à l'étape 1.
+	</li>
+
+	 </ol>
+</p>
+
+<p>
+La redondance de certaines informations (ex: préciser le pas courant dans le message de début de tranche de temps) est inutile (puisque cette information peut être déduite par tout acteur) mais sert à augmenter la robustesse du système. Elle pourrait être débrayée.
+</p>
+
+
+<!--
+
+<h4>Pourquoi envoyer autant de messages de synchronisation ?</h4>
+
+<p>
+Pourquoi ne suffirait-il pas de deux envois de messages par pas de temps et par acteur (2.n messages échangés), un pour que l'horloge notifie chaque acteur du début de nouveau pas, un en provenance de chaque acteur quand il a achevé ses actions pour ce pas ?
+</p>
+
+<p>
+Car il existerait au moins une situation indécidable avec ce protocole : soient deux acteurs A et B ayant reçu le message de début de pas de temps (<code>{beginTick,Tick}</code>). A agit et renvoie <code>{done,{Tick,PidofA}}</code>. A est en attente de sollicitations d'autres acteurs toujours dans ce pas de temps (ex: B), ou de l'annonce du nouveau pas (<code>{beginTick,Tick+1}</code>).
+</p>
+
+<p>
+Il est malheureusement possible toutefois que A reçoive une requête de B alors que B est déjà dans le pas <code>Tick+1</code> : dans ce scénario, B achève (avant ou après A) son pas, puis, quand c'est le cas de tous les acteurs, l'horloge décide de passer au pas suivant (<code>Tick+1</code>). B alors reçoit son avis de changement de pas (avant que A ne le reçoive) et B a le temps d'envoyer une requête à A alors que ce dernier n'a toujours pas reçu sa notification de changement de pas. A alors n'a aucun moyen de savoir si cette requête s'applique à <code>Tick</code> (qui est toujours son pas courant) ou <code>Tick+1</code> (qui est celui de B).
+</p>
+
+<p>
+Cette indécision résulte du fait qu'il n'y a pas eu de consensus d'établi entre les acteurs au sujet du pas courant. Pour lever cette indécision, il serait possible d'adjoindre à chaque message inter-acteurs un horodatage, mais dans ce cas on se doterait dans les faits d'une <a href="http://en.wikipedia.org/wiki/Lamport_clock" target="_blank">horloge logique de Lamport</a>, qui rendrait l'utilisation d'une horloge globale superflue (passage en fonctionnement asynchrone) mais qui, en ne fournissant qu'un ordre partiel sur les événements distribués, ne permettrait pas d'établir toutes les relations de causalité les liant.
+</p>
+
+<p>
+La solution retenue ici est d'obtenir un consensus au moyen uniquement de deux paires de questions/réponses. Cela confère au changement de temps la propriété d'être transactionnel : c'est une forme de consensus en deux étapes, plus connu dans le domaine des bases de données sous le nom de <a href="http://en.wikipedia.org/wiki/Two_phase_commit" target="_blank">two-phase commit protocol</a>.
+</p>
+
+-->
+
+
+<h4>Algorithme intra-pas de temps</h4>
+<p>
+L'algorithme précédent confère certaines propriétés intéressantes au système, notamment :
+<ul>
+
+	<li>une première synchronisation des événements</li>
+	<li>la possibilité d'être interactif</li>
+	<li>la fidélité aux modèles comportementaux, en préservant la causalité par consensus des acteurs sur le pas de temps courant</li>
+
+<!--
+	<li></li>
+-->
+
+</ul>
+Toutefois, contrairement aux apparences et malgré le maintien de la causalité, cet algorithme en l'état n'est toujours pas suffisant pour que les simulations soient reproductibles.
+</p>
+
+
+<p>
+En effet, si l'emploi de pas de temps synchrones résout l'enchaînement d'événements causalement liés (par construction, l'événement associé à une conséquence est envoyé au moins un pas de temps après la réception de l'événement associé à sa cause, les effets ne peuvent donc pas précéder leurs causes), il reste à gérer la prise en compte des événements concurrents, c'est-à-dire ceux qui n'ont pas de lien logique entre eux, qui peuvent survenir dans la réalité tout aussi bien avant ou après l'autre, et qui dans la simulation peuvent être reçus en même temps, i.e. dans à un même pas de temps, par un acteur donné.
+</p>
+
+<p>
+Par construction là-aussi, ces événements concurrents n'ont pas de lien causal entre eux, si bien que la logique ne dicte aucun ordre particulier à faire respecter pour leur prise en compte : quand l'acteur, en début de pas de temps, compulse sa liste de messages reçus du pas précédent, leur ordre d'analyse est, a priori, indifférent. Il est indifférent toujours du point de vue de la logique (aucun ordre est plus vrai qu'un autre pour ces événements concurrents); cela n'implique toutefois pas que tous les ordres aboutissent à un état de fin de temps identique pour l'acteur en question.
+</p>
+
+<p>
+Par exemple, si un acteur reçoit pour un même pas de temps une requête d'incrémentation d'un de ses attributs numériques et une requête de multiplication de cet attribut par deux, dans le cas général l'ordre de traitement importe (car selon son choix différentes valeurs finales peuvent être obtenues), mais sans qu'un résultat puisse être considéré comme plus vrai que les autres.
+</p>
+
+<p>
+L'approche par défaut, traiter ces messages concurrents par ordre de réception effectif dans le pas de temps précédent, est simple mais n'assure aucune reproductibilité : d'une exécution à l'autre, les mêmes messages pourront être reçus dans un ordre variable (du fait de la charge des machines, du réseau, etc. et plus généralement de tous les éléments indéterministes sur lesquels repose l'exécution d'une simulation), aboutissant à des comportements distincts (mais tous aussi causalement fidèles les uns que les autres) et donc à des simulations qui ne sont pas reproductibles.
+</p>
+
+<p>
+ Une meilleure approche est de construire un ordre, arbitraire mais reproductible, sur ces messages, en les classant de manière déterministe plutôt que contextuelle. Une façon de procéder est d'établir un ordre sur les identifiants des processus émetteurs (nécessairement précisés d'après les discussions précédentes) et, si cela ne conduit qu'à un ordre partiel, de par exemple se fonder sur une valeur de hachage calculée sur les messages qui resteraient à départager.
+</p>
+
+
+<!--
+
+<p>
+En effet l'hypothèse d'invariance du système d'un pas à l'autre n'empêche pas que l'ordre d'arrivée des requêtes à un acteur donné peut importer, dans la mesure où elles peuvent influer sur son état. Par exemple un agent qui aurait la valeur numérique 5 dans son état, et serait confronté à une requête R1 de multiplication par deux de cette valeur et une autre requête R2 d'incrémentation de cette valeur, pourrait voir, à l'issue de son pas de temps, sa valeur portée à 11 (R1 ordonnancée avant R2) ou à 12 (R2 avant R1), en fonction de l'ordre de prise en compte des requêtes.
+</p>
+
+<p>
+Non seulement donc dans l'approche synchrone aussi il y aurait un ordre à choisir (puisqu'on vient de voir que l'ordre affecte les résultats), mais en plus il faudrait trouver un ordre qui soit reproductible <b>et</b> qui traduise fidèlement la réalité.
+</p>
+
+<p>
+En effet, sans mécanisme particulier, à l'intérieur d'un pas de temps l'ordre d'arrivée des messages (ex: R1 et R2) n'est pas reproductible, comme évoqué dans le cas asynchrone. Plusieurs méthodes peuvent être envisagées pour y remédier, comme l'évaluation tour-à-tour des actions des agents (mais elle serait inacceptable, car impliquant de renoncer au parallélisme naturel du système multi-agents) ou la création d'un ordre total arbitraire sur les requêtes (ex: en associant à chaque requête un identifiant, unique, par exemple calculé à partir de sa valeur de hachage, et en exécutant les requêtes par identifiant croissant).
+</p>
+
+<p>
+Aucune de ces méthodes n'est satisfaisante car, si elles assurent la reproductibilité, elles ne garantissent en rien la préservation de la causalité : à nouveau les effets peuvent survenir avant les causes, car fondamentalement <em>à l'intérieur d'un pas synchrone on est en présence d'un mini-système asynchrone</em>, avec les mêmes origines (la latence dans la transmission des messages), les mêmes conséquences (perte de la causalité) et les mêmes solutions (horloges logiques de Lamport).
+</p>
+-->
+
+
+<p>
+En résumé, le meilleur système identifié, qui offre les propriétés escomptées (fidélité par préservation de la causalité, reproductibilité dans un contexte distribué, fonctionnement interactif ou "au mieux", i.e. <em>best effort</em>) tout en présentant un bon compromis en terme d'effort de développement et de performances, serait le suivant:
+<center>
+	<table summary="a box" style="border : none">
+		<tr>
+		  <td>
+			<div class="box">
+<em>La simulation du système est cadencée par une succession de pas de temps virtuels, avec consensus sur la fin de pas. Au début de chaque pas, chaque acteur met à jour son état en fonction des requêtes reçues lors du pas précédent, traitées selon un ordre déterministe. Puis, en considérant que le temps est figé pendant ce pas, il agit en envoyant des messages aux autres acteurs. Une fois la bonne réception de chaque envoi confirmée, l'acteur peut notifier l'ordonnanceur de la terminaison de son pas de temps, voire de son arrêt définitif.</em>
+			</div>
+		  </td>
+		</tr>
+	</table>
+</center>
+
+
+<!--
+<ol>
+
+	<li><b>ordonnancement macroscopique synchrone</b> : la simulation du système est cadencée par une succession de pas de temps virtuels, avec consensus en deux phases sur la fin de pas. Ainsi chaque agent se voit tout d'abord activé (réception du message <code>{beginTick,Tick}</code>), ce qui lui permet d'agir en fonction de son comportement et, notamment, d'envoyer des messages autres autres agents
+ </li>
+
+	<li><b>ordonnancement microscopique asynchrone</b> : à l'intérieur de chaque pas de temps, chaque message est doté d'une horloge logique de Lamport permettant de retracer la causalité</li>
+</ol>
+-->
+
+</p>
+
+
+<!--
+<h3>Extensions &amp; variations envisageables</h3>
+
+
+<h4>Algorithmes <em>optimistes</em>, alternative aux <em>prudents</em></h4>
+<p>
+Le fonctionnement exposé précédemment constitue une approche synchrone <b>prudente</b> (<em>conservative</em>), reposant sur un temps de simulation qui avance de manière monotone (inexorable), au prix d'une concurrence de traitement finement encadrée par les messages de synchronisation.
+</p>
+
+<p>
+Il existe une autre classe d'approches synchrones, les simulations <b>optimistes</b> (<em>optimistic</em>), qui permettent une concurrence de traitement encore accrue, au prix d'une complexité certaine.
+</p>
+
+<p>
+Leur principe, semblable à l'exécution prédictive des processeurs, est de laisser chaque acteur <em>anticiper</em> sur son comportement futur, comme s'il n'allait pas être perturbé. Si c'est le cas (le temps de la simulation s'écoule et l'acteur ne reçoit par exemple aucun message non anticipé), son hypothèse est valide et l'exécution peut continuer directement, en se fondant sur ce précalcul. Si l'hypothèse est invalidée, alors un mécanisme de retour (<em>rollback</em>) doit être déclenché pour se replacer au niveau de l'événement perturbateur et refaire vivre l'acteur en conséquence.
+</p>
+
+<p>
+Il existe encore des variantes, mais la plupart sont très complexes car, pouvant entraîner des interblocages, des mécanismes de prévention et correction doivent s'y surajouter, cf [<a href="#5">5</a>].
+</p>
+
+
+<h4>Protocole de validation en trois phases</h4>
+<p>
+Si le consensus obtenu en trois étapes (<a href="http://en.wikipedia.org/wiki/Three-phase_commit_protocol" target="_blank">three-phase commit protocol</a>) n'a que peu d'intérêt ici, les raffinements du consensus en deux étapes, notamment sa forme <a href="http://en.wikipedia.org/wiki/Two_phase_commit#Tree_two-phase_commit_protocol" target="_blank">arborescente</a>, pourrait être intéressants dans le cas de simulations de grande échelle.
+</p>
+
+
+<h4>Pas de temps adaptatif</h4>
+<p>
+Si généralement les pas de temps sont constants (échantillonnage temporel uniforme), il est envisageable à des fins de raffinement de la simulation ou d'optimisation de son exécution, en dehors d'une exécution interactive, d'utiliser des pas de temps variables, adaptatifs, par exemple au moyen d'un système d'enchères.
+</p>
+
+<p>
+Dans ce cas, chaque acteur, lors de l'envoi de sa notification de mise à jour, stipule à quel pas de temps futur aura lieu sa prochaine action. Le gestionnaire de temps détermine alors le moins-disant et envoie un message de début de pas de temps mentionnant cette durée, pour que chaque acteur agisse en conséquence.
+</p>
+
+<p>
+Ce faisant, on rapproche ces simulations synchrones du cadre de simulation événémentiel.
+</p>
+
+-->
+
+<p><center>[<a href="#maintoc">Retour à la table des matières</a>]</center></p><br><br>
+
+
+
+
+
+
+<a name="implsync"></a>
+<h2>Implémentation de l'approche synchrone</h2>
+
+<p>
+Le fait que la simulation soit synchrone n'implique pas que les acteurs ne puissent pas communiquer par envoi de messages asynchrones.
+</p>
+
+<p>
+Une façon efficace de représenter ce fonctionnement effectif est de le modéliser sous la forme de processus communiquant par échanges de messages asynchrones (CSP, <a href="http://en.wikipedia.org/wiki/Communicating_sequential_processes" target="_blank">Communicating Sequential Processes</a>, cf <a href="#1">[1]</a>).
+</p>
+
+<center>
+	<img src="sequence-example.png" alt="Image"></img>
+</center>
+
+
+<h3>Gestionnaire de temps</h3>
+
+<p>
+Ce gestionnaire suit l'algorithme simplifié suivant :
+<center>
+	<img src="TimeManager-algorithm.png" alt="Algorithme du gestionnaire de temps"></img>
+</center>
+
+</p>
+
+
+
+<h3>Acteur</h3>
+
+<p>
+En nommant l'horloge <code>TM</code> (<em>TimeManager</em>), tout acteur suit l'algorithme simplifié suivant :
+<center>
+	<img src="Actor-algorithm.png" alt="Algorithme de tout acteur"></img>
+</center>
+
+</p>
+
+<p>
+A sa création un acteur s'enregistre automatiquement auprès du gestionnaire de temps, supposé déjà créé (sinon un délai d'attente dépassé identifiera le problème). Si le gestionnaire est déjà démarré (<code>start</code>), l'acteur reçoit successivement une confirmation d'inscription (<code>time_subscribed</code>) puis un message de synchronisation (appel de la méthode de l'acteur <code>simulationStarted</code> avec en paramètre le pas de temps courant du gestionnaire).
+</p>
+
+<p>
+Si en revanche le gestionnaire est créé mais non encore démarré, alors l'acteur reçoit immédiatement sa confirmation d'inscription mais ne recevra de message de synchronisation que lorsque le gestionnaire démarrera.
+</p>
+
+<p>
+Une fois synchronisé, l'acteur recevra à chaque nouveau pas de temps une notification de début de pas, sous la forme d'un appel de sa méthode <code>beginTick</code>.
+</p>
+
+
+
+<p>
+L'état <code>Act freely</code> correspond à un macro-état qui encapsule toute la logique d'action de l'acteur considéré, c'est-à-dire sa loi comportementale complète, avec . Cette logique peut prendre la forme d'une machine à états autonome.
+</p>
+
+<p>
+En pratique, dès lors qu'un acteur a reçu de l'horloge une notification de début de pas de temps (<code>beginTick</code>), il peut, une fois ses messages du pas précédent traités, agir à son tour en envoyant des messages à chacun des acteurs sur lequels il souhaite influer,au moyen de <code>class_Actor:send_actor_message</code>.
+</p>
+
+<p>
+Ces messages sont de la forme <code>{actor_message,{Tick,ActorMessage,Pid}}</code>, et correspondent à l'appel de leur méthode <code>actorMessage</code> (méthode oneway, et non pas une requête, pour éviter les synchronisations trop rigides). La réception de chacun de ces envois doit être confirmée (via la réception d'un accusé de réception) avant que l'acteur puisse envoyer sa notification de fin de tour à l'horloge globale.
+</p>
+
+<p>
+Le terme <code>ActorMessage</code> doit être interprétable comme un appel oneway (<code>method_name = ActorMessage</code> ou <code>{method_name,[Arg1,Arg2,..]} = ActorMessage</code>), dans la mesure où l'acteur destinataire passera en revue ses messages en début de pas de temps et se les réenverra, une fois réordonnés correctement, sous la forme de oneway: <code>{Method,{Parameters,SenderPid}}</code>. Donc les méthodes activables via un dialogue d'acteurs sont des oneway de la forme <code>myOneway/3</code>, avec <code>myOneway(State,Parameters,SenderPid) -&gt; ...</code>.
+</p>
+
+
+<p>
+Une règle à respecter préférentiellement est que chaque acteur envoie au plus un message à un autre acteur par pas de temps. Cela ne restreint pas les possibilités d'interaction (deux messages logiques pouvant être fusionnés dans un seul message effectif), mais cela simplifie l'implémentation, diminue le nombre de messages échangés et aide le concepteur à se souvenir qu'à l'intérieur d'un pas de temps il n'y a plus d'ordre temporel (dès lors envoyer successivement des messages n'a pas de sens en tant que tel).
+</p>
+
+<p>
+L'acteur n'enverra sa notification de fin de pas de temps que lorsqu'il aura reçu tous les accusés de réception des messages qu'il aura envoyés.
+</p>
+
+<p><center>[<a href="#maintoc">Retour à la table des matières</a>]</center></p><br><br>
+
+
+<h3>Les différents gestionnaires</h3>
+<p>
+Le gestionnaire global à une simulation est le <em>SimulationManager</em>. Il crée automatiquement :
+<ul>
+
+	<li>le <b>gestionnaire de temps</b>: <em>TimeManager</em>, chargé de piloter finement chacun des éléments simulés</li>
+
+	<li>le <b>gestionnaire de scénario</b>: <em>ScenarioManager</em>, un acteur de la simulation implémentant un scénario donné (ex: logique de création des éléments simulés, injection d'événements perturbateurs, etc.)</li>
+
+<!--
+	<li><b></b>: </li>
+-->
+
+</ul>
+ </p>
+
+
+
+
+<a name="references"></a>
+<h2>Références</h2>
+
+<p>
+<ul>
+
+
+	<li><a name="1">[1]</a> <a href="http://www.usingcsp.com/cspbook.pdf" target="_blank">Communicating Sequential Processes</a> (CSP), par C.A.R. Hoare</li>
+
+	<li><a name="2">[2]</a> <a href="http://citeseer.ist.psu.edu/carlson95sim.html" target="_blank">Sim94, A concurrent simulator for plan-driven troops</a> (1995), general presentation</li>
+
+	<li><a name="3">[3]</a> <a href="http://ftp.csd.uu.se/pub/papers/masters-theses/0178-ekstrom.pdf" target="_blank">Sim94, Design Patterns for Simulations in Erlang/OTP</a></li>
+
+	<li><a name="4">[4]</a> <a href="http://research.microsoft.com/users/lamport/pubs/time-clocks.pdf" target="_blank">Time, Clocks, and the Ordering of Events in a Distributed System</a>, article fondateur de Leslie Lamport</li>
+
+	<li><a name="5">[5]</a> <a href="http://citeseer.ist.psu.edu/706010.html" target="_blank">An Evaluation of Conservative Protocols for Bulk-Synchronous Parallel Discrete-Event Simulation</a>, Mauricio Marin</li>
+
+
+<!--
+	<li><a name="">[]</a><a href="" target="_blank"></a></li>
+-->
+
+</ul>
+
+</p>
+
+<p><center>[<a href="#maintoc">Retour à la table des matières</a>]</center></p><br><br>
+
+
+
+  <br>
+  <br>
+  <br>
+
+  <br>
+
+  <h3>N'hésitez pas à nous faire part de votre avis !</h3>
+
+  <p>Si vous disposez d'informations plus détaillées ou plus
+  récentes que celles présentées dans ce document, si vous avez
+  remarqué des erreurs, oublis, ou points insuffisamment traités,
+  <a href=  "mailto:olivier.boudeville@edf.fr?subject=[Référentiel]%20Fonctionnement%20de%20Sim-Diasca">envoyez-nous un courriel</a> !</p><br>
+  <br>
+  <hr>
+
+ <br>
+ <center>
+	[<a href="#_top_">Retour à la table des matières</a>]<br>
+ </center>
+ <br>
+
+ <center>Dernière modification : Monday, January 28, 2008</center>
+
+
+</body>
+</html>

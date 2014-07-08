@@ -1,0 +1,12 @@
+-module(class_X_test).
+
+
+-include("traces_for_tests.hrl").
+
+
+% Runs the test.
+run() ->
+
+	?test_start,
+
+	?test_stop.

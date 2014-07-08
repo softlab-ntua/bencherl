@@ -1,0 +1,45 @@
+digraph finite_state_machine {
+
+	graph [ size = "10,10", fontsize = "16.0", label = "Perte de la causalité: pour C la cause (Mb->c) survient après sa conséquence (Ma->c)" ];
+
+	node [ height = 1, width = 1, fixedsize = true, shape = circle, color = lightgrey, style = filled ] ;
+
+
+
+	/* Normal states */
+	node [ fillcolor = lightblue ];
+
+
+
+	/* Connectivity definition section */
+
+	subgraph cluster1
+	{
+
+		graph [ label = "Vu depuis C" ]
+
+		C1 [ label = "Acteur\nC" ]
+		B1 [ label = "Acteur\nB" ]
+		A1 [ label = "Acteur\nA" ]
+
+		B1 -> C1 [ label = "second reçu :\nMb->c" ]
+		A1 -> C1 [ label = "premier reçu :\nMa->c" ]
+
+	}
+
+
+	subgraph cluster2
+	{
+
+		graph [ label = "En réalité" ]
+
+		C2 [ label = "Acteur\nC" ]
+		B2 [ label = "Acteur\nB" ]
+		A2 [ label = "Acteur\nA" ]
+
+		A2 -> C2 [ label = "troisième envoyé:\nMa->c envoyé" ]
+		B2 -> A2 [ label = "second envoyé :\nMb->a envoyé" ]
+		B2 -> C2 [ label = "premier envoyé:\nMb->c" ]
+
+	}
+}

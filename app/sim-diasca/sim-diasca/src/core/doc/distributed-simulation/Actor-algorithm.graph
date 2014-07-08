@@ -1,0 +1,69 @@
+digraph finite_state_machine {
+
+
+	graph [ size = "10,10", fontsize = "14.0", label = "Algorithme pour tout acteur de la simulation" ];
+
+	node [ height = 1, width = 1, fixedsize = true, shape = circle, color = lightgrey, style = filled ] ;
+
+
+	/* State definition section */
+
+
+	/* Starting state */
+	node [ fillcolor = green ];
+
+	Start [ label = "Start\nstate" ]
+
+
+
+	/* Ending states */
+	node [ fillcolor = pink ];
+
+	Stop [ label = "Stop\nstate" ]
+
+
+
+	/* Normal states */
+	node [ fillcolor = lightblue ];
+
+	WaitRegistration [ label = "Wait\nregistration\nack" ]
+
+	WaitBeginTick [ label = "Wait\nbegin\ntick" ]
+
+	Act [ label = "Act\nfreely\nmacro-state" ]
+
+	WaitUpdateRequest [ label = "Wait\nupdate\nrequest" ]
+
+	WaitTerminate [ label = "Wait\nterminate\nack" ]
+
+
+
+	/* All state events */
+
+	node [ fillcolor = plum4 ];
+
+	MultiState    [ label = "All\nStates" ]
+
+	MultiState -> MultiState [ label = "{a_request,\n use_previous_state}" ]
+
+
+
+	/* Connectivity definition section */
+
+	Start -> WaitRegistration [ label = "{none,\n TM ! {subscribe,Pid}}" ]
+
+	WaitRegistration -> WaitBeginTick [ label = " time_subscribed" ]
+
+	WaitBeginTick -> Act [ label = "{tick_begin,Tick}" ]
+
+	Act -> WaitUpdateRequest [ label = " (actor-specific)" ]
+
+	WaitUpdateRequest -> WaitTerminate [ label =
+	 	" {{update_state,Tick} & stop_wanted,\nTM ! {terminated,Tick,Pid}" ]
+
+	WaitUpdateRequest -> WaitBeginTick [ label =
+	 	" {{update_state,Tick} & ! stop_wanted,\nTM ! {updated,Tick,Pid}" ]
+
+	WaitTerminate -> Stop [ label = " {terminate,Pid}" ]
+
+}
