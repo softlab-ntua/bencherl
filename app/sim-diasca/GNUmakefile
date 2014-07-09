@@ -191,9 +191,9 @@ prepare-release: real-clean clean-release
 clean-release:
 	@echo "     Cleaning any past release archive"
 	-@cd .. && /bin/rm -rf $(SIM_DIASCA_RELEASE_BASENAME)
-	@rm -rf ebin-*
 
 clean: clean-generated-files clean-all-results
+	@rm -rf ebin-*
 
 
 clean-prerequisites:
@@ -345,4 +345,5 @@ $(EBIND):
 	@mkdir -p $(EBIND)
 
 app: clean all | $(EBIND)
-	@for file in `find . -name '*.beam'`; do cp $(file) $(EBIND); done
+	@echo "Copying all Sim-Diasca beam files in $(EBIND)."
+	@find . -name "*.beam" -type f -not -path "./ebin-*" -exec cp {} $(EBIND) \;
