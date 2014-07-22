@@ -1,0 +1,4 @@
+#!/bin/bash
+
+export OLD_ERL_EPMD_PORT=$ERL_EPMD_PORT
+export ERL_EPMD_PORT=4506

@@ -9,6 +9,6 @@ bench_args(Version, _Conf) ->
 		long -> [[medium, medium]]
 	end.
 
-run([S,D], _, _) ->
+run([S,D|_], _, _) ->
 	city_benchmarking_test:run(S, D),
 	ok.
