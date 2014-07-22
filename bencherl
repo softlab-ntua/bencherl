@@ -206,6 +206,7 @@ rsbm()
 	mn="-sname ${MASTER_NODE}"
     fi
 
+    DEPS_PATHS=
     if [ ! -z "$DEPENDENCIES" ]; then
         for app in $DEPENDENCIES; do
             DEPS_PATHS="$DEPS_PATHS app/$app/ebin-$otpl"
@@ -216,7 +217,7 @@ rsbm()
 {bench, $bench}.
 {version, $VERSION}.
 {otp, "$otpv"}.
-{erl_args, "$argsv $EXTRA_ERL_ARGS +S$s:$s -noshell -pa $EXTRA_CODE_PATH $DEPS_PATH suite/ebin-$otpl bench/$bench/ebin-$otpl -setcookie $COOKIE" }.
+{erl_args, "$argsv $EXTRA_ERL_ARGS +S$s:$s -noshell -pa $EXTRA_CODE_PATH $DEPS_PATHS suite/ebin-$otpl bench/$bench/ebin-$otpl -setcookie $COOKIE" }.
 {number_of_slaves, $n}.
 {number_of_schedulers, $s}.
 {slaves, [$SLAVE_NODES]}.
@@ -232,7 +233,7 @@ rsbm()
 EOF
 
     ${erl} ${argsv} ${EXTRA_ERL_ARGS} -setcookie "${COOKIE}" +S$s:$s \
-	$mn -noshell -pa ${EXTRA_CODE_PATH} ${DEPS_PATH} \
+	$mn -noshell -pa ${EXTRA_CODE_PATH} ${DEPS_PATHS} \
 	suite/ebin-$otpl bench/$bench/ebin-$otpl -s run_bench main -s erlang \
 	halt
 

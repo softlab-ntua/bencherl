@@ -28,10 +28,7 @@ clean-bench:
 
 # Clean up the results.
 clean-all-results:
-	@(if [ -d results ]; then \
-		cd results; \
-		$(RM) -rf *; \
-	fi)
+	@(if [ -d results ]; then $(RM) -rf results/*; fi)
 
 # Clean up the suite.
 clean-suite:
