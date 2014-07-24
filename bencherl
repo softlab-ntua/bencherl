@@ -93,7 +93,7 @@ spin()
 	done
 	i=0
 	while [ "$i" -lt "3" ]; do
-    	    echo -ne '\b \b'
+	    echo -ne '\b \b'
 	    i=$[$i+1]
 	    sleep 0.5
 	done
@@ -209,7 +209,7 @@ rsbm()
     DEPS_PATHS=
     if [ ! -z "$DEPENDENCIES" ]; then
         for app in $DEPENDENCIES; do
-            DEPS_PATHS="$DEPS_PATHS app/$app/ebin-$otpl"
+            DEPS_PATHS="$DEPS_PATHS ${BENCHERL_HOME}/app/$app/ebin-$otpl"
         done
     fi
 
@@ -217,7 +217,7 @@ rsbm()
 {bench, $bench}.
 {version, $VERSION}.
 {otp, "$otpv"}.
-{erl_args, "$argsv $EXTRA_ERL_ARGS +S$s:$s -noshell -pa $EXTRA_CODE_PATH $DEPS_PATHS suite/ebin-$otpl bench/$bench/ebin-$otpl -setcookie $COOKIE" }.
+{erl_args, "$argsv $EXTRA_ERL_ARGS +S$s:$s -noshell -pa $EXTRA_CODE_PATH $DEPS_PATHS ${BENCHERL_HOME}/suite/ebin-$otpl ${BENCHERL_HOME}/bench/$bench/ebin-$otpl -setcookie $COOKIE" }.
 {number_of_slaves, $n}.
 {number_of_schedulers, $s}.
 {slaves, [$SLAVE_NODES]}.
@@ -234,7 +234,8 @@ EOF
 
     ${erl} ${argsv} ${EXTRA_ERL_ARGS} -setcookie "${COOKIE}" +S$s:$s \
 	$mn -noshell -pa ${EXTRA_CODE_PATH} ${DEPS_PATHS} \
-	suite/ebin-$otpl bench/$bench/ebin-$otpl -s run_bench main -s erlang \
+	${BENCHERL_HOME}/suite/ebin-$otpl \
+	${BENCHERL_HOME}/bench/$bench/ebin-$otpl -s run_bench main -s erlang \
 	halt
 
     if [ -f bench/$bench/conf/post_bench ]; then
@@ -399,13 +400,14 @@ nds()
 
 START=`date +%s`
 cd "$( dirname "${BASH_SOURCE[0]}" )"
+BENCHERL_HOME=`pwd`
 
 while getopts ":b:chlm:s:n:pi" opt; do
   case $opt in
-	h)
-	    usage
-	    exit 0
-	    ;;
+    h)
+      usage
+      exit 0
+      ;;
     l)
       list_bms
       exit 0
