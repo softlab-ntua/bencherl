@@ -103,7 +103,7 @@ spin()
 list_bms()
 {
     echo -n "Benchmarks:"
-    for b in `ls bench`; do
+    for b in `ls $BENCHERL_ROOT/bench`; do
 	if [ -d $BENCHERL_ROOT/bench/$b ]; then
 	    echo -n " $b"
 	fi
@@ -228,11 +228,12 @@ rsbm()
 {output_format, $OUTPUT_FORMAT}.
 EOF
 
-    BENCHERL_ROOT=${BENCHERL_ROOT} ${erl} ${argsv} ${EXTRA_ERL_ARGS} -setcookie "${COOKIE}" +S$s:$s \
+    ERL_CMD="BENCHERL_ROOT=${BENCHERL_ROOT} ${ERL_ENV} ${erl} ${argsv} ${EXTRA_ERL_ARGS} -setcookie \"${COOKIE}\" +S$s:$s \
 	$mn -noshell -pa ${EXTRA_CODE_PATH} ${DEPS_PATHS} \
 	${BENCHERL_ROOT}/suite/ebin-$otpl \
 	${BENCHERL_ROOT}/bench/$bench/ebin-$otpl -s run_bench main -s erlang \
-	halt
+	halt"
+    eval $ERL_CMD
 
     if [ -f $BENCHERL_ROOT/bench/$bench/conf/post_bench ]; then
 	$BENCHERL_ROOT/bench/$bench/conf/post_bench $s "$otpv" "$argsv" "$COOKIE"
@@ -453,7 +454,7 @@ DEF_NUMBER_OF_SLAVE_NODES=${NUMBER_OF_SLAVE_NODES:-0}
 DEF_NUMBER_OF_SCHEDULERS=${NUMBER_OF_SCHEDULERS:-$CORES}
 
 if [ -z "$INCLUDE_BENCH" ]; then
-    for b in `ls bench`; do
+    for b in `ls $BENCHERL_ROOT/bench`; do
         if [ -d $BENCHERL_ROOT/bench/$b ]; then
 	    if [ -z "$BENCHES" ]; then
 		BENCHES="$b"
@@ -530,6 +531,7 @@ for bench in $BENCHES; do
         DEPENDENCIES=
 	EXTRA_CODE_PATH=
 	EXTRA_ERL_ARGS=
+	ERL_ENV=
 
 	benchresdir="$resdir/$bench"
 	outdir="$benchresdir/output"
