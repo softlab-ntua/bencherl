@@ -12,7 +12,8 @@
 main() ->
     try
         %% Load run configuration settings.
-        {ok,Conf} = file:consult("scratch/run_bench.conf"),
+	 BencherlHome = os:getenv("BENCHERL_HOME"),
+        {ok,Conf} = file:consult(BencherlHome ++ "/scratch/run_bench.conf"),
         {_,M} = lists:keyfind(bench, 1, Conf),
         {_,Version} = lists:keyfind(version, 1, Conf),
         {_,OTP} = lists:keyfind(otp, 1, Conf),
