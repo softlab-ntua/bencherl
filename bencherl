@@ -104,7 +104,7 @@ list_bms()
 {
     echo -n "Benchmarks:"
     for b in `ls bench`; do
-	if [ -d $BENCHERL_HOME/bench/$b ]; then
+	if [ -d $BENCHERL_ROOT/bench/$b ]; then
 	    echo -n " $b"
 	fi
     done
@@ -113,7 +113,7 @@ list_bms()
 
 cbm()
 {
-    benchdir=`cd $BENCHERL_HOME/bench/$bench; pwd`
+    benchdir=`cd $BENCHERL_ROOT/bench/$bench; pwd`
 
     for otp in $OTPS; do
         otpl=${otp%%=*}
@@ -127,10 +127,10 @@ cbm()
         fi
         erl_lib_dir=`$erl -noshell -eval "io:format(\"~s~n\", [code:lib_dir()]), halt()."`
 
-        ( cd $BENCHERL_HOME/bench/$bench && make bench ERLC=${erlc} ERL=${erl} ERL_LIB_DIR=${erl_lib_dir} OTP=${otpl} )
+        ( cd $BENCHERL_ROOT/bench/$bench && make bench ERLC=${erlc} ERL=${erl} ERL_LIB_DIR=${erl_lib_dir} OTP=${otpl} )
    
         for app in $DEPENDENCIES; do
-            ( cd $BENCHERL_HOME/app/$app && make app ERLC=${erlc} ERL=${erl} ERL_LIB_DIR=${erl_lib_dir} OTP=${otpl} )
+            ( cd $BENCHERL_ROOT/app/$app && make app ERLC=${erlc} ERL=${erl} ERL_LIB_DIR=${erl_lib_dir} OTP=${otpl} )
         done
     done
 }
@@ -182,11 +182,11 @@ rsbm()
 {
     IFS=$OLD_IFS
 
-    if [ -f $BENCHERL_HOME/bench/$bench/conf/pre_bench ]; then
-	$BENCHERL_HOME/bench/$bench/conf/pre_bench $s "$otpv" "$argsv" "$COOKIE"
+    if [ -f $BENCHERL_ROOT/bench/$bench/conf/pre_bench ]; then
+	$BENCHERL_ROOT/bench/$bench/conf/pre_bench $s "$otpv" "$argsv" "$COOKIE"
     fi
 
-    benchdir=$BENCHERL_HOME/bench/$bench
+    benchdir=$BENCHERL_ROOT/bench/$bench
 
     if [ -z $otpv ]; then
 	erl="erl"
@@ -205,15 +205,15 @@ rsbm()
     DEPS_PATHS=
     if [ ! -z "$DEPENDENCIES" ]; then
         for app in $DEPENDENCIES; do
-            DEPS_PATHS="$DEPS_PATHS ${BENCHERL_HOME}/app/$app/ebin-$otpl"
+            DEPS_PATHS="$DEPS_PATHS ${BENCHERL_ROOT}/app/$app/ebin-$otpl"
         done
     fi
 
-    cat > $BENCHERL_HOME/scratch/run_bench.conf << EOF
+    cat > $BENCHERL_ROOT/scratch/run_bench.conf << EOF
 {bench, $bench}.
 {version, $VERSION}.
 {otp, "$otpv"}.
-{erl_args, "$argsv $EXTRA_ERL_ARGS +S$s:$s -noshell -pa $EXTRA_CODE_PATH $DEPS_PATHS ${BENCHERL_HOME}/suite/ebin-$otpl ${BENCHERL_HOME}/bench/$bench/ebin-$otpl -setcookie $COOKIE" }.
+{erl_args, "$argsv $EXTRA_ERL_ARGS +S$s:$s -noshell -pa $EXTRA_CODE_PATH $DEPS_PATHS ${BENCHERL_ROOT}/suite/ebin-$otpl ${BENCHERL_ROOT}/bench/$bench/ebin-$otpl -setcookie $COOKIE" }.
 {number_of_slaves, $n}.
 {number_of_schedulers, $s}.
 {slaves, [$SLAVE_NODES]}.
@@ -228,14 +228,14 @@ rsbm()
 {output_format, $OUTPUT_FORMAT}.
 EOF
 
-    BENCHERL_HOME=${BENCHERL_HOME} ${erl} ${argsv} ${EXTRA_ERL_ARGS} -setcookie "${COOKIE}" +S$s:$s \
+    BENCHERL_ROOT=${BENCHERL_ROOT} ${erl} ${argsv} ${EXTRA_ERL_ARGS} -setcookie "${COOKIE}" +S$s:$s \
 	$mn -noshell -pa ${EXTRA_CODE_PATH} ${DEPS_PATHS} \
-	${BENCHERL_HOME}/suite/ebin-$otpl \
-	${BENCHERL_HOME}/bench/$bench/ebin-$otpl -s run_bench main -s erlang \
+	${BENCHERL_ROOT}/suite/ebin-$otpl \
+	${BENCHERL_ROOT}/bench/$bench/ebin-$otpl -s run_bench main -s erlang \
 	halt
 
-    if [ -f $BENCHERL_HOME/bench/$bench/conf/post_bench ]; then
-	$BENCHERL_HOME/bench/$bench/conf/post_bench $s "$otpv" "$argsv" "$COOKIE"
+    if [ -f $BENCHERL_ROOT/bench/$bench/conf/post_bench ]; then
+	$BENCHERL_ROOT/bench/$bench/conf/post_bench $s "$otpv" "$argsv" "$COOKIE"
     fi
 
     IFS=$NEW_IFS
@@ -394,7 +394,7 @@ nds()
 }
 
 START=`date +%s`
-BENCHERL_HOME=$(pwd)/$( dirname "${BASH_SOURCE[0]}" )
+BENCHERL_ROOT=$(pwd)/$( dirname "${BASH_SOURCE[0]}" )
 
 while getopts ":b:chlm:s:n:pi" opt; do
   case $opt in
@@ -416,7 +416,7 @@ while getopts ":b:chlm:s:n:pi" opt; do
   esac
 done
 
-source $BENCHERL_HOME/conf/run.conf
+source $BENCHERL_ROOT/conf/run.conf
 
 CORES=`cat /proc/cpuinfo | grep processor | wc -l`
 
@@ -454,7 +454,7 @@ DEF_NUMBER_OF_SCHEDULERS=${NUMBER_OF_SCHEDULERS:-$CORES}
 
 if [ -z "$INCLUDE_BENCH" ]; then
     for b in `ls bench`; do
-        if [ -d $BENCHERL_HOME/bench/$b ]; then
+        if [ -d $BENCHERL_ROOT/bench/$b ]; then
 	    if [ -z "$BENCHES" ]; then
 		BENCHES="$b"
 	    else
@@ -475,10 +475,10 @@ fi
 OLD_IFS=$IFS
 NEW_IFS=$','
 
-if [ -e $BENCHERL_HOME/results/$MNEMONIC_NAME ]; then
-    rm -rf $BENCHERL_HOME/results/$MNEMONIC_NAME
+if [ -e $BENCHERL_ROOT/results/$MNEMONIC_NAME ]; then
+    rm -rf $BENCHERL_ROOT/results/$MNEMONIC_NAME
 fi
-resdir=$BENCHERL_HOME/results/$MNEMONIC_NAME
+resdir=$BENCHERL_ROOT/results/$MNEMONIC_NAME
 mkdir -p $resdir
 
 IFS=$NEW_IFS
@@ -498,7 +498,7 @@ for otp in $DEF_OTPS; do
     fi
     erl_lib_dir=`$erl -noshell -eval "io:format(\"~s~n\", [code:lib_dir()]), halt()."`
 
-    ( cd $BENCHERL_HOME/suite && make suite ERLC=${erlc} ERL=${erl} ERL_LIB_DIR=${erl_lib_dir} OTP=${otpl} )
+    ( cd $BENCHERL_ROOT/suite && make suite ERLC=${erlc} ERL=${erl} ERL_LIB_DIR=${erl_lib_dir} OTP=${otpl} )
 
 done
 
@@ -510,7 +510,7 @@ for bench in $BENCHES; do
 
     IFS=$OLD_IFS
 
-    if [ ! -d $BENCHERL_HOME/bench/$bench ]; then
+    if [ ! -d $BENCHERL_ROOT/bench/$bench ]; then
         echo -e "\n*** Unknown benchmark: $bench\n"
     else
 	echo -e "\n*** Benchmark: $bench\n"
@@ -538,8 +538,8 @@ for bench in $BENCHES; do
 
 	mkdir -p $benchresdir
 
-	if [ -f $BENCHERL_HOME/bench/$bench/conf/bench.conf ]; then
-	    source $BENCHERL_HOME/bench/$bench/conf/bench.conf
+	if [ -f $BENCHERL_ROOT/bench/$bench/conf/bench.conf ]; then
+	    source $BENCHERL_ROOT/bench/$bench/conf/bench.conf
 	fi
 
 	scs
