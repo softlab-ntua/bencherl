@@ -62,4 +62,4 @@ This file may also set the following variables:
 * `DEPENDENCIES`: This variable is used to specify the applications that are internal to `bencherl` (i.e. reside in the `app` directory) and that the benchmark depends on. Its value is zero or more application names separated with commas.
 * `EXTRA_CODE_PATH`: This variable is used to specify any extra directories that should be added to the code path when running the benchmark. Its value is zero or more directories separated with spaces.
 * `EXTRA_ERL_ARGS`: This variable is used to specify any extra command-line arguments that should be passed to the `erl` program when running the benchmark. Its value are the arguments separated with spaces.
-
+* `ERL_ENV`: This variable is used to specify the environment of the `erl` program. Its value is a string that contains one or more variable-value pairs separated with commas.
