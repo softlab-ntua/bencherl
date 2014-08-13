@@ -25,7 +25,7 @@ $(UI_BIN):
 		echo "Downloading Chicago Boss" ; \
 		git clone https://github.com/ChicagoBoss/ChicagoBoss.git ; \
 		cd ChicagoBoss ; \
-		git checkout bbe661ccef900fe12f4c437b6fc0a254ce1ba640 ; \
+		git checkout bb6509dd4aa5be8e0445fe160317b655dc1625ee ; \
 		./rebar get-deps ; \
 		./rebar compile ; \
 	fi

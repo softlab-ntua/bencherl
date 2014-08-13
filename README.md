@@ -17,7 +17,7 @@ Make sure you have the following installed on your machine:
 
 ### How to build the web interface ###
 
-The web interface requires OTP R14A or later.
+The web interface requires OTP R16B03-1 or later.
 
 	$ make ui
 
