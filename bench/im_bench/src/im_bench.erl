@@ -12,16 +12,18 @@ run(_, _, Conf) ->
   launcher:start(2, 1, 2, 4, [greedy], 1),
   {_,DataDir} = lists:keyfind(datadir, 1, Conf),
   logger:launch_latency("Bencherl_test", 1, 2, 50, 4, 1, greedy, DataDir ++ "/"),
-  timer:sleep(60000),
+  timer:sleep(10000),
   toxic_client:launch(50, 4, greedy),
-  timer:sleep(60000),
+  timer:sleep(10000),
   toxic_client:launch_traffic(50, 4, greedy),
-  loop(4),
-  ok.
+  loop(4).
 
+%% loop/1 is a helper function that "prevents" run/3 from finishing until all
+%% loggers have halted. Without this function the benchmark would finish after
+%% launching the traffic generators and, thus, bencherl would kill all spawned
+%% nodes, i.e. routers, servers, etc.
 loop(0) -> ok;
 loop(N_Loggers) ->
   receive
-    logger_stopped ->
-      loop(N_Loggers - 1)
+    logger_stopped -> loop(N_Loggers - 1)
   end.

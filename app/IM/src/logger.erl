@@ -596,7 +596,7 @@ loop(Fd, Record, Technology, Condition, Trial, Dir) ->
 								Client_B,
 								Latency]),
 	    file:position(Fd,eof),
-	    case Record =< 100 of
+           case Record =< 100 of %%XXX: was 20000!
 		true ->
 		    %%io:format("Trial: ~p, Record: ~p~n", [Trial, Record]),
 		    loop(Fd, Record + 1, Technology, Condition, Trial, Dir);
@@ -613,7 +613,7 @@ loop(Fd, Record, Technology, Condition, Trial, Dir) ->
 		false ->
 		    %%io:format("stop_latency received; case Trial > 0 of false. Trial = ~p~n", [Trial]),
 		    stop(Fd, latency_logger),
-                    %% Notify the coordinator that a logger has finished.
+                    %%XXX: Notify the coordinator that a logger has finished.
                     {ok, H} = inet:gethostname(),
                     DN = list_to_atom(lists:concat(["dashboard@", H])),
                     case rpc:call(DN, erlang, whereis, [coordinator]) of
