@@ -596,7 +596,7 @@ loop(Fd, Record, Technology, Condition, Trial, Dir) ->
 								Client_B,
 								Latency]),
 	    file:position(Fd,eof),
-           case Record =< 100 of %%XXX: was 20000!
+           case Record =< 20000 of
 		true ->
 		    %%io:format("Trial: ~p, Record: ~p~n", [Trial, Record]),
 		    loop(Fd, Record + 1, Technology, Condition, Trial, Dir);
