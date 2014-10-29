@@ -151,7 +151,7 @@ rbm()
 	    n=`echo $NUMBER_OF_SLAVE_NODES | tr "," "\n" | tail -n 1`
 	    IFS=$NEW_IFS
 
-            if [[ ( $NUMBER_OF_NUMBER_OF_SCHEDULERS -gt 1 ) || ( $NUMBER_OF_NUMBER_OF_SLAVE_NODES -eq 1 ) || ( $n -lt $NUMBER_OF_NUMBER_OF_SLAVE_NODES ) ]]; then
+            if [[ ( $NUMBER_OF_NUMBER_OF_SCHEDULERS -gt 1 ) || ( $NUMBER_OF_NUMBER_OF_SLAVE_NODES -eq 1 ) ]]; then
 		if [ "$n" -gt "$NSLAVE_NODES" ]; then
 		    n=$NSLAVE_NODES
 		fi
@@ -165,7 +165,7 @@ rbm()
 	    s=`echo $NUMBER_OF_SCHEDULERS | tr "," "\n" | tail -n 1`
 	    IFS=$NEW_IFS
 
-	    if [[ ( $NUMBER_OF_NUMBER_OF_SLAVE_NODES -gt 1 ) || ( $n -ge $NUMBER_OF_NUMBER_OF_SLAVE_NODES ) ]]; then
+	    if [[ ( $NUMBER_OF_NUMBER_OF_SLAVE_NODES -gt 1 ) ]]; then
 		for n in $NUMBER_OF_SLAVE_NODES; do
 		    if [ "$n" -gt "$NSLAVE_NODES" ]; then
 			continue
