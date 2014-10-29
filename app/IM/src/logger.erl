@@ -253,7 +253,7 @@ record_throughput(Technology, Condition, Num_of_trials, Timer, Fd) ->
 
 %%---------------------------------------------------------------------
 %% @doc
-%%     launch_latency/7 initiates a latency logger (see below) on each
+%%     launch_latency/8 initiates a latency logger (see below) on each
 %%     of the client nodes deployed in the architecture.
 %%
 %%     Arguments:
@@ -264,6 +264,7 @@ record_throughput(Technology, Condition, Num_of_trials, Timer, Fd) ->
 %%       - Num_Node: (int) M, number of client nodes deployed.
 %%       - Series: (int) N, is the number of series to be recorded.
 %%       - Domain: (Atom) Domain or host where the client nodes are deployed.
+%%       - Dir: (String) The directory of the .csv output files.
 %%
 %% @spec launch(Technology, Routers, Servers, Clients, Num_Nodes,
 %%              Trials, Timer, Threshold, Domain) -> ok;
@@ -289,7 +290,7 @@ launch_latency(Technology, Routers, Servers, Clients, Num_Nodes, Series, Domain,
 
 %%---------------------------------------------------------------------
 %% @doc
-%%     start_latency/6 starts a latency logger, which records the latency
+%%     start_latency/7 starts a latency logger, which records the latency
 %%     of 20000 successfully delivered messages on a text file named after
 %%     the parameters passed as arguments to the function.
 %%
@@ -300,6 +301,7 @@ launch_latency(Technology, Routers, Servers, Clients, Num_Nodes, Series, Domain,
 %%       - Clients: (int) L, number of client processes.
 %%       - Num_Node: (int) M, number of client nodes deployed.
 %%       - Num_of_trials: (int) N, is the number of series to be recorded.
+%%       - Dir: (String) The directory of the .csv output files.
 %%
 %% @spec start_latency(Technology, Routers, Servers,
 %%                     Clients, Num_Node, Series) -> File.csv
@@ -331,7 +333,7 @@ start_latency(Technology, Routers, Servers, Clients, Series, Num_Node, Dir) ->
 
 %%---------------------------------------------------------------------
 %% @doc
-%%     start_latency/3 starts a latency logger, which records the latency
+%%     start_latency/4 starts a latency logger, which records the latency
 %%     of 20000 successfully delivered messages on a text file named after
 %%     the parameters passed as arguments to the function.
 %%
@@ -342,6 +344,7 @@ start_latency(Technology, Routers, Servers, Clients, Series, Num_Node, Dir) ->
 %%                     routers, servers and clients composing the
 %%                     benchmarked system.
 %%       - Num_of_trials: (int) N, is the number of series to be recorded.
+%%       - Dir: (String) The directory of the .csv output files.
 %%
 %% @spec start_latency(Technology, Condition, Num_of_Trials) -> File.csv
 %% @end
@@ -397,12 +400,13 @@ create_file(FileName) ->
 
 %%---------------------------------------------------------------------
 %% @doc
-%%     create_file/4 opens a file with name "Technology_Condition_Trial.csv"
+%%     create_file/5 opens a file with name "Technology_Condition_Trial.csv"
 %%     to hold the recorded information during the benchmarking of the
 %%     system. If the file specified does not exist, then the function
 %%     creates the file.
 %%
 %%     Arguments:
+%%       - Dir: (String) The directory of the .csv output files.
 %%       - Techology: (String) "DErlang" or "SDErlang".
 %%       - Benchmark: (String) "Latecy" or "Throughput".
 %%       - Condition: (String) "i_routers_j_servers_k_clients" where i,
@@ -575,7 +579,7 @@ loop({recording, Fd}) ->
 
 %%---------------------------------------------------------------------
 %% @doc
-%%     loop/5 is a recursive function to record the latency of the messages
+%%     loop/6 is a recursive function to record the latency of the messages
 %%     into the file and stop the active latency_logger process.
 %%
 %% @spec loop(Fd, Record, Technology, Condition, Trial) -> term() | ok
