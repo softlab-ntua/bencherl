@@ -9,13 +9,13 @@ run(_, _, Conf) ->
   %% Setup a coordinator to know when the benchmark finished. This is done by
   %% counting the number of loggers that have finished.
   register(coordinator, self()),
-  launcher:start(3, 1, 3, 10, [greedy], 1),
+  launcher:start(3, 1, 3, 10, ['virtual.softlab.ece.ntua.gr'], 1),
   {_,DataDir} = lists:keyfind(datadir, 1, Conf),
-  logger:launch_latency("Bencherl_test", 1, 3, 8000, 10, 1, greedy, DataDir ++ "/"),
+  logger:launch_latency("Bencherl_test", 1, 3, 8000, 10, 1, 'virtual.softlab.ece.ntua.gr', DataDir ++ "/"),
   timer:sleep(60000), %XXX: Just to make sure that all clients have logged in.
-  toxic_client:launch(8000, 10, greedy),
+  toxic_client:launch(8000, 10, 'virtual.softlab.ece.ntua.gr'),
   timer:sleep(60000),
-  toxic_client:launch_traffic(8000, 10, greedy),
+  toxic_client:launch_traffic(8000, 10, 'virtual.softlab.ece.ntua.gr'),
   loop(10).
 
 %% loop/1 is a helper function that "prevents" run/3 from finishing until all

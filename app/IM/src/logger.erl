@@ -618,7 +618,7 @@ loop(Fd, Record, Technology, Condition, Trial, Dir) ->
 		    %%io:format("stop_latency received; case Trial > 0 of false. Trial = ~p~n", [Trial]),
 		    stop(Fd, latency_logger),
                     %%XXX: Notify the coordinator that a logger has finished.
-                    {ok, H} = inet:gethostname(),
+                    H = net_adm:localhost(),
                     DN = list_to_atom(lists:concat(["dashboard@", H])),
                     case rpc:call(DN, erlang, whereis, [coordinator]) of
                         undefined -> ok;
