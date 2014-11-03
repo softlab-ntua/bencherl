@@ -19,10 +19,9 @@ run([Clients], Slaves, Conf) ->
   ClientNodes = filter_nodes(Slaves, "client"),
   ServerNodes = filter_nodes(Slaves, "server"),
   RouterNodes = filter_nodes(Slaves, "router"),
-  Domains = find_domains(Slaves),
   % Start the benchmark on the different client domains.
-  launcher:start(length(ServerNodes) div length(RouterNodes), 1,
-    length(ServerNodes), length(ClientNodes), Domains, length(Domains)),
+  launcher:start_bencherl(length(ServerNodes) div length(RouterNodes), 1,
+    length(ServerNodes), length(ClientNodes), Slaves),
   ClientDomains = find_domains(ClientNodes),
   lists:foreach(fun(D) ->
       logger:launch_latency("Bencherl_test", length(RouterNodes),
