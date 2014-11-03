@@ -2,10 +2,14 @@
 
 -export([bench_args/2, run/3]).
 
-bench_args(_Version, _Conf) ->
-  [[]].
+bench_args(short, _Conf) ->
+  [[8000]];
+bench_args(intermediate, _Conf) ->
+  [[8000]]; %XXX: Find a value that makes sense!
+bench_args(long, _Conf) ->
+  [[8000]]. %XXX: Find a value that makes sense!
 
-run(_, Slaves, Conf) ->
+run([Clients], Slaves, Conf) ->
   % Setup a coordinator to know when the benchmark finished. This is done by
   % counting the number of loggers that have finished.
   register(coordinator, self()),
@@ -22,11 +26,11 @@ run(_, Slaves, Conf) ->
   ClientDomains = find_domains(ClientNodes),
   lists:foreach(fun(D) ->
       logger:launch_latency("Bencherl_test", length(RouterNodes),
-        length(ServerNodes), 8000, length(ClientNodes), 1, D, DataDir ++ "/"),
+        length(ServerNodes), Clients, length(ClientNodes), 1, D, DataDir ++ "/"),
       timer:sleep(60000), %XXX: Just to make sure that all clients have logged in.
-      toxic_client:launch(8000, length(ClientNodes), D),
+      toxic_client:launch(Clients, length(ClientNodes), D),
       timer:sleep(60000),
-      toxic_client:launch_traffic(8000, length(ClientNodes), D)
+      toxic_client:launch_traffic(Clients, length(ClientNodes), D)
     end, ClientDomains),
   loop(length(ClientNodes)).
 
