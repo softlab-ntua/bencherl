@@ -183,7 +183,7 @@ client({Client_Name, Routers_List}) ->
 	    client({Client_Name, Client_Monitor_Pid, [], Routers_List});
 	{error, client_already_logged_in} ->
 	    io:format("You are logged in already.~n");
-	    %% unregister(Client_Name);
+	%% unregister(Client_Name);
 	Other ->
 	    io:format("This is failing at client(/2).~n"),
 	    io:format("Received: ~p~n", [Other]),
@@ -286,7 +286,7 @@ launch(Total_Num_Clients, Num_Nodes, Domain) ->
 launch_node(_Node, Num_Clients, Num_Node) ->
     io:format("Setting up clients and traffic generators ", []),
     setup(Num_Clients, Num_Node).
-    %% spawn(Node, fun() -> start_traffic(Num_Node, 0, Num_Clients, Num_Clients) end).
+%% spawn(Node, fun() -> start_traffic(Num_Node, 0, Num_Clients, Num_Clients) end).
 
 %%---------------------------------------------------------------------
 %% @doc
@@ -357,19 +357,19 @@ launch_clients_db(Num_Node) ->
 %%---------------------------------------------------------------------
 launch_traffic(Total_Num_Clients, Num_Nodes, Domain) ->
     case Num_Nodes == 0 of
-    true ->
-         ok;
-    false ->
-        Num_Clients_Node = Total_Num_Clients div Num_Nodes,
-        New_Total_Num_Clients = Total_Num_Clients - Num_Clients_Node,
-        Node = client_node_name(Num_Nodes, Domain),
-	io:format("Launching traffic generators at node ~p~n",[Node]),
-        spawn(Node, fun() -> start_traffic(Num_Nodes,
-					   0,
-					   Num_Clients_Node,
-					   Num_Clients_Node div 2)
-		    end),
-        launch_traffic(New_Total_Num_Clients, Num_Nodes - 1, Domain)
+	true ->
+	    ok;
+	false ->
+	    Num_Clients_Node = Total_Num_Clients div Num_Nodes,
+	    New_Total_Num_Clients = Total_Num_Clients - Num_Clients_Node,
+	    Node = client_node_name(Num_Nodes, Domain),
+	    io:format("Launching traffic generators at node ~p~n",[Node]),
+	    spawn(Node, fun() -> start_traffic(Num_Nodes,
+					       0,
+					       Num_Clients_Node,
+					       Num_Clients_Node div 2)
+			end),
+	    launch_traffic(New_Total_Num_Clients, Num_Nodes - 1, Domain)
     end.
 
 %%---------------------------------------------------------------------
@@ -448,60 +448,60 @@ interaction_generator(Environment, Sender, Receiver, Interactions)->
 %%=====================================================================
 %% The following functions are equivalent to the functions for the
 %% normal traffic generation. The difference is that they only generate
-%% 5 conversations, each of them 2 minutes long, and composed of 15
+%% 5 conversations, each of them 2 minutes long, and composed of 12
 %% messages. The generated traffic rate is similar to that of the normal
 %% traffic generators.
 %%=====================================================================
 launch_fixed_traffic(Total_Num_Clients, Num_Nodes, Domain) ->
     case Num_Nodes of
-        0 ->
-            ok;
-        _Other ->
-            Num_Clients_Node = Total_Num_Clients div Num_Nodes,
-            New_Total_Num_Clients = Total_Num_Clients - Num_Clients_Node,
-            Node = client_node_name(Num_Nodes, Domain),
-            io:format("Launching traffic generators at node ~p~n",[Node]),
-            spawn(Node, fun() -> start_fixed_traffic(Num_Nodes,
-                                                     0,
-                                                     Num_Clients_Node,
-                                                     Num_Clients_Node div 2)
-                        end),
-            launch_fixed_traffic(New_Total_Num_Clients, Num_Nodes - 1, Domain)
+	0 ->
+	    ok;
+	_Other ->
+	    Num_Clients_Node = Total_Num_Clients div Num_Nodes,
+	    New_Total_Num_Clients = Total_Num_Clients - Num_Clients_Node,
+	    Node = client_node_name(Num_Nodes, Domain),
+	    io:format("Launching traffic generators at node ~p~n",[Node]),
+	    spawn(Node, fun() -> start_fixed_traffic(Num_Nodes,
+						     0,
+						     Num_Clients_Node,
+						     Num_Clients_Node div 2)
+			end),
+	    launch_fixed_traffic(New_Total_Num_Clients, Num_Nodes - 1, Domain)
     end.
 
 start_fixed_traffic(Num_Node, Total_Nodes, Total_Clients, Num_Generators) ->
     case Num_Generators of
-        0 ->
-            ok;
-        _other ->
-            spawn(fun() -> fixed_traffic_generator(Num_Node, Total_Nodes, Total_Clients, 5) end),
-            timer:sleep(100),
-            start_fixed_traffic(Num_Node, Total_Nodes, Total_Clients, Num_Generators - 1)
+	0 ->
+	    ok;
+	_other ->
+	    spawn(fun() -> fixed_traffic_generator(Num_Node, Total_Nodes, Total_Clients, 5) end),
+	    timer:sleep(100),
+	    start_fixed_traffic(Num_Node, Total_Nodes, Total_Clients, Num_Generators - 1)
     end.
 
 fixed_traffic_generator(Num_Node, Total_Nodes, Total_Clients, Num_Conversations) ->
     case Num_Conversations of
-        0 ->
-            ok;
-        _Other ->
-            Environment = {Num_Node, Total_Nodes, Total_Clients},
-            {Sender, Receiver} = pick_random_clients(Num_Node, Total_Nodes, Total_Clients),
-            fixed_interaction_generator(Environment, Sender, Receiver, 15, Num_Conversations)
+	0 ->
+	    ok;
+	_Other ->
+	    Environment = {Num_Node, Total_Nodes, Total_Clients},
+	    {Sender, Receiver} = pick_random_clients(Num_Node, Total_Nodes, Total_Clients),
+	    fixed_interaction_generator(Environment, Sender, Receiver, 15, Num_Conversations)
     end.
 
 fixed_interaction_generator(Environment, Sender, Receiver, Interactions, Num_Conversations) ->
     {Client_A, Client_A_Pid} = Sender,
     {Client_B, _Client_B_Pid} = Receiver,
     case Interactions > 0 of
-        true ->
-            Message = [random:uniform(26) + 96 || _ <- lists:seq(1, random:uniform(75))],
-            Client_A_Pid ! {Client_A, Client_B, Message, send_message},
-            timer:sleep(8000),
-            fixed_interaction_generator(Environment, Receiver, Sender, Interactions - 1, Num_Conversations);
-        false ->
-            Client_A_Pid ! {Client_A, Client_B, finish_chat_session, send_message},
-            {Num_Node, Total_Nodes, Total_Clients} = Environment,
-            fixed_traffic_generator(Num_Node, Total_Nodes, Total_Clients, Num_Conversations - 1)
+	true ->
+	    Message = [random:uniform(26) + 96 || _ <- lists:seq(1, random:uniform(75))],
+	    Client_A_Pid ! {Client_A, Client_B, Message, send_message},
+	    timer:sleep(8000),
+	    fixed_interaction_generator(Environment, Receiver, Sender, Interactions - 1, Num_Conversations);
+	false ->
+	    Client_A_Pid ! {Client_A, Client_B, finish_chat_session, send_message},
+	    {Num_Node, Total_Nodes, Total_Clients} = Environment,
+	    fixed_traffic_generator(Num_Node, Total_Nodes, Total_Clients, Num_Conversations - 1)
     end.
 
 %%--------------------------------------------------------------------
