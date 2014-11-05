@@ -41,7 +41,9 @@ start(Dir, FileName) ->
 		    io:format("ERROR: generic logger cannot start.~n"),
 		    {error, io_error_create_file};
 		Pid ->
-		    register(logger, spawn(fun() -> logger:loop({recording, Pid}, Dir) end))
+		    register(logger, spawn(fun() -> logger:loop({recording,
+		                                                 Pid},
+		                                                Dir) end))
 	    end;
         _ ->
 	    io:format("ERROR: The logger process has already started.~n")
@@ -69,7 +71,8 @@ start(Dir, FileName) ->
 %%              Trials, Timer, Threshold, Domain) -> ok;
 %% @end
 %%---------------------------------------------------------------------
-launch(Technology, Routers, Servers, Clients, Trials, Timer, Threshold, Nodes, Dir) ->
+launch(Technology, Routers, Servers, Clients, Trials, Timer, Threshold, Nodes,
+       Dir) ->
     case Nodes of
 	[] ->
 	    io:format("All loggers are launched now.~n"),
@@ -93,7 +96,8 @@ launch(Technology, Routers, Servers, Clients, Trials, Timer, Threshold, Nodes, D
 						  n,
 					          Dir)
 			end),
-	    launch(Technology, Routers, Servers, Clients, Trials, Timer, Threshold, New_Nodes, Dir)
+	    launch(Technology, Routers, Servers, Clients, Trials, Timer,
+	           Threshold, New_Nodes, Dir)
     end.    
 
 %%---------------------------------------------------------------------
@@ -119,7 +123,8 @@ launch(Technology, Routers, Servers, Clients, Trials, Timer, Threshold, Nodes, D
 %%              Trials, Timer, Threshold, Domain) -> ok;
 %% @end
 %%---------------------------------------------------------------------
-launch(Technology, Routers, Servers, Clients, Num_Nodes, Trials, Timer, Threshold, Domain, Dir) ->
+launch(Technology, Routers, Servers, Clients, Num_Nodes, Trials, Timer,
+       Threshold, Domain, Dir) ->
     case Num_Nodes == 0 of
 	true ->
 	    io:format("All loggers are launched now.~n"), 
@@ -137,7 +142,8 @@ launch(Technology, Routers, Servers, Clients, Num_Nodes, Trials, Timer, Threshol
 						  n,
 					          Dir)
 			end),
-	    launch(Technology, Routers, Servers, Clients, Num_Nodes - 1, Trials, Timer, Threshold, Domain, Dir)
+	    launch(Technology, Routers, Servers, Clients, Num_Nodes - 1, Trials,
+	           Timer, Threshold, Domain, Dir)
     end.
 
 %%---------------------------------------------------------------------
@@ -170,7 +176,8 @@ launch(Technology, Routers, Servers, Clients, Num_Nodes, Trials, Timer, Threshol
 %%                        Dump_Table_To_File) -> File.txt; File.csv
 %% @end
 %%--------------------------------------------------------------------
-start_throughput(Technology, Routers, Servers, Clients, Num_Node, Num_Trials, Timer, Threshold, Dump_Table_To_File, Dir) ->
+start_throughput(Technology, Routers, Servers, Clients, Num_Node, Num_Trials,
+                 Timer, Threshold, Dump_Table_To_File, Dir) ->
     case whereis(throughput_logger) of
 	undefined ->
 	    Table_Name = string:join([Technology, "Throughput", 
@@ -179,7 +186,8 @@ start_throughput(Technology, Routers, Servers, Clients, Num_Node, Num_Trials, Ti
 				      integer_to_list(Clients),
 				      "Node",
 				      integer_to_list(Num_Node)], "_"),
-	    record_throughput({ets_based, Table_Name, Num_Trials, Timer, Threshold, Dump_Table_To_File}, Dir);
+	    record_throughput({ets_based, Table_Name, Num_Trials, Timer,
+	                       Threshold, Dump_Table_To_File}, Dir);
 	_Other ->
 	    io:format("ERROR: The logger process has already started.~n")
     end.
@@ -208,7 +216,8 @@ start_throughput(Technology, Routers, Servers, Clients, Num_Node, Num_Trials, Ti
 %%                   File.txt; File.csv
 %% @end
 %%---------------------------------------------------------------------
-record_throughput({ets_based, Table_Name, Num_Trials, Timer, Threshold, Dump_Table_To_File}, Dir) ->
+record_throughput({ets_based, Table_Name, Num_Trials, Timer, Threshold,
+                   Dump_Table_To_File}, Dir) ->
     case Num_Trials > 0 of
 	true ->
 	    case whereis(throughput_logger) of
@@ -224,7 +233,8 @@ record_throughput({ets_based, Table_Name, Num_Trials, Timer, Threshold, Dump_Tab
 	    end,
 	    timer:sleep(Timer * 1000),
 	    whereis(throughput_logger) ! {new_trial, Num_Trials - 1},
-	    record_throughput({ets_based, Table_Name, Num_Trials - 1, Timer, Threshold, Dump_Table_To_File}, Dir);
+	    record_throughput({ets_based, Table_Name, Num_Trials - 1, Timer,
+	                       Threshold, Dump_Table_To_File}, Dir);
 	false ->
 	    whereis(throughput_logger) ! {stop_throughput},
 	    io:format("Throughput benchmarks finished.~n"),
@@ -263,13 +273,15 @@ record_throughput({ets_based, Table_Name, Num_Trials, Timer, Threshold, Dump_Tab
 start_throughput(Technology, Condition, Num_of_trials, Timer, Dir) ->
     case whereis(throughput_logger) of
 	undefined ->
-	    {_Status, Fd} = create_file(Dir, Technology, "Throughput", Condition, Num_of_trials),
+	    {_Status, Fd} = create_file(Dir, Technology, "Throughput",
+	                                Condition, Num_of_trials),
 	    case Fd of
 		unable_to_open_file ->
 		    io:format("ERROR: latency logger cannot start.~n"),
 		    exit(io_error_create_file);
 		_ ->
-		    record_throughput(Technology, Condition, Num_of_trials, Timer, Fd, Dir)
+		    record_throughput(Technology, Condition, Num_of_trials,
+		                      Timer, Fd, Dir)
 	    end;
 	_ ->
 	    io:format("ERROR: The logger process has already started.~n")
@@ -300,10 +312,12 @@ start_throughput(Technology, Condition, Num_of_trials, Timer, Dir) ->
 record_throughput(Technology, Condition, Num_of_trials, Timer, Fd, Dir) ->
     case Num_of_trials >= 1 of
 	true ->
-	    register(throughput_logger, spawn(fun() -> loop({recording, Fd}, Dir) end)),
+	    register(throughput_logger, spawn(fun() -> loop({recording, Fd},
+	                                                    Dir) end)),
 	    timer:sleep(Timer * 1000),
 	    stop(Fd, throughput_logger),
-	    start_throughput(Technology, Condition, Num_of_trials - 1, Timer, Dir);
+	    start_throughput(Technology, Condition, Num_of_trials - 1, Timer,
+	                     Dir);
 	false ->
 	    io:format("Throughput benchmarks finished.~n")
     end.
@@ -347,7 +361,8 @@ launch_latency(Technology, Routers, Servers, Clients, Series, Nodes, Dir) ->
 					       Num_Node,
 				               Dir)
 			end),
-	    launch_latency(Technology, Routers, Servers, Clients, Series, New_Nodes, Dir)
+	    launch_latency(Technology, Routers, Servers, Clients, Series,
+	                   New_Nodes, Dir)
     end.
 
 %%---------------------------------------------------------------------
@@ -369,7 +384,8 @@ launch_latency(Technology, Routers, Servers, Clients, Series, Nodes, Dir) ->
 %%              Trials, Timer, Threshold, Domain) -> ok;
 %% @end
 %%---------------------------------------------------------------------
-launch_latency(Technology, Routers, Servers, Clients, Num_Nodes, Series, Domain, Dir) ->
+launch_latency(Technology, Routers, Servers, Clients, Num_Nodes, Series,
+               Domain, Dir) ->
     case Num_Nodes == 0 of
 	true ->
 	    io:format("All loggers are launched now.~n"), 
@@ -384,7 +400,8 @@ launch_latency(Technology, Routers, Servers, Clients, Num_Nodes, Series, Domain,
 					       Num_Nodes,
 				               Dir)
 			end),
-	    launch_latency(Technology, Routers, Servers, Clients, Num_Nodes - 1, Series, Domain, Dir)
+	    launch_latency(Technology, Routers, Servers, Clients, Num_Nodes - 1,
+	                   Series, Domain, Dir)
     end.
 
 %%---------------------------------------------------------------------
@@ -451,7 +468,8 @@ start_latency(Technology, Routers, Servers, Clients, Series, Num_Node, Dir) ->
 start_latency(Technology, Condition, Num_of_trials, Dir) ->
     case whereis(latency_logger) of
 	undefined ->
-	    {_Status, Fd} = create_file(Dir, Technology, "Latency", Condition, Num_of_trials),
+	    {_Status, Fd} = create_file(Dir, Technology, "Latency", Condition,
+	                                Num_of_trials),
 	    case Fd of
 		unable_to_open_file ->
 		    io:format("ERROR: latency logger cannot start.~n"),
@@ -521,7 +539,8 @@ create_file(Dir, FileName) ->
 %%---------------------------------------------------------------------
 create_file(Dir, Technology, Benchmark, Condition, Trial) ->
     Tr = integer_to_list(Trial),
-    FileName = Dir ++ string:join([Technology, Tr, Benchmark, Condition],"_") ++ ".csv",
+    FileName =
+      Dir ++ string:join([Technology, Tr, Benchmark, Condition],"_") ++ ".csv",
     case file:open(FileName,[read,write]) of
 	{ok, Fd} ->
 	    {ok, Eof} = file:position(Fd,eof),
@@ -548,7 +567,8 @@ create_file(Dir, Technology, Benchmark, Condition, Trial) ->
 stop(Fd, Logger) ->
     case whereis(Logger) of
         undefined ->
-            io:format("ERROR: The logger process cannot be stopped because it has not started.~n");
+            io:format("ERROR: The logger process cannot be stopped because it"
+                      ++ "has not started.~n");
         _ ->
             file:close(Fd),
             unregister(Logger),
@@ -584,12 +604,14 @@ loop({initial_state, Table_Name, Num_Trials, Threshold}, Dir) ->
 	    io:format("ERROR: throughput logger cannot start.~n"),
 	    exit(io_error_create_file);
 	_Another ->
-	    io:fwrite(Fd2, "=============== Beginning of Benchmarks ===============~n~n",[])
+	    io:fwrite(Fd2, "=============== Beginning of Benchmarks ========="
+	        ++ "======~n~n",[])
     end,
     Statistics = {0,0,0,0},
     loop({recording, Fd1, Fd2, TN, Num_Trials, Threshold, Statistics}, Dir);
 
-loop({recording, Fd1, Fd2, Table_Name, Num_Trials, Threshold, Statistics}, Dir) ->
+loop({recording, Fd1, Fd2, Table_Name, Num_Trials, Threshold, Statistics},
+     Dir) ->
     {Sent, Received, Delivered, Dlv_Blw_Thr} = Statistics,
     receive
 	{s, _Metadata, not_delivered} ->
@@ -600,7 +622,8 @@ loop({recording, Fd1, Fd2, Table_Name, Num_Trials, Threshold, Statistics}, Dir) 
 	    %% ets:insert(Table_Name, {Unique_ID, Time, Date, Session_Name, Sender, Receiver, lost}),
 	    New_Sent = Sent + 1,
 	    New_Statistics = {New_Sent, Received, Delivered, Dlv_Blw_Thr},
-	    loop({recording, Fd1, Fd2, Table_Name, Num_Trials, Threshold, New_Statistics}, Dir);
+	    loop({recording, Fd1, Fd2, Table_Name, Num_Trials, Threshold,
+	          New_Statistics}, Dir);
 	{r, _Metadata, received} ->
 	    %% {_Unique_ID, _Session_Name, _Sender, _Receiver, Timestamp} = Metadata,
 	    %% {{Y,M,D},{Hour,Min,Sec}} = calendar:now_to_local_time(Timestamp),
@@ -609,7 +632,8 @@ loop({recording, Fd1, Fd2, Table_Name, Num_Trials, Threshold, Statistics}, Dir) 
 	    %% ets:insert(Table_Name, {Unique_ID, Time, Date, Session_Name, Sender, Receiver, lost}),
 	    New_Received = Received + 1,
 	    New_Statistics = {Sent, New_Received, Delivered, Dlv_Blw_Thr},
-	    loop({recording, Fd1, Fd2, Table_Name, Num_Trials, Threshold, New_Statistics}, Dir);
+	    loop({recording, Fd1, Fd2, Table_Name, Num_Trials, Threshold,
+	          New_Statistics}, Dir);
 	{d, _Metadata, Latency} ->
 	    %% {Unique_ID, Session_Name, Sender, Receiver, Timestamp} = Metadata,
 	    %% {{Y,M,D},{Hour,Min,Sec}} = calendar:now_to_local_time(Timestamp),
@@ -624,11 +648,14 @@ loop({recording, Fd1, Fd2, Table_Name, Num_Trials, Threshold, Statistics}, Dir) 
 		false ->
 		    New_Statistics = {Sent, Received, New_Delivered, Dlv_Blw_Thr}
 	    end,
-	    loop({recording, Fd1, Fd2, Table_Name, Num_Trials, Threshold, New_Statistics}, Dir);
+	    loop({recording, Fd1, Fd2, Table_Name, Num_Trials, Threshold,
+	          New_Statistics}, Dir);
 	{new_trial, New_Num_Trials} ->
 	    {{Y, M, D},{Hour,Min,Sec}} = calendar:now_to_local_time(now()),
-	    Time = string:join([integer_to_list(Hour), integer_to_list(Min), integer_to_list(Sec)], ":"),
-	    Date = string:join([integer_to_list(D), integer_to_list(M), integer_to_list(Y)], "/"),
+	    Time = string:join([integer_to_list(Hour), integer_to_list(Min),
+	                        integer_to_list(Sec)], ":"),
+	    Date = string:join([integer_to_list(D), integer_to_list(M),
+	                        integer_to_list(Y)], "/"),
 	    case Sent /= 0 of
 		true ->
 		    QoS = (Dlv_Blw_Thr / Sent) * 100;
@@ -644,10 +671,16 @@ loop({recording, Fd1, Fd2, Table_Name, Num_Trials, Threshold, Statistics}, Dir) 
 							    Delivered,
 							    Dlv_Blw_Thr,
 							    QoS]),
-	    io:fwrite(Fd2, "Trial ~p: ~p ~p~nThreshold:~p~nMessages Sent: ~p~nMessages Received: ~p~nMessages Delivered: ~p~nMessages Delivered below threshold: ~p~nQuality of service:~p \% ~n~n", [Num_Trials, Time, Date, Threshold, Sent, Received, Delivered, Dlv_Blw_Thr, QoS]),
-	    loop({recording, Fd1, Fd2, Table_Name, New_Num_Trials, Threshold, {0,0,0,0}}, Dir);
+	    io:fwrite(Fd2, "Trial ~p: ~p ~p~nThreshold:~p~nMessages Sent: ~p~n"
+	        ++ "Messages Received: ~p~nMessages Delivered: ~p~nMessages"
+	        ++ "Delivered below threshold: ~p~nQuality of service:~p \%"
+	        ++ "~n~n", [Num_Trials, Time, Date, Threshold, Sent, Received,
+	                    Delivered, Dlv_Blw_Thr, QoS]),
+	    loop({recording, Fd1, Fd2, Table_Name, New_Num_Trials, Threshold,
+	         {0,0,0,0}}, Dir);
 	{stop_throughput} ->
-	    io:fwrite(Fd2, "=============== End of Benchmarks ===============~n~n",[]),
+	    io:fwrite(Fd2, "=============== End of Benchmarks ==============="
+	              ++ "~n~n", []),
 	    file:close(Fd1),
 	    file:close(Fd2),
 	    ok		
@@ -711,11 +744,14 @@ loop(Fd, Record, Technology, Condition, Trial, Dir) ->
 	{stop_latency, Trial} ->
 	    case Trial > 1 of
 		true ->
-		    %%io:format("stop_latency received; case Trial > 0 of true. Trial = ~p~n", [Trial]),
+		    %%io:format("stop_latency received; case Trial > 0 of true."
+		    %% ++ "Trial = ~p~n", [Trial]),
 		    file:close(Fd),
-		    loop(element(2,create_file(Dir, Technology, "Latency", Condition, Trial - 1)), 0, Technology, Condition, Trial - 1, Dir);
+		    loop(element(2,create_file(Dir, Technology, "Latency", Condition,
+		         Trial - 1)), 0, Technology, Condition, Trial - 1, Dir);
 		false ->
-		    %%io:format("stop_latency received; case Trial > 0 of false. Trial = ~p~n", [Trial]),
+		    %%io:format("stop_latency received; case Trial > 0 of false."
+		    %% ++ "Trial = ~p~n", [Trial]),
 		    stop(Fd, latency_logger),
 		    ok
 	    end
