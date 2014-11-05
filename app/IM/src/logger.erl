@@ -16,7 +16,8 @@
 %%%--------------------------------------------------------------------
 
 -module(logger).
--export([start/1, start_throughput/4, start_latency/3, launch/9, launch_latency/8]).
+-export([start/1, start_throughput/4, start_latency/3, launch/8, launch/9,
+	 launch_latency/6, launch_latency/7]).
 
 %%---------------------------------------------------------------------
 %% @doc
@@ -27,7 +28,7 @@
 %%     Argument:
 %%       - FileName: (String) name of the file.
 %% 
-%% @spec start(FileName) -> File.csv
+%% @spec start(FileName) -> File.csv | {error, io_error_create_file}
 %% @end
 %%----------------------------------------------------------------------
 start(FileName) ->
@@ -36,14 +37,61 @@ start(FileName) ->
 	    {_Status, Fd} = create_file(FileName),
 	    case Fd of
 		unable_to_open_file ->
-		    io:format("ERROR: latency logger cannot start.~n"),
-		    exit(io_error_create_file);
+		    io:format("ERROR: generic logger cannot start.~n"),
+		    {error, io_error_create_file};
 		Pid ->
-		    register(logger, spawn(logger,loop,[Pid]))
+		    register(logger, spawn(fun() -> logger:loop({recording, Pid}) end))
 	    end;
         _ ->
 	    io:format("ERROR: The logger process has already started.~n")
     end.
+
+%%---------------------------------------------------------------------
+%% @doc
+%%     launch/8 initiates a throughput logger (see below) on each of the
+%%     client nodes deployed in the architecture.
+%%
+%%     Arguments:
+%%       - Techology: (String) "DErlang" or "SDErlang".
+%%       - Routers: (int) J, number of router nodes.
+%%       - Servers: (int) K, number of server nodes.
+%%       - Clients: (int) L, number of client processes.
+%%       - Num_of_trials: (int) N, is the number of series to be recorded.
+%%       - Timer: (int) T, is the time in seconds in which the logger must
+%%                 be active.
+%%       - Threshold: (int) R, is the time in microseconds which is 
+%%                    considered acceptable for a good service.
+%%       - Nodes: (List) List containingh the deployed client nodes.
+%%
+%% @spec launch(Technology, Routers, Servers, Clients, Num_Nodes,
+%%              Trials, Timer, Threshold, Domain) -> ok;
+%% @end
+%%---------------------------------------------------------------------
+launch(Technology, Routers, Servers, Clients, Trials, Timer, Threshold, Nodes) ->
+    case Nodes of
+	[] ->
+	    io:format("All loggers are launched now.~n"),
+	    ok;
+	[Node|New_Nodes] ->
+	    [Node_Name|_Domain] = string:tokens(atom_to_list(Node),"@"),
+	    case string:sub_word(Node_Name, 2, $_) of
+		[] ->
+		    Num_Node = list_to_integer(string:sub_word(Node_Name, 2, $t));
+		Val ->
+		    Num_Node = list_to_integer(Val)
+	    end,
+	    spawn(Node, fun() -> start_throughput(Technology,
+						  Routers,
+						  Servers,
+						  Clients,
+						  Num_Node,
+						  Trials,
+						  Timer,
+						  Threshold,
+						  n)
+			end),
+	    launch(Technology, Routers, Servers, Clients, Trials, Timer, Threshold, New_Nodes)
+    end.    
 
 %%---------------------------------------------------------------------
 %% @doc
@@ -207,7 +255,7 @@ record_throughput({ets_based, Table_Name, Num_Trials, Timer, Threshold, Dump_Tab
 start_throughput(Technology, Condition, Num_of_trials, Timer) ->
     case whereis(throughput_logger) of
 	undefined ->
-	    {_Status, Fd} = create_file("", Technology, "Throughput", Condition, Num_of_trials),
+	    {_Status, Fd} = create_file(Technology, "Throughput", Condition, Num_of_trials),
 	    case Fd of
 		unable_to_open_file ->
 		    io:format("ERROR: latency logger cannot start.~n"),
@@ -253,7 +301,47 @@ record_throughput(Technology, Condition, Num_of_trials, Timer, Fd) ->
 
 %%---------------------------------------------------------------------
 %% @doc
-%%     launch_latency/8 initiates a latency logger (see below) on each
+%%     launch_latency/6 initiates a latency logger (see below) on each
+%%     of the client nodes deployed in the architecture.
+%%
+%%     Arguments:
+%%       - Techology: (String) "DErlang" or "SDErlang".
+%%       - Routers: (int) J, number of router nodes.
+%%       - Servers: (int) K, number of server nodes.
+%%       - Clients: (int) L, number of client processes.
+%%       - Series: (int) N, is the number of series to be recorded.
+%%       - Nodes: (List) List containing the deployed client nodes.
+%%
+%% @spec launch(Technology, Routers, Servers, Clients, Num_Nodes,
+%%              Trials, Timer, Threshold, Domain) -> ok;
+%% @end
+%%---------------------------------------------------------------------
+launch_latency(Technology, Routers, Servers, Clients, Series, Nodes) ->
+    case Nodes of
+	[] ->
+	    io:format("All loggers are launched now.~n"),
+	    ok;
+	[Node|New_Nodes] ->
+	    [Node_Name|_Domain] = string:tokens(atom_to_list(Node),"@"),
+	    case string:sub_word(Node_Name, 2, $_) of
+		[] ->
+		    Num_Node = list_to_integer(string:sub_word(Node_Name, 2, $t));
+		Val ->
+		    Num_Node = list_to_integer(Val)
+	    end,
+	    spawn(Node, fun() -> start_latency(Technology,
+					       Routers,
+					       Servers,
+					       Clients,
+					       Series,
+					       Num_Node)
+			end),
+	    launch_latency(Technology, Routers, Servers, Clients, Series, New_Nodes)
+    end.
+
+%%---------------------------------------------------------------------
+%% @doc
+%%     launch_latency/7 initiates a latency logger (see below) on each
 %%     of the client nodes deployed in the architecture.
 %%
 %%     Arguments:
@@ -264,13 +352,12 @@ record_throughput(Technology, Condition, Num_of_trials, Timer, Fd) ->
 %%       - Num_Node: (int) M, number of client nodes deployed.
 %%       - Series: (int) N, is the number of series to be recorded.
 %%       - Domain: (Atom) Domain or host where the client nodes are deployed.
-%%       - Dir: (String) The directory of the .csv output files.
 %%
 %% @spec launch(Technology, Routers, Servers, Clients, Num_Nodes,
 %%              Trials, Timer, Threshold, Domain) -> ok;
 %% @end
 %%---------------------------------------------------------------------
-launch_latency(Technology, Routers, Servers, Clients, Num_Nodes, Series, Domain, Dir) ->
+launch_latency(Technology, Routers, Servers, Clients, Num_Nodes, Series, Domain) ->
     case Num_Nodes == 0 of
 	true ->
 	    io:format("All loggers are launched now.~n"), 
@@ -282,15 +369,14 @@ launch_latency(Technology, Routers, Servers, Clients, Num_Nodes, Series, Domain,
 					       Servers, 
 					       Clients,
 					       Series,
-					       Num_Nodes, 
-                                               Dir)
+					       Num_Nodes)
 			end),
-	    launch_latency(Technology, Routers, Servers, Clients, Num_Nodes - 1, Series, Domain, Dir)
+	    launch_latency(Technology, Routers, Servers, Clients, Num_Nodes - 1, Series, Domain)
     end.
 
 %%---------------------------------------------------------------------
 %% @doc
-%%     start_latency/7 starts a latency logger, which records the latency
+%%     start_latency/6 starts a latency logger, which records the latency
 %%     of 20000 successfully delivered messages on a text file named after
 %%     the parameters passed as arguments to the function.
 %%
@@ -301,13 +387,12 @@ launch_latency(Technology, Routers, Servers, Clients, Num_Nodes, Series, Domain,
 %%       - Clients: (int) L, number of client processes.
 %%       - Num_Node: (int) M, number of client nodes deployed.
 %%       - Num_of_trials: (int) N, is the number of series to be recorded.
-%%       - Dir: (String) The directory of the .csv output files.
 %%
 %% @spec start_latency(Technology, Routers, Servers,
 %%                     Clients, Num_Node, Series) -> File.csv
 %% @end
 %%---------------------------------------------------------------------
-start_latency(Technology, Routers, Servers, Clients, Series, Num_Node, Dir) ->
+start_latency(Technology, Routers, Servers, Clients, Series, Num_Node) ->
     case whereis(latency_logger) of
 	undefined ->
 	    Condition = string:join([integer_to_list(Routers),
@@ -316,16 +401,14 @@ start_latency(Technology, Routers, Servers, Clients, Series, Num_Node, Dir) ->
 				     "Node",
 				     integer_to_list(Num_Node)], "_"),
 	    register(latency_logger, spawn(fun() ->
-						   loop(element(2, create_file(Dir,
-                                                                               Technology,
+						   loop(element(2, create_file(Technology,
 									       "Latency",
 									       Condition,
 									       Series)),
 							0,
 							Technology,
 							Condition,
-							Series, 
-                                                        Dir)
+							Series)
 					   end));
 	_Other ->
 	    io:format("ERROR: The logger process has already started.~n")
@@ -333,7 +416,7 @@ start_latency(Technology, Routers, Servers, Clients, Series, Num_Node, Dir) ->
 
 %%---------------------------------------------------------------------
 %% @doc
-%%     start_latency/4 starts a latency logger, which records the latency
+%%     start_latency/3 starts a latency logger, which records the latency
 %%     of 20000 successfully delivered messages on a text file named after
 %%     the parameters passed as arguments to the function.
 %%
@@ -344,7 +427,6 @@ start_latency(Technology, Routers, Servers, Clients, Series, Num_Node, Dir) ->
 %%                     routers, servers and clients composing the
 %%                     benchmarked system.
 %%       - Num_of_trials: (int) N, is the number of series to be recorded.
-%%       - Dir: (String) The directory of the .csv output files.
 %%
 %% @spec start_latency(Technology, Condition, Num_of_Trials) -> File.csv
 %% @end
@@ -352,7 +434,7 @@ start_latency(Technology, Routers, Servers, Clients, Series, Num_Node, Dir) ->
 start_latency(Technology, Condition, Num_of_trials) ->
     case whereis(latency_logger) of
 	undefined ->
-	    {_Status, Fd} = create_file("", Technology, "Latency", Condition, Num_of_trials),
+	    {_Status, Fd} = create_file(Technology, "Latency", Condition, Num_of_trials),
 	    case Fd of
 		unable_to_open_file ->
 		    io:format("ERROR: latency logger cannot start.~n"),
@@ -362,8 +444,7 @@ start_latency(Technology, Condition, Num_of_trials) ->
 								 0,
 								 Technology,
 								 Condition,
-								 Num_of_trials,
-                                                                 "")
+								 Num_of_trials)
 						   end))
 	    end;
 	_ ->
@@ -400,13 +481,12 @@ create_file(FileName) ->
 
 %%---------------------------------------------------------------------
 %% @doc
-%%     create_file/5 opens a file with name "Technology_Condition_Trial.csv"
+%%     create_file/4 opens a file with name "Technology_Condition_Trial.csv"
 %%     to hold the recorded information during the benchmarking of the
 %%     system. If the file specified does not exist, then the function
 %%     creates the file.
 %%
 %%     Arguments:
-%%       - Dir: (String) The directory of the .csv output files.
 %%       - Techology: (String) "DErlang" or "SDErlang".
 %%       - Benchmark: (String) "Latecy" or "Throughput".
 %%       - Condition: (String) "i_routers_j_servers_k_clients" where i,
@@ -419,9 +499,9 @@ create_file(FileName) ->
 %%                  {file_descriptor, Fd} | {error, unable_to_open_file}
 %% @end
 %%---------------------------------------------------------------------
-create_file(Dir, Technology, Benchmark, Condition, Trial) ->
+create_file(Technology, Benchmark, Condition, Trial) ->
     Tr = integer_to_list(Trial),
-    FileName = Dir ++ string:join([Technology, Tr, Benchmark, Condition],"_") ++ ".csv",
+    FileName = string:join([Technology, Tr, Benchmark, Condition],"_") ++ ".csv",
     case file:open(FileName,[read,write]) of
 	{ok, Fd} ->
 	    {ok, Eof} = file:position(Fd,eof),
@@ -579,13 +659,13 @@ loop({recording, Fd}) ->
 
 %%---------------------------------------------------------------------
 %% @doc
-%%     loop/6 is a recursive function to record the latency of the messages
+%%     loop/5 is a recursive function to record the latency of the messages
 %%     into the file and stop the active latency_logger process.
 %%
 %% @spec loop(Fd, Record, Technology, Condition, Trial) -> term() | ok
 %% @end
 %%---------------------------------------------------------------------
-loop(Fd, Record, Technology, Condition, Trial, Dir) ->
+loop(Fd, Record, Technology, Condition, Trial) ->
     receive
 	{d, Metadata, Latency} ->
 	    {Unique_ID, Session_Name, Client_A, Client_B, Timestamp} = Metadata,
@@ -600,30 +680,23 @@ loop(Fd, Record, Technology, Condition, Trial, Dir) ->
 								Client_B,
 								Latency]),
 	    file:position(Fd,eof),
-           case Record =< 20000 of
+	    case Record =< 20000 of
 		true ->
 		    %%io:format("Trial: ~p, Record: ~p~n", [Trial, Record]),
-		    loop(Fd, Record + 1, Technology, Condition, Trial, Dir);
+		    loop(Fd, Record + 1, Technology, Condition, Trial);
 		false ->
 		    self() ! {stop_latency, Trial},
-		    loop(Fd, Record + 1, Technology, Condition, Trial, Dir)
+		    loop(Fd, Record + 1, Technology, Condition, Trial)
 	    end;
 	{stop_latency, Trial} ->
 	    case Trial > 1 of
 		true ->
 		    %%io:format("stop_latency received; case Trial > 0 of true. Trial = ~p~n", [Trial]),
 		    file:close(Fd),
-		    loop(element(2,create_file(Dir, Technology, "Latency", Condition, Trial - 1)), 0, Technology, Condition, Trial - 1, Dir);
+		    loop(element(2,create_file(Technology, "Latency", Condition, Trial - 1)), 0, Technology, Condition, Trial - 1);
 		false ->
 		    %%io:format("stop_latency received; case Trial > 0 of false. Trial = ~p~n", [Trial]),
 		    stop(Fd, latency_logger),
-                    %%XXX: Notify the coordinator that a logger has finished.
-                    H = net_adm:localhost(),
-                    DN = list_to_atom(lists:concat(["dashboard@", H])),
-                    case rpc:call(DN, erlang, whereis, [coordinator]) of
-                        undefined -> ok;
-                        _ -> { coordinator, DN } ! logger_stopped
-                    end,
 		    ok
 	    end
     end.

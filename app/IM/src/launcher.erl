@@ -17,8 +17,8 @@
 %%% Created : 25 Jul 2014 by Mario Moro Hernandez
 %%%-------------------------------------------------------------------
 -module(launcher).
--export([start/5, start/6, start_bencherl/5, stop/5, stop/6, launch_router_processes/6, launch_server_supervisors/4]).
-%%-compile(export_all).
+-export([start/5, start/6, start_bencherl/1, start_bencherl/5, stop/5, stop/6,
+	 launch_router_processes/6, launch_server_supervisors/4]).
 
 -import(router,[router_supervisor/5, router_process/1, compression_function/2, hash_code/2]).
 
@@ -225,6 +225,62 @@ start(S_RN, S_RP, S_T, Cl_T, List_Domains) ->
 	    io:format("ERROR: There are not enough hosts to deploy the system. Aborting.~n")
     end.
 
+%%====================================================================
+%% BENCHERL START FUNCTIONS
+%%====================================================================
+%%---------------------------------------------------------------------
+%% @doc
+%%     start_bencherl/1 deploys the IM processes given a list of nodes.
+%%     The function determines the structure of the architecture, assuming
+%%     that there is one router process per each server node.
+%%
+%%     This function is intended to be used with bencherl only.
+%%
+%%     Arguments:
+%%          Nodes: (list) List containing all the nodes comprising the
+%%                 architecture of the application. 
+%%
+%%     Example:
+%%          start(['router_1@domain_1.do','router_2@domain_2.do'],
+%%                          ..., 'client_4@domain_4.do ]).
+%%
+%% @spec start_bencherl(List_Nodes) -> Status Messages | {error, reason}
+%% @end
+%%--------------------------------------------------------------------
+start_bencherl(Nodes) ->
+    %% Classify nodes by type, and work out the architecture layout
+    {Router_Nodes, Server_Nodes, Client_Nodes} = extractor(Nodes),
+    %% Total nodes of each kind
+    R_T = length(Router_Nodes),
+    S_T = length(Server_Nodes),
+    Cl_T = length(Client_Nodes),
+    %% Determine the maximum number of server nodes children of a router node
+    case S_T rem R_T of
+	0 ->
+	    S_RN = S_T div R_T;
+	_Other ->
+	    S_RN = (S_T div R_T) + 1
+    end,
+    %% Set up the routers listener for deployment.
+    case whereis(routers_listener) of
+	undefined ->
+	    io:format("~n=============================================~n"),
+	    io:format("Initiating the Distributed Instant Messenger.~n"),
+	    io:format("=============================================~n"),
+	    Routers_Listener_Pid = spawn(fun() ->
+						 routers_listener(S_T,
+								  [],
+								  [],
+								  [],
+								  [])
+					 end),
+	    register(routers_listener, Routers_Listener_Pid);
+	Pid ->
+	    Routers_Listener_Pid = Pid
+    end,
+    Architecture_Info = {S_RN, 1, S_T, S_T, Cl_T},
+    start_distributed(Architecture_Info, Nodes, Routers_Listener_Pid).
+
 %%---------------------------------------------------------------------
 %% @doc
 %%     start_bencherl/5 is similar to start/5, but in this case the last
@@ -246,8 +302,7 @@ start(S_RN, S_RP, S_T, Cl_T, List_Domains) ->
 %%          start(2,1,2,4,['router_1@domain_1.do','router_2@domain_2.do'],
 %%                          ..., 'client_4@domain_4.do ]).
 %%
-%% @spec start_bencherl(Servers_Per_Router_Node, Servers_Per_Router_Process,
-%%             Servers_Total, Clients_Total, List_Domains, Num_of_Hosts) ->
+%% @spec start_bencherl(S_RN, S_RP, S_T, Cl_T, List_Domains) ->
 %%                 Status Messages | {error, reason}
 %% @end
 %%---------------------------------------------------------------------
@@ -270,6 +325,10 @@ start_bencherl(S_RN, S_RP, S_T, Cl_T, Nodes) ->
 	    Routers_Listener_Pid = Pid
     end,
     start_distributed(Architecture_Info, Nodes, Routers_Listener_Pid).
+
+%%===================================================================
+%% END BENCHERL START FUNCTIONS
+%%===================================================================
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -304,8 +363,8 @@ start_distributed(Architecture_Info, Nodes, Routers_Listener_Pid) ->
 	    R_Pr_RN = length(Router_Processes) div length(Router_Nodes) + 1
     end,
     New_Architecture_Info = {S_RN, S_RP, Num_TS, S_T, length(Router_Nodes), R_Pr_RN},
-    Routers_Servers_List = [Router_Nodes, Server_Nodes, Router_Processes],
-    launch_router_supervisors(Routers_Servers_List, New_Architecture_Info, Routers_Listener_Pid).
+    Routers_Servers_Lists = {Router_Nodes, Server_Nodes, Router_Processes},
+    launch_router_supervisors(Routers_Servers_Lists, New_Architecture_Info, Routers_Listener_Pid).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -319,7 +378,7 @@ start_distributed(Architecture_Info, Nodes, Routers_Listener_Pid) ->
 %% @end
 %%--------------------------------------------------------------------
 launch_router_supervisors(Routers_Servers_Lists, Architecture_Info, Routers_Listener_Pid) ->
-    [Router_Nodes, Server_Nodes, Router_Processes] = Routers_Servers_Lists,
+    {Router_Nodes, Server_Nodes, Router_Processes} = Routers_Servers_Lists,
     {Server_Router_Nd, Servers_Router_Pr, Num_Total_Servers, _, _, Router_Pr_Per_R_Nd} = Architecture_Info,
     [Router_Nd | New_Router_Nd] = Router_Nodes,
     io:format("Router_Pr_per_R_Nd = ~p; Router_Processes = ~p~n", [Router_Pr_Per_R_Nd, Router_Processes]),
@@ -499,8 +558,7 @@ stop(S_RN, S_RP, S_T, Cl_T, List_Domains) ->
 	_Rem ->
 	    R_T = (S_T div S_RN) + 1
     end,
-    stop_nodes(nodes_list(R_T, S_RN, S_T, Cl_T, List_Domains)),
-    init:stop().
+    stop_nodes(nodes_list(R_T, S_RN, S_T, Cl_T, List_Domains)).
 
 stop(Servers_Per_Router_Node, Servers_Per_Router_Process, Servers_Total, Clients_Total, List_Domains, Num_of_Hosts) ->
     Num_TS = Servers_Total * Num_of_Hosts,
@@ -824,14 +882,14 @@ extractor(Nodes_List, R_Nodes, S_Nodes, Cl_Nodes) ->
 	     lists:reverse(Cl_Nodes)};
 	[H|T] ->
 	    [Token|_Domain] = string:tokens(atom_to_list(H), "@"),
-	    case hd(string:tokens(Token, "_")) of
-		"router" ->
+	    case string:sub_string(Token, 1, 3) of
+		"rou" ->
 		    New_R_Nodes = [H|R_Nodes],
 		    extractor(T, New_R_Nodes, S_Nodes, Cl_Nodes);
-		"server" ->
+		"ser" ->
 		    New_S_Nodes = [H|S_Nodes],
 		    extractor(T, R_Nodes, New_S_Nodes, Cl_Nodes);
-		"client" ->
+		"cli" ->
 		    New_Cl_Nodes = [H|Cl_Nodes],
 		    extractor(T, R_Nodes, S_Nodes, New_Cl_Nodes);
 		_Other ->

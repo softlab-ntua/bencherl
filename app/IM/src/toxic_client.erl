@@ -16,7 +16,8 @@
 %%%--------------------------------------------------------------------
 
 -module(toxic_client).
--export([launch/3, launch_traffic/3, launch_fixed_traffic/3, logout/1, stop_client/1, message/3]).
+-export([launch/2, launch/3, launch_traffic/2, launch_traffic/3,
+	 launch_fixed_traffic/3, logout/1, stop_client/1, message/3]).
 
 -import(client_db, [start_local/1, stop_local/1]).
 
@@ -183,7 +184,7 @@ client({Client_Name, Routers_List}) ->
 	    client({Client_Name, Client_Monitor_Pid, [], Routers_List});
 	{error, client_already_logged_in} ->
 	    io:format("You are logged in already.~n");
-	%% unregister(Client_Name);
+	    %% unregister(Client_Name);
 	Other ->
 	    io:format("This is failing at client(/2).~n"),
 	    io:format("Received: ~p~n", [Other]),
@@ -257,6 +258,33 @@ message(From, To, Message) ->
 
 %%---------------------------------------------------------------------
 %% @doc
+%%     launch/2 distributes a number of clients evenly among the client
+%%     nodes in the list passed as the second argument. This function
+%%     assumes that the list Nodes contains only the client nodes.
+%%
+%% @spec launch(Total_Num_Clients, Nodes) -> ok
+%% @end
+%%---------------------------------------------------------------------
+launch(Total_Num_Clients, Nodes) ->
+    case Nodes of
+	[] ->
+	    ok;
+        [H|T] ->
+	    Num_Clients_Node = Total_Num_Clients div length(Nodes),
+	    New_Total_Num_Clients = Total_Num_Clients - Num_Clients_Node,
+	    [Node_Name|_Rest] = string:tokens(atom_to_list(H),"@"),
+	    case string:sub_word(Node_Name, 2, $_) of
+		[] ->
+		    Num_Node = list_to_integer(string:sub_word(Node_Name, 2, $t));
+		Val ->
+		    Num_Node = list_to_integer(Val)
+	    end,		    
+	    spawn(H, fun() -> launch_node(H, Num_Clients_Node, Num_Node) end),
+	    launch(New_Total_Num_Clients, T)
+    end.
+
+%%---------------------------------------------------------------------
+%% @doc
 %%     launch/3 distributes a number of clients evenly among the number
 %%     of client nodes, and triggers the clients login logic.
 %%
@@ -286,7 +314,7 @@ launch(Total_Num_Clients, Num_Nodes, Domain) ->
 launch_node(_Node, Num_Clients, Num_Node) ->
     io:format("Setting up clients and traffic generators ", []),
     setup(Num_Clients, Num_Node).
-%% spawn(Node, fun() -> start_traffic(Num_Node, 0, Num_Clients, Num_Clients) end).
+    %% spawn(Node, fun() -> start_traffic(Num_Node, 0, Num_Clients, Num_Clients) end).
 
 %%---------------------------------------------------------------------
 %% @doc
@@ -344,6 +372,39 @@ setup_clients(Num_Clients, Num_Node)->
 launch_clients_db(Num_Node) ->
     DB_Name = client_db_name(Num_Node),
     start_local(DB_Name).
+
+%%---------------------------------------------------------------------
+%% @doc
+%%     launch_traffic/2 triggers the traffic generation. It spawns 
+%%     as many traffic generator processes as the half of the clients
+%%     logged in on each client node. This function assumes that the
+%%     list Nodes contains only the client nodes.
+%%
+%% @spec launch_traffic(Total_Num_Clients, Nodes) -> start_traffic/4
+%% @end
+%%---------------------------------------------------------------------
+launch_traffic(Total_Num_Clients, Nodes) ->
+    case Nodes of
+	[] ->
+	    ok;
+	[H|T] ->
+	    Num_Clients_Node = Total_Num_Clients div length(Nodes),
+	    New_Total_Num_Clients = Total_Num_Clients - Num_Clients_Node,
+	    io:format("Launching traffic generators at node: ~p~n", [H]),
+	    [Node_Name|_Rest] = string:tokens(atom_to_list(H),"@"),
+	    case string:sub_word(Node_Name, 2, $_) of
+		[] ->
+		    Num_Node = list_to_integer(string:sub_word(Node_Name, 2, $t));
+		Val ->
+		    Num_Node = list_to_integer(Val)
+	    end,
+	    spawn(H, fun() -> start_traffic(Num_Node,
+					    0,
+					    Num_Clients_Node,
+					    Num_Clients_Node div 2)
+		     end),
+	    launch_traffic(New_Total_Num_Clients, T)
+    end.
 
 %%---------------------------------------------------------------------
 %% @doc
@@ -448,7 +509,7 @@ interaction_generator(Environment, Sender, Receiver, Interactions)->
 %%=====================================================================
 %% The following functions are equivalent to the functions for the
 %% normal traffic generation. The difference is that they only generate
-%% 5 conversations, each of them 2 minutes long, and composed of 12
+%% 5 conversations, each of them 2 minutes long, and composed of 15
 %% messages. The generated traffic rate is similar to that of the normal
 %% traffic generators.
 %%=====================================================================

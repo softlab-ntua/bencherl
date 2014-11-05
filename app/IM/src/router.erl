@@ -15,13 +15,11 @@
 %%% Created : 25 Jul 2014 by Mario Moro Hernandez
 %%%-------------------------------------------------------------------
 -module(router).
--export([router_supervisor/5, router_process/1]).
+-export([router_supervisor/5, router_process/1, chaos_on/0, chaos_on/1, chaos_on/2]).
 
 -import(launcher, [launch_router_processes/6, launch_server_supervisors/4]).
-
 -import(server, [restart_server_supervisor/1]).
 
--import(rhesus, [extract_pids/2]).
 %%===============================================================================
 %% ROUTER PROCESSES CODE
 %%===============================================================================
@@ -130,6 +128,10 @@ router_supervisor(R_Sup_Mon_Pid, Monitored_Routers, Routers_List, Routers_Info, 
 	%% Termination logic
 	{'EXIT', normal} ->
 	    io:format("router_supervisor() terminated normally.~n");
+	%% ==== Uncomment these two lines for bencherl ====
+	%%{'EXIT', Pid, Reason} ->
+	%%    server_supervisor_loop(Server_Name, Client_DBs, Chat_DBs, Monitored_Processes);
+	%% Reliability control.
 	{'DOWN', _Ref, process, Pid, Reason} ->
 	    case Pid of
 		R_Sup_Mon_Pid ->
@@ -253,6 +255,9 @@ router_process({final_state, R_Sup_Pid, List_Routers, List_Monitored_Servers, Li
 	    Target_Server_Pid ! kill_server_process,
 	    router_process({final_state, R_Sup_Pid, List_Routers, List_Monitored_Servers, List_Servers, Server_Nodes});
 	%% Error Handling
+	%% ==== Uncomment these two lines for bencherl ====
+	%%{'EXIT', Pid, Reason} ->
+	%%    server_supervisor_loop(Server_Name, Client_DBs, Chat_DBs, Monitored_Processes);
 	%% monitored process finished normally
 	{'DOWN', _Ref, process, Pid, normal} ->
 	    New_Monitored_Servers = lists:keydelete(Pid, 2, List_Monitored_Servers),
@@ -319,6 +324,84 @@ router_process({recovery_state, R_Sup_Pid, List_Routers, List_Monitored_Servers,
     monitor_servers(List_Monitored_Servers, List_Servers),
     router_process({final_state, R_Sup_Pid, List_Routers, List_Monitored_Servers, List_Servers, Server_Nodes}).
 
+%%===============================================================================
+%% CHAOS GENERATION LOGIC
+%%===============================================================================
+chaos_on() ->
+    {A1, A2, A3} = now(),
+    random:seed(A1,A2,A3),
+    Timer = (random:uniform(3595) + 5) * 1000,
+    io:format("A random process will be killed every ~p seconds.~n", [Timer div 1000]),
+    chaos_on(Timer, undefined).
+
+chaos_on(Timer) ->
+    chaos_on(Timer, undefined).
+
+chaos_on(Timer, Router_Sup_Pid) ->
+    case Router_Sup_Pid of
+	undefined ->
+	    rhesus_gets_nervous(Timer);
+	Pid ->
+	    case is_process_alive(Pid) of
+		true ->
+		    rhesus_attack(Timer, Pid);
+		false ->
+		    rhesus_gets_nervous(Timer)
+	    end
+    end.
+
+rhesus_gets_nervous(Timer) ->
+    case find_router_sup_pid() of
+	not_found ->
+	    io:format("Router supervisor process not found on this node.~n");
+	R_Sup_Pid ->
+	    rhesus_attack(Timer, R_Sup_Pid)
+    end.
+
+rhesus_attack(Timer, Router_Sup_Pid)->
+    timer:sleep(Timer),
+    {A1, A2, A3} = now(),
+    random:seed(A1,A2,A3),
+    case random:uniform(4) of
+	1 ->
+	    Router_Sup_Pid ! rhesus_solves_conflict_router,
+	    chaos_on(Timer, Router_Sup_Pid);
+	_Other ->
+	    Router_Sup_Pid ! rhesus_solves_conflict_server,
+	    chaos_on(Timer, Router_Sup_Pid)
+    end.
+
+find_router_sup_pid() ->
+    find_router_sup_pid(erlang:processes()).
+
+find_router_sup_pid(List) ->
+    case List of
+	[] ->
+	    not_found;
+	[H|T] ->
+	    {Name,Tuple} = hd(erlang:process_info(H)),
+	    case Name of
+		current_function ->
+		    {_,F,_} = Tuple,
+		    case F of
+			router_supervisor ->
+			    H;
+			_Other ->
+			    find_router_sup_pid(T)
+		    end;
+		_Any_other ->
+		    find_router_sup_pid(T)
+	    end
+    end.
+
+extract_pids(List_Pids, List_Routers) ->
+    case List_Routers of
+	[] ->
+	    List_Pids;
+	[H|T] ->
+	    {_Name, Pid} = H,
+	    extract_pids([Pid|List_Pids],T)
+    end.
 
 %%===============================================================================
 %% AUXILIARY FUNCTIONS
