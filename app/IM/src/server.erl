@@ -153,8 +153,8 @@ server_supervisor_loop(Server_Name, Client_DBs, Chat_DBs, Monitored_Processes) -
 	    server_supervisor_loop(Server_Name, Client_DBs, Chat_DBs, Monitored_Processes);
 	%% reliability control.
 	%% ==== Uncomment these two lines for bencherl ====
-	%%{'EXIT', Pid, Reason} ->
-	%%    server_supervisor_loop(Server_Name, Client_DBs, Chat_DBs, Monitored_Processes);
+	{'EXIT', _Pid, _Reason} ->
+	    server_supervisor_loop(Server_Name, Client_DBs, Chat_DBs, Monitored_Processes);
 	%% monitored process finished normally
 	{'DOWN', _Ref, process, Pid, normal} ->
 	    ets:delete(Monitored_Proc_Table, Pid),

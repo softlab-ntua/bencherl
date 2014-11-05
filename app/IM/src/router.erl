@@ -129,8 +129,8 @@ router_supervisor(R_Sup_Mon_Pid, Monitored_Routers, Routers_List, Routers_Info, 
 	{'EXIT', normal} ->
 	    io:format("router_supervisor() terminated normally.~n");
 	%% ==== Uncomment these two lines for bencherl ====
-	%%{'EXIT', Pid, Reason} ->
-	%%    server_supervisor_loop(Server_Name, Client_DBs, Chat_DBs, Monitored_Processes);
+	{'EXIT', _Pid, _Reason} ->
+	     router_supervisor(R_Sup_Mon_Pid, Monitored_Routers, Routers_List, Routers_Info, Routers_DBs_Pids);
 	%% Reliability control.
 	{'DOWN', _Ref, process, Pid, Reason} ->
 	    case Pid of
@@ -256,8 +256,8 @@ router_process({final_state, R_Sup_Pid, List_Routers, List_Monitored_Servers, Li
 	    router_process({final_state, R_Sup_Pid, List_Routers, List_Monitored_Servers, List_Servers, Server_Nodes});
 	%% Error Handling
 	%% ==== Uncomment these two lines for bencherl ====
-	%%{'EXIT', Pid, Reason} ->
-	%%    server_supervisor_loop(Server_Name, Client_DBs, Chat_DBs, Monitored_Processes);
+	{'EXIT', _Pid, _Reason} ->
+	    router_process({final_state, R_Sup_Pid, List_Routers, List_Monitored_Servers, List_Servers, Server_Nodes});
 	%% monitored process finished normally
 	{'DOWN', _Ref, process, Pid, normal} ->
 	    New_Monitored_Servers = lists:keydelete(Pid, 2, List_Monitored_Servers),
