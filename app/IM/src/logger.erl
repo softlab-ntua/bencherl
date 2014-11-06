@@ -754,13 +754,11 @@ loop(Fd, Record, Technology, Condition, Trial, Dir) ->
 		    %% ++ "Trial = ~p~n", [Trial]),
 		    stop(Fd, latency_logger),
 		    %%XXX: Notify the coordinator that a logger has finished.
-                   H = net_adm:localhost(),
-                   DN = list_to_atom(lists:concat(["dashboard@", H])),
-                   case rpc:call(DN, erlang, whereis, [coordinator]) of
+                   case global:whereis_name(coordinator) of
                        undefined -> ok;
-                       _ -> { coordinator, DN } ! logger_stopped
+                       CoordinatorPid -> CoordinatorPid ! logger_stopped
                    end,
-		    ok
+                   ok
 	    end
     end.
 

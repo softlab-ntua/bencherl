@@ -12,7 +12,7 @@ bench_args(long, _Conf) ->
 run([Clients], Slaves, Conf) ->
   % Setup a coordinator to know when the benchmark finished. This is done by
   % counting the number of loggers that have finished.
-  register(coordinator, self()),
+  global:register_name(coordinator, self()),
   % Get the data dir in order to store the .csv output files there.
   {_,DataDir} = lists:keyfind(datadir, 1, Conf),
   % Get the benchmark arguments from the configuration.
@@ -22,31 +22,20 @@ run([Clients], Slaves, Conf) ->
   % Start the benchmark on the different client domains.
   launcher:start_bencherl(length(ServerNodes) div length(RouterNodes), 1,
     length(ServerNodes), length(ClientNodes), Slaves),
-  ClientDomains = find_domains(ClientNodes),
-  lists:foreach(fun(D) ->
-      logger:launch_latency("Bencherl_test", length(RouterNodes),
-        length(ServerNodes), Clients, length(ClientNodes), 1, D, DataDir ++ "/"),
-      timer:sleep(60000), %XXX: Just to make sure that all clients have logged in.
-      toxic_client:launch(Clients, length(ClientNodes), D),
-      timer:sleep(60000),
-      toxic_client:launch_traffic(Clients, length(ClientNodes), D)
-    end, ClientDomains),
+  logger:launch_latency("Bencherl_test", length(RouterNodes), length(ServerNodes),
+    Clients, 1, ClientNodes, DataDir ++ "/"),
+  timer:sleep(60000), %XXX: Just to make sure that all clients have logged in.
+  toxic_client:launch(Clients, ClientNodes),
+  timer:sleep(60000),
+  toxic_client:launch_traffic(Clients, ClientNodes),
   loop(length(ClientNodes)).
 
-%% filter_nodes/2 is a helper function that returns the nodes in the given list
-%% whose name starts with the given prefix.
+%% filter_nodes/2 returns the nodes in the given list whose name starts with
+%% the given prefix.
 filter_nodes(Nodes, Prefix) ->
   lists:filter(fun(N) ->
       string:sub_string(atom_to_list(N), 1, string:len(Prefix)) == Prefix
     end, Nodes).
-
-%% find_domains/1 is a helper function that returns the different domains of
-%% the given nodes.
-find_domains(Nodes) ->
-  lists:usort(lists:map(fun(N) ->
-      [_N, H] = string:tokens(atom_to_list(N), "@"),
-      list_to_atom(H)
-    end, Nodes)).
 
 %% loop/1 is a helper function that "prevents" run/3 from finishing until all
 %% loggers have halted. Without this function the benchmark would finish after
