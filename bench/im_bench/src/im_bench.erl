@@ -5,9 +5,9 @@
 bench_args(short, _Conf) ->
   [[8000]];
 bench_args(intermediate, _Conf) ->
-  [[8000]]; %XXX: Find a value that makes sense!
+  [[20000]]; %XXX: Find a value that makes sense!
 bench_args(long, _Conf) ->
-  [[8000]]. %XXX: Find a value that makes sense!
+  [[80000]]. %XXX: Find a value that makes sense!
 
 run([Clients], Slaves, Conf) ->
   % Setup a coordinator to know when the benchmark finished. This is done by
