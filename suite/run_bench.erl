@@ -134,7 +134,7 @@ main() ->
                         T -> lists:foreach(fun({Name, SubTimes}) -> RecordFun({Name, Bargs}, SubTimes) end, T)
                     end
             end,
-        lists:foreach(Fun, M:bench_args(Version, [{number_of_cores, Cores}])),
+        lists:foreach(Fun, M:bench_args(Version, [{number_of_cores, Cores}, {slaves, Slaves}])),
         file:close(OF),
 
 	%% Close the measurements file.

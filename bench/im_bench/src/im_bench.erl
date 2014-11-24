@@ -2,19 +2,22 @@
 
 -export([bench_args/2, run/3]).
 
-bench_args(short, _Conf) ->
-  [[8000]];
-bench_args(intermediate, _Conf) ->
-  [[20000]]; %XXX: Find a value that makes sense!
-bench_args(long, _Conf) ->
-  [[80000]]. %XXX: Find a value that makes sense!
+bench_args(Vsn, Conf) ->
+  { _, Slaves } = lists:keyfind(slaves, 1, Conf),   
+  ClientNodes = filter_nodes(Slaves, "client"),
+  Ratio = case Vsn of
+            short        -> 2000;
+            intermediate -> 4000;
+            long         -> 8000
+          end,
+  [[ Ratio * length(ClientNodes) ]].
 
 run([Clients], Slaves, Conf) ->
   % Setup a coordinator to know when the benchmark finished. This is done by
   % counting the number of loggers that have finished.
   global:register_name(coordinator, self()),
   % Get the data dir in order to store the .csv output files there.
-  {_,DataDir} = lists:keyfind(datadir, 1, Conf),
+  { _, DataDir } = lists:keyfind(datadir, 1, Conf),
   % Get the benchmark arguments from the configuration.
   ClientNodes = filter_nodes(Slaves, "client"),
   ServerNodes = filter_nodes(Slaves, "server"),
