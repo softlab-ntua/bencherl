@@ -419,7 +419,11 @@ done
 
 source $BENCHERL_ROOT/conf/run.conf
 
-CORES=`cat /proc/cpuinfo | grep processor | wc -l`
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    CORES=`sysctl hw.ncpu | awk '{print $2}'`
+else # Assuming that everything else is Linux! =)
+    CORES=`cat /proc/cpuinfo | grep processor | wc -l`
+fi
 
 if [ -z $MNEMONIC_NAME ]; then
     MNEMONIC_NAME=`date +%d.%m.%y-%H.%M.%S`
