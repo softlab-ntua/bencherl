@@ -68,7 +68,7 @@ main() ->
 	%% Run the benchmark for all argument sets.
         RunFun = fun(Coordinator, CurArgs) -> group_leader(OF, self()),
                     T0 = now(),
-                    Return = apply(M, run, [CurArgs, Slaves, [{datadir, DataDir}, {master, Master}]]),
+                    Return = apply(M, run, [CurArgs, Slaves, [{datadir, DataDir}, {master, Master}, {schedulers, S}]]),
                     Dur = timer:now_diff(now(), T0)/1000,
                     Coordinator ! {done, {Return, Dur}}
         end,
