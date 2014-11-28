@@ -432,6 +432,7 @@ start_latency(Technology, Routers, Servers, Clients, Series, Num_Node, Dir) ->
 				     "Node",
 				     integer_to_list(Num_Node)], "_"),
 	    register(latency_logger, spawn(fun() ->
+	                                           put(stats, []),
 						   loop(element(2, create_file(Dir,
 						                               Technology,
 									       "Latency",
@@ -723,6 +724,8 @@ loop(Fd, Record, Technology, Condition, Trial, Dir) ->
 	{d, Metadata, Latency} ->
 	    {Unique_ID, Session_Name, Client_A, Client_B, Timestamp} = Metadata,
 	    {{Y,M,D},{Hour,Min,Sec}} = calendar:now_to_local_time(Timestamp),
+	    Stats = get(stats),
+           put(stats, [{Session_Name, Client_A, Client_B, Latency} | Stats]),
 	    io:fwrite(Fd,"~p,~p:~p:~p ~p/~p/~p,~p,~p,~p,~p~n", [Unique_ID,
 								Hour,
 								Min,
@@ -753,10 +756,17 @@ loop(Fd, Record, Technology, Condition, Trial, Dir) ->
 		    %%io:format("stop_latency received; case Trial > 0 of false."
 		    %% ++ "Trial = ~p~n", [Trial]),
 		    stop(Fd, latency_logger),
+		    %%XXX My super stats!
+                   Stats = [Lat || {_, _, _, Lat} <- get(stats)],
+		    L = length(Stats),
+		    Avg = lists:sum(Stats)/L,
+                   Median = lists:nth(L div 2, lists:sort(Stats)),
 		    %%XXX: Notify the coordinator that a logger has finished.
                    case global:whereis_name(coordinator) of
                        undefined -> ok;
-                       CoordinatorPid -> CoordinatorPid ! logger_stopped
+                       CoordinatorPid ->
+                         CoordinatorPid ! {stats, node(), L, Avg, Median},
+                         CoordinatorPid ! logger_stopped
                    end,
                    ok
 	    end

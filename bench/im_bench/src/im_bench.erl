@@ -31,7 +31,14 @@ run([Clients], Slaves, Conf) ->
   toxic_client:launch(Clients, ClientNodes),
   timer:sleep(60000),
   toxic_client:launch_traffic(Clients, ClientNodes),
-  loop(length(ClientNodes)).
+  {ok, Fd} = file:open(DataDir ++ "/statistics.txt", [append]),
+
+  io:fwrite(Fd, "# Conf: ~w scheduler(s), ~w server(s), ~w router(s), "
+        "~w client(s), ~w client processes~n",
+    [element(2, lists:keyfind(schedulers, 1, Conf)), length(ServerNodes),
+     length(RouterNodes), length(ClientNodes), Clients]),
+  loop(length(ClientNodes), Fd),
+  ok = file:close(Fd).
 
 %% filter_nodes/2 returns the nodes in the given list whose name starts with
 %% the given prefix.
@@ -44,8 +51,11 @@ filter_nodes(Nodes, Prefix) ->
 %% loggers have halted. Without this function the benchmark would finish after
 %% launching the traffic generators and, thus, bencherl would kill all spawned
 %% nodes, i.e. routers, servers, etc.
-loop(0) -> ok;
-loop(N_Loggers) ->
+loop(0, _) -> ok;
+loop(N_Loggers, Fd) ->
   receive
-    logger_stopped -> loop(N_Loggers - 1)
+    logger_stopped -> loop(N_Loggers - 1, Fd);
+    {stats, Node, L, Avg, Mean} ->
+        io:fwrite(Fd, "~p ~w ~w ~w~n", [Node, L, Avg, Mean]),
+        loop(N_Loggers, Fd)
   end.
