@@ -84,7 +84,7 @@ client({Client_Name, Client_Monitor_Pid, Chat_Pids, Routers_List}) ->
 				{chat_session_success_sender, Session_Name, Chat_Session_Pid} ->
 				    io:format("Client_A received {chat_session_success, Chat_Session_Pid}.~n"),
 				    New_Chat_Pids = Chat_Pids ++ [{Session_Name, Chat_Session_Pid}],
-				    Chat_Session_Pid ! {Sender, Receiver, now(), Message},
+				    Chat_Session_Pid ! {Sender, Receiver, os:timestamp(), Message},
 				    client({Client_Name, Client_Monitor_Pid, New_Chat_Pids, Routers_List});
 				{receiver_not_found, Receiver} ->
 				    io:format("Sorry, but ~p is not logged in.~n", [Receiver]),
@@ -95,7 +95,7 @@ client({Client_Name, Client_Monitor_Pid, Chat_Pids, Routers_List}) ->
 			    end
 		    end;
 		Chat_Session_Pid ->
-		    Chat_Session_Pid ! {Sender, Receiver, now(), Message},
+		    Chat_Session_Pid ! {Sender, Receiver, os:timestamp(), Message},
 		    client({Client_Name, Client_Monitor_Pid, Chat_Pids, Routers_List})
 	    end;
 	{chat_session_success_receiver, Session_Name, Chat_Session_Pid} ->
@@ -104,7 +104,7 @@ client({Client_Name, Client_Monitor_Pid, Chat_Pids, Routers_List}) ->
 	    Client_Monitor_Pid ! {add_chat_session, {Session_Name, Chat_Session_Pid}},
 	    client({Client_Name, Client_Monitor_Pid, New_Chat_Pids, Routers_List});
 	{Metadata, message_delivered_ok} ->
-	    Timestamp_2 = now(),
+	    Timestamp_2 = os:timestamp(),
 	    {_, _, _, Timestamp_1} = Metadata,
 	    Latency = timer:now_diff(Timestamp_2, Timestamp_1)/2,
 	    {{_Y, _M, _D}, {H, M, S}} = calendar:now_to_local_time(Timestamp_2),
@@ -240,7 +240,7 @@ message(From, To, Message) ->
 %% @end
 %%--------------------------------------------------------------------
 pick_router(Routers_List) ->
-    {A1, A2, A3} = now(),
+    {A1, A2, A3} = os:timestamp(),
     random:seed(A1, A2, A3),
     Router = lists:nth(random:uniform(length(Routers_List)),Routers_List),
     {_, Router_Pid} = Router,

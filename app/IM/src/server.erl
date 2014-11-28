@@ -194,7 +194,7 @@ server_supervisor_loop(Server_Name, Client_DBs, Chat_DBs, Monitored_Processes) -
 	    New_Chat_DBs = db_names_swap(Chat_DBs),
 	    server_supervisor_loop(Server_Name, New_Client_DBs, New_Chat_DBs, Monitored_Processes);
 	kill_server_process ->
-	    {A1, A2, A3} = now(),
+	    {A1, A2, A3} = os:timestamp(),
 	    random:seed(A1, A2, A3),
 	    case random:uniform(60) of
 		Number when Number =< 12 ->

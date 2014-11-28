@@ -652,7 +652,7 @@ loop({recording, Fd1, Fd2, Table_Name, Num_Trials, Threshold, Statistics},
 	    loop({recording, Fd1, Fd2, Table_Name, Num_Trials, Threshold,
 	          New_Statistics}, Dir);
 	{new_trial, New_Num_Trials} ->
-	    {{Y, M, D},{Hour,Min,Sec}} = calendar:now_to_local_time(now()),
+	    {{Y, M, D},{Hour,Min,Sec}} = calendar:now_to_local_time(os:timestamp()),
 	    Time = string:join([integer_to_list(Hour), integer_to_list(Min),
 	                        integer_to_list(Sec)], ":"),
 	    Date = string:join([integer_to_list(D), integer_to_list(M),
