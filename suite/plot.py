@@ -54,7 +54,7 @@ class Conf(object):
     for x in Conf.attrs:
       k = getattr(self, x)
       xs.append("%s: %s" % (x.capitalize(), k))
-    return ", ".join(xs)
+    return "\n".join(xs)
   
   def add_latency(self, node, lncy):
     self.latencies[node] = lncy
@@ -147,7 +147,7 @@ for cmb in combos:
         v = getattr(c, xdim), c.get_latency()
         data.append(v)
       x, y = zip(*sorted(data))
-      # Create the figure
+      # Create the latency figure
       fig = plt.figure()
       ax = fig.add_subplot(111)
       ax.set_xlabel(xdim.capitalize())
@@ -164,3 +164,24 @@ for cmb in combos:
       plt.yticks(fontsize=9)
       #plt.show()
       plt.savefig(fname_combo(cmb, key))
+
+# Gather the latency data from all the configurations
+x = np.arange(0, len(confs), 1)
+lbls, y = [], []
+for c in confs.values():
+  lbls.append(str(c))
+  y.append(c.get_latency())
+# Create the latency figure of all the configurations
+fig = plt.figure()
+ax = fig.add_subplot(111)
+ax.set_xlabel("Configuration")
+ax.set_ylabel(Latency.default.capitalize() + " latency (in " + Latency.defaultUnit + ")")
+line, = ax.plot(x, y, 'o', lw=2, ms=8)
+ax.set_xticks(x)
+ax.set_xticklabels(lbls)
+ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
+plt.xticks(fontsize=9)
+plt.yticks(fontsize=9)
+plt.tight_layout()
+#plt.show()
+plt.savefig("overall_latency.png")
