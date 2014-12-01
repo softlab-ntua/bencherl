@@ -37,9 +37,10 @@ run([Clients], Slaves, Conf) ->
         "~w client(s), ~w client processes~n",
     [element(2, lists:keyfind(schedulers, 1, Conf)), length(ServerNodes),
      length(RouterNodes), length(ClientNodes), Clients]),
+  io:fwrite(Fd, "# <Node> <Messages> <Average Latency> <Median Latency>~n", []),
   loop(length(ClientNodes), Fd),
   EndTime = os:timestamp(),
-  io:fwrite(Fd, "* Execution time: ~w secs~n",
+  io:fwrite(Fd, "* Execution time: ~w secs.~n",
     [timer:now_diff(EndTime, StartTime) / 1000000]),
   ok = file:close(Fd).
 
@@ -59,6 +60,6 @@ loop(N_Loggers, Fd) ->
   receive
     logger_stopped -> loop(N_Loggers - 1, Fd);
     {stats, Node, L, Avg, Mean} ->
-        io:fwrite(Fd, "~p ~w ~w ~w~n", [Node, L, Avg, Mean]),
+        io:fwrite(Fd, "~p ~w ~w microsecs ~w microsecs~n", [Node, L, Avg, Mean]),
         loop(N_Loggers, Fd)
   end.
