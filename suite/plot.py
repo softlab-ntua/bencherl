@@ -15,11 +15,17 @@ class Latency(object):
   attrs = set(["messages", "average", "median"])
   # The attribute that is used for the plots
   default = "median"
+  unitFactors = {"microsecs" : 1.0, "millisecs" : 1000.0}
+  defaultUnit = "microsecs"
   
   def __init__(self, **kwargs):
     for k in Latency.attrs:
-      v = kwargs[k]
-      setattr(self, k, v)
+      (tp, v) = kwargs[k]
+      if tp == None:
+        vv = v
+      else:
+        vv = v * Latency.unitFactors[tp]
+      setattr(self, k, vv)
 
   def __str__(self):
     xs = []
@@ -106,9 +112,12 @@ with open(sys.argv[1]) as f:
     # Latency results at a node
     else:
       mtch = re.search(r"'(.+)'\s+(\d+)\s+([\d\.]+)\s+(\w+)\s+([\d\.]+)\s+(\w+)", l, re.I)
-      ks = { "messages" : int(mtch.group(2))
-           , "average" : float(mtch.group(3))
-           , "median" : float(mtch.group(5))
+      ks = { "messages" :
+               (None, int(mtch.group(2)))
+           , "average" :
+               (mtch.group(4), float(mtch.group(3)))
+           , "median" :
+               (mtch.group(6), float(mtch.group(5)))
            }
       lncy = Latency(**ks)
       c.add_latency(mtch.group(1), lncy)
@@ -142,7 +151,7 @@ for cmb in combos:
       fig = plt.figure()
       ax = fig.add_subplot(111)
       ax.set_xlabel(xdim.capitalize())
-      ax.set_ylabel(Latency.default.capitalize() + " latency (in ms)")
+      ax.set_ylabel(Latency.default.capitalize() + " latency (in " + Latency.defaultUnit + ")")
       ax.set_title(pp_combo(cmb, key))
       line, = ax.plot(x, y, '-o', lw=2, ms=8)
       # Set the xaxis ticks
