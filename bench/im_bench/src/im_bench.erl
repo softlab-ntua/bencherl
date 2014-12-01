@@ -5,12 +5,19 @@
 bench_args(Vsn, Conf) ->
   { _, Slaves } = lists:keyfind(slaves, 1, Conf),   
   ClientNodes = filter_nodes(Slaves, "client"),
-  Ratio = case Vsn of
-            short        -> 2000;
-            intermediate -> 4000;
-            long         -> 8000
-          end,
-  [[ Ratio * length(ClientNodes) ]].
+  Ratio =
+    case Vsn of
+      short        ->  5000;
+      intermediate -> 10000;
+      long         -> 15000
+    end,
+  ClientProcs =
+    case os:getenv("CLIENT_PROCS") of
+       false -> Ratio * length(ClientNodes);
+       P     -> erlang:list_to_integer(P)
+    end,
+  io:format("Number of client processes: ~p~n", [ClientProcs]),
+  [[ ClientProcs ]].
 
 run([Clients], Slaves, Conf) ->
   % Setup a coordinator to know when the benchmark finished. This is done by
