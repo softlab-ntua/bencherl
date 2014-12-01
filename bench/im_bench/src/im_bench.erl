@@ -30,14 +30,17 @@ run([Clients], Slaves, Conf) ->
   timer:sleep(60000), %XXX: Just to make sure that all clients have logged in.
   toxic_client:launch(Clients, ClientNodes),
   timer:sleep(60000),
+  StartTime = os:timestamp(),
   toxic_client:launch_traffic(Clients, ClientNodes),
   {ok, Fd} = file:open(DataDir ++ "/statistics.txt", [append]),
-
   io:fwrite(Fd, "# Conf: ~w scheduler(s), ~w server(s), ~w router(s), "
         "~w client(s), ~w client processes~n",
     [element(2, lists:keyfind(schedulers, 1, Conf)), length(ServerNodes),
      length(RouterNodes), length(ClientNodes), Clients]),
   loop(length(ClientNodes), Fd),
+  EndTime = os:timestamp(),
+  io:fwrite(Fd, "* Execution time: ~w secs~n",
+    [timer:now_diff(EndTime, StartTime) / 1000000]),
   ok = file:close(Fd).
 
 %% filter_nodes/2 returns the nodes in the given list whose name starts with
