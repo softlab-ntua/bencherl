@@ -60,7 +60,7 @@ class Conf(object):
     xs = [getattr(l, Latency.default) for l in self.latencies.values()]
     return sum(xs) / float(len(xs))
 
-def reg_find(pat, s):
+def reg_find_conf(pat, s):
   return re.search(pat, s, re.I).group(1)
 
 def pp_combo(xs, vs):
@@ -86,26 +86,32 @@ if len(sys.argv) < 2:
 curr, confs = None, {}
 with open(sys.argv[1]) as f:
   for l in f.readlines():
+    # Declaration of a configuration
     if l.startswith("# Conf:"):
-      # Declaration of a configuration
-      ks = { "schedulers" : int(reg_find(r'(\d+) scheduler\(s\)', l))
-           , "servers" : int(reg_find(r'(\d+) server\(s\)', l))
-           , "routers" : int(reg_find(r'(\d+) router\(s\)', l))
-           , "clients" : int(reg_find(r'(\d+) client\(s\)', l))
-           , "client_processes" : int(reg_find(r'(\d+) client processes', l))
+      ks = { "schedulers" : int(reg_find_conf(r'(\d+) scheduler\(s\)', l))
+           , "servers" : int(reg_find_conf(r'(\d+) server\(s\)', l))
+           , "routers" : int(reg_find_conf(r'(\d+) router\(s\)', l))
+           , "clients" : int(reg_find_conf(r'(\d+) client\(s\)', l))
+           , "client_processes" : int(reg_find_conf(r'(\d+) client processes', l))
            }
       c = Conf(**ks)
       confs[c.id] = c
       curr = c
+    # Comment
+    elif l.startswith("#"):
+      pass
+    # Execution time
+    elif l.startswith("*"):
+      pass
+    # Latency results at a node
     else:
-      # Latency results at a node
-      [node, msgs, avg, mdn] = l.strip().split(" ")
-      ks = { "messages" : int(msgs.strip())
-           , "average" : float(avg.strip())
-           , "median" : float(mdn.strip())
+      mtch = re.search(r"'(.+)'\s+(\d+)\s+([\d\.]+)\s+(\w+)\s+([\d\.]+)\s+(\w+)", l, re.I)
+      ks = { "messages" : int(mtch.group(2))
+           , "average" : float(mtch.group(3))
+           , "median" : float(mtch.group(5))
            }
       lncy = Latency(**ks)
-      c.add_latency(node.strip(), lncy)
+      c.add_latency(mtch.group(1), lncy)
   f.close()
 
 # Get all the possible combinations of n-1 dimensions
