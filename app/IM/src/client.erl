@@ -106,7 +106,7 @@ client({Client_Name, Client_Monitor_Pid, Chat_Pids, Routers_List}) ->
 	{Metadata, message_delivered_ok} ->
 	    Timestamp_2 = os:timestamp(),
 	    {_, _, _, Timestamp_1} = Metadata,
-	    Latency = timer:now_diff(Timestamp_2, Timestamp_1)/2,
+	    Latency = timer:now_diff(Timestamp_2, Timestamp_1),
 	    {{_Y, _M, _D}, {H, M, S}} = calendar:now_to_local_time(Timestamp_2),
 	    io:format("ok. ~p:~p:~p Latency = ~p microseconds~n", [H, M, S, Latency]),
 	    client({Client_Name, Client_Monitor_Pid, Chat_Pids, Routers_List});

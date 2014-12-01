@@ -124,7 +124,7 @@ client({Client_Name, Client_Monitor_Pid, Chat_Pids, Routers_List}) ->
 	{Metadata, message_delivered_ok} ->
 	    Timestamp_2 = os:timestamp(),
 	    {_, _, _, _, Timestamp_1} = Metadata,
-	    Latency = timer:now_diff(Timestamp_2, Timestamp_1)/2,
+	    Latency = timer:now_diff(Timestamp_2, Timestamp_1),
 	    %%io:format("ok. Latency = ~p microseconds~n", [Latency]),
 	    notify_logger(d, Metadata, Latency),
 	    client({Client_Name, Client_Monitor_Pid, Chat_Pids, Routers_List});
