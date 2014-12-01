@@ -505,17 +505,19 @@ start_latency(Technology, Condition, Num_of_trials, Dir) ->
 %%                                {error, unable_to_open_file}
 %% @end 
 %%---------------------------------------------------------------------
-create_file(Dir, FileName) ->
-    case file:open(Dir ++ FileName,[read,write]) of
-	{ok, Fd} ->
-	    {ok, Eof} = file:position(Fd,eof),
-	    file:position(Fd,Eof),
-	    io:format("INFO: The logger process has been started.~n"),
-	    {ok, Fd};
-	_ ->
-	    io:format("ERROR: The file cannot be opened.~n"),
-	    {error, unable_to_open_file}
-    end.
+create_file(_Dir, _FileName) ->
+%    case file:open(Dir ++ FileName,[read,write]) of
+%	{ok, Fd} ->
+%	    {ok, Eof} = file:position(Fd,eof),
+%	    file:position(Fd,Eof),
+%	    io:format("INFO: The logger process has been started.~n"),
+%	    {ok, Fd};
+%	_ ->
+%	    io:format("ERROR: The file cannot be opened.~n"),
+%	    {error, unable_to_open_file}
+%    end.
+    io:format("INFO: The logger process has been started.~n"),
+    {ok, fd}.
 
 %%---------------------------------------------------------------------
 %% @doc
@@ -538,20 +540,22 @@ create_file(Dir, FileName) ->
 %%                  {file_descriptor, Fd} | {error, unable_to_open_file}
 %% @end
 %%---------------------------------------------------------------------
-create_file(Dir, Technology, Benchmark, Condition, Trial) ->
-    Tr = integer_to_list(Trial),
-    FileName =
-      Dir ++ string:join([Technology, Tr, Benchmark, Condition],"_") ++ ".csv",
-    case file:open(FileName,[read,write]) of
-	{ok, Fd} ->
-	    {ok, Eof} = file:position(Fd,eof),
-	    file:position(Fd,Eof),
-	    io:format("INFO: The log file has been created.~n"),
-	    {file_descriptor, Fd};
-	_ ->
-	    io:format("ERROR: The file cannot be opened.~n"),
-	    {error, unable_to_open_file}
-    end.
+create_file(_Dir, _Technology, _Benchmark, _Condition, _Trial) ->
+%    Tr = integer_to_list(Trial),
+%    FileName =
+%      Dir ++ string:join([Technology, Tr, Benchmark, Condition],"_") ++ ".csv",
+%    case file:open(FileName,[read,write]) of
+%	{ok, Fd} ->
+%	    {ok, Eof} = file:position(Fd,eof),
+%	    file:position(Fd,Eof),
+%	    io:format("INFO: The log file has been created.~n"),
+%	    {file_descriptor, Fd};
+%	_ ->
+%	    io:format("ERROR: The file cannot be opened.~n"),
+%	    {error, unable_to_open_file}
+%    end.
+    io:format("INFO: The log file has been created.~n"),
+    {file_descriptor, fd}.
 
 %%---------------------------------------------------------------------
 %% @doc
@@ -565,13 +569,13 @@ create_file(Dir, Technology, Benchmark, Condition, Trial) ->
 %% @spec stop(Fd, Logger) -> Message.
 %% @end
 %%---------------------------------------------------------------------
-stop(Fd, Logger) ->
+stop(_Fd, Logger) ->
     case whereis(Logger) of
         undefined ->
             io:format("ERROR: The logger process cannot be stopped because it"
                       ++ "has not started.~n");
         _ ->
-            file:close(Fd),
+%            file:close(Fd),
             unregister(Logger),
             io:format("INFO: The logger process has been stopped.~n")
     end.
@@ -605,8 +609,9 @@ loop({initial_state, Table_Name, Num_Trials, Threshold}, Dir) ->
 	    io:format("ERROR: throughput logger cannot start.~n"),
 	    exit(io_error_create_file);
 	_Another ->
-	    io:fwrite(Fd2, "=============== Beginning of Benchmarks ========="
-	        ++ "======~n~n",[])
+%            io:fwrite(Fd2, "=============== Beginning of Benchmarks ========="
+%	        ++ "======~n~n",[])
+	    ok
     end,
     Statistics = {0,0,0,0},
     loop({recording, Fd1, Fd2, TN, Num_Trials, Threshold, Statistics}, Dir);
@@ -653,55 +658,55 @@ loop({recording, Fd1, Fd2, Table_Name, Num_Trials, Threshold, Statistics},
 	          New_Statistics}, Dir);
 	{new_trial, New_Num_Trials} ->
 	    {{Y, M, D},{Hour,Min,Sec}} = calendar:now_to_local_time(os:timestamp()),
-	    Time = string:join([integer_to_list(Hour), integer_to_list(Min),
+	    _Time = string:join([integer_to_list(Hour), integer_to_list(Min),
 	                        integer_to_list(Sec)], ":"),
-	    Date = string:join([integer_to_list(D), integer_to_list(M),
+	    _Date = string:join([integer_to_list(D), integer_to_list(M),
 	                        integer_to_list(Y)], "/"),
-	    case Sent /= 0 of
+	    _ = case Sent /= 0 of
 		true ->
-		    QoS = (Dlv_Blw_Thr / Sent) * 100;
+		    _QoS = (Dlv_Blw_Thr / Sent) * 100;
 		false ->
-		    QoS = "N/A"
+		    _QoS = "N/A"
 	    end,
-	    io:fwrite(Fd1,"~p,~p,~p,~p,~p,~p,~p,~p,~p~n",  [Num_Trials,
-							    Time,
-							    Date,
-							    Threshold,
-							    Sent,
-							    Received,
-							    Delivered,
-							    Dlv_Blw_Thr,
-							    QoS]),
-	    io:fwrite(Fd2, "Trial ~p: ~p ~p~nThreshold:~p~nMessages Sent: ~p~n"
-	        ++ "Messages Received: ~p~nMessages Delivered: ~p~nMessages"
-	        ++ "Delivered below threshold: ~p~nQuality of service:~p \%"
-	        ++ "~n~n", [Num_Trials, Time, Date, Threshold, Sent, Received,
-	                    Delivered, Dlv_Blw_Thr, QoS]),
+	%    io:fwrite(Fd1,"~p,~p,~p,~p,~p,~p,~p,~p,~p~n",  [Num_Trials,
+	%						    Time,
+	%						    Date,
+	%						    Threshold,
+	%						    Sent,
+	%						    Received,
+	%						    Delivered,
+	%						    Dlv_Blw_Thr,
+	%						    QoS]),
+	%    io:fwrite(Fd2, "Trial ~p: ~p ~p~nThreshold:~p~nMessages Sent: ~p~n"
+	%        ++ "Messages Received: ~p~nMessages Delivered: ~p~nMessages"
+	%        ++ "Delivered below threshold: ~p~nQuality of service:~p \%"
+	%        ++ "~n~n", [Num_Trials, Time, Date, Threshold, Sent, Received,
+	%                    Delivered, Dlv_Blw_Thr, QoS]),
 	    loop({recording, Fd1, Fd2, Table_Name, New_Num_Trials, Threshold,
 	         {0,0,0,0}}, Dir);
 	{stop_throughput} ->
-	    io:fwrite(Fd2, "=============== End of Benchmarks ==============="
-	              ++ "~n~n", []),
-	    file:close(Fd1),
-	    file:close(Fd2),
+	%    io:fwrite(Fd2, "=============== End of Benchmarks ==============="
+	%              ++ "~n~n", []),
+	%    file:close(Fd1),
+	%    file:close(Fd2),
 	    ok		
     end;
 
 loop({recording, Fd}, Dir) ->
     receive
-	{d, Metadata, Latency} ->
-	    {Unique_ID, Session_Name, Client_A, Client_B, Timestamp} = Metadata,
-	    {{Y,M,D},{Hour,Min,Sec}} = calendar:now_to_local_time(Timestamp),
-	    io:fwrite(Fd,"~p, ~p:~p:~p ~p/~p/~p,~p,~p,~p,~p~n", [Unique_ID,
-								 Hour,
-								 Min,
-								 Sec,
-								 D, M, Y,
-								 Session_Name,
-								 Client_A,
-								 Client_B,
-								 Latency]),
-	    file:position(Fd,eof),
+	{d, Metadata, _Latency} ->
+	    {_Unique_ID, _Session_Name, _Client_A, _Client_B, Timestamp} = Metadata,
+	    {{_Y,_M,_D},{_Hour,_Min,_Sec}} = calendar:now_to_local_time(Timestamp),
+	%    io:fwrite(Fd,"~p, ~p:~p:~p ~p/~p/~p,~p,~p,~p,~p~n", [Unique_ID,
+	%							 Hour,
+	%							 Min,
+	%							 Sec,
+	%							 D, M, Y,
+	%							 Session_Name,
+	%							 Client_A,
+	%							 Client_B,
+	%							 Latency]),
+	%    file:position(Fd,eof),
 	    loop({recording, Fd}, Dir);
 	stop ->
 	    stop(Fd, logger);
@@ -722,20 +727,20 @@ loop({recording, Fd}, Dir) ->
 loop(Fd, Record, Technology, Condition, Trial, Dir) ->
     receive
 	{d, Metadata, Latency} ->
-	    {Unique_ID, Session_Name, Client_A, Client_B, Timestamp} = Metadata,
-	    {{Y,M,D},{Hour,Min,Sec}} = calendar:now_to_local_time(Timestamp),
+	    {_Unique_ID, Session_Name, Client_A, Client_B, Timestamp} = Metadata,
+	    {{_Y,_M,_D},{_Hour,_Min,_Sec}} = calendar:now_to_local_time(Timestamp),
 	    Stats = get(stats),
            put(stats, [{Session_Name, Client_A, Client_B, Latency} | Stats]),
-	    io:fwrite(Fd,"~p,~p:~p:~p ~p/~p/~p,~p,~p,~p,~p~n", [Unique_ID,
-								Hour,
-								Min,
-								Sec,
-								D, M, Y,
-								Session_Name,
-								Client_A,
-								Client_B,
-								Latency]),
-	    file:position(Fd,eof),
+	%    io:fwrite(Fd,"~p,~p:~p:~p ~p/~p/~p,~p,~p,~p,~p~n", [Unique_ID,
+	%							Hour,
+	%							Min,
+	%							Sec,
+	%							D, M, Y,
+	%							Session_Name,
+	%							Client_A,
+	%							Client_B,
+	%							Latency]),
+	%    file:position(Fd,eof),
 	    case Record =< 20000 of
 		true ->
 		    %%io:format("Trial: ~p, Record: ~p~n", [Trial, Record]),
@@ -749,7 +754,7 @@ loop(Fd, Record, Technology, Condition, Trial, Dir) ->
 		true ->
 		    %%io:format("stop_latency received; case Trial > 0 of true."
 		    %% ++ "Trial = ~p~n", [Trial]),
-		    file:close(Fd),
+%		    file:close(Fd),
 		    loop(element(2,create_file(Dir, Technology, "Latency", Condition,
 		         Trial - 1)), 0, Technology, Condition, Trial - 1, Dir);
 		false ->
