@@ -16,7 +16,7 @@ bench_args(Vsn, Conf) ->
        false -> Ratio * length(ClientNodes);
        P     -> erlang:list_to_integer(P)
     end,
-  io:format("Number of client processes: ~p~n", [ClientProcs]),
+  %io:format("Number of client processes: ~p~n", [ClientProcs]),
   [[ ClientProcs ]].
 
 run([Clients], Slaves, Conf) ->
