@@ -29,24 +29,30 @@ run([Clients], Slaves, Conf) ->
   ClientNodes = filter_nodes(Slaves, "client"),
   ServerNodes = filter_nodes(Slaves, "server"),
   RouterNodes = filter_nodes(Slaves, "router"),
+  NC = length(ClientNodes),
   % Start the benchmark on the different client domains.
   launcher:start_bencherl(length(ServerNodes) div length(RouterNodes), 1,
-    length(ServerNodes), length(ClientNodes), Slaves),
-  logger:launch_latency("Bencherl_test", length(RouterNodes), length(ServerNodes),
-    Clients, 1, ClientNodes, DataDir ++ "/"),
+    length(ServerNodes), NC, Slaves),
+  %timer:sleep(10000),
+  logger:launch_latency("Bencherl_test", length(RouterNodes),
+    length(ServerNodes), Clients, 1, ClientNodes, DataDir ++ "/"),
   timer:sleep(60000), %XXX: Just to make sure that all clients have logged in.
   toxic_client:launch(Clients, ClientNodes),
-  loop_launch_clients(length(ClientNodes)),
+  loop_launch_clients(NC),
   {ok, Fd} = file:open(DataDir ++ "/statistics.txt", [append]),
   io:fwrite(Fd, "# Conf: ~w scheduler(s), ~w server(s), ~w router(s), "
         "~w client(s), ~w client processes~n",
     [element(2, lists:keyfind(schedulers, 1, Conf)), length(ServerNodes),
-     length(RouterNodes), length(ClientNodes), Clients]),
+     length(RouterNodes), NC, Clients]),
   io:fwrite(Fd, "# <Node> <Messages> <Average Latency> <Median Latency>~n", []),
   StartTime = os:timestamp(),
   toxic_client:launch_traffic(Clients, ClientNodes),
-  loop(length(ClientNodes), Fd),
+  timer:sleep(30000), % Benchmark duration.
+  lists:foreach(fun (N) -> {latency_logger, N} ! {stop_latency, 0} end,
+    ClientNodes),
   EndTime = os:timestamp(),
+  %timer:sleep(1000),
+  loop(NC, Fd),
   io:fwrite(Fd, "* Execution time: ~w secs.~n",
     [timer:now_diff(EndTime, StartTime) / 1000000]),
   ok = file:close(Fd).
@@ -64,7 +70,8 @@ filter_nodes(Nodes, Prefix) ->
 loop_launch_clients(0) -> ok;
 loop_launch_clients(N_Nodes) ->
   receive
-    clients_setup_ok -> loop_launch_clients(N_Nodes - 1)
+    clients_setup_ok ->
+        loop_launch_clients(N_Nodes - 1)
   end.
 
 %% loop/1 is a helper function that "prevents" run/3 from finishing until all

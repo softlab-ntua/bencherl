@@ -432,18 +432,18 @@ start_latency(Technology, Routers, Servers, Clients, Series, Num_Node, Dir) ->
 				     "Node",
 				     integer_to_list(Num_Node)], "_"),
 	    register(latency_logger, spawn(fun() ->
-	                                           put(stats, []),
-						   loop(element(2, create_file(Dir,
-						                               Technology,
-									       "Latency",
-									       Condition,
-									       Series)),
-							0,
-							Technology,
-							Condition,
-							Series,
-						        Dir)
-					   end));
+                put(stats, []),
+		loop(element(2, create_file(Dir,
+		                            Technology,
+					    "Latency",
+					    Condition,
+					    Series)),
+		     0,
+		     Technology,
+		     Condition,
+		     Series,
+		     Dir)
+	      end));
 	_Other ->
 	    io:format("ERROR: The logger process has already started.~n")
     end.
@@ -741,15 +741,16 @@ loop(Fd, Record, Technology, Condition, Trial, Dir) ->
 	%							Client_B,
 	%							Latency]),
 	%    file:position(Fd,eof),
-	    case Record =< 20000 of
-		true ->
-		    %%io:format("Trial: ~p, Record: ~p~n", [Trial, Record]),
-		    loop(Fd, Record + 1, Technology, Condition, Trial, Dir);
-		false ->
-		    self() ! {stop_latency, Trial},
-		    loop(Fd, Record + 1, Technology, Condition, Trial, Dir)
-	    end;
-	{stop_latency, Trial} ->
+%	    case Record =< 20000 of
+%		true ->
+%		    %%io:format("Trial: ~p, Record: ~p~n", [Trial, Record]),
+%		    loop(Fd, Record + 1, Technology, Condition, Trial, Dir);
+%		false ->
+%		    self() ! {stop_latency, Trial},
+%		    loop(Fd, Record + 1, Technology, Condition, Trial, Dir)
+%	    end;
+	    loop(Fd, Record+1, Technology, Condition, Trial, Dir);
+	{stop_latency, _Trial} ->
 	    case Trial > 1 of
 		true ->
 		    %%io:format("stop_latency received; case Trial > 0 of true."
@@ -768,10 +769,14 @@ loop(Fd, Record, Technology, Condition, Trial, Dir) ->
                     Median = lists:nth(L div 2, lists:sort(Stats)),
 		    %%XXX: Notify the coordinator that a logger has finished.
                     case global:whereis_name(coordinator) of
-                        undefined -> ok;
+                        undefined ->
+                            io:format("ERROR: Cannot find 'coordinator' after"
+                                " stop_latency (~p).~n", [node()]);
                         CoordinatorPid ->
-                          CoordinatorPid !
-                            {logger_stopped, node(), L, Avg, Median, Stats}
+                            io:format("INFO: Sending logger_stopped to"
+                                " 'coordinator' (~p).~n", [node()]),
+                            CoordinatorPid !
+                              {logger_stopped, node(), L, Avg, Median, Stats}
                     end,
                     ok
 	    end
