@@ -11,8 +11,11 @@ class Throughput(object):
   The throughput statistics at a node
   """
 
+  axis_title = "Throughtput (in messages / sec)"
+
   def __init__(self, exectime):
     self.exectime = exectime
+    self.v = None
 
   def set_messages(self, msgs):
     self.messages = msgs
@@ -85,8 +88,9 @@ class Conf(object):
     self.throughput = thrpt
 
   def get_throughput(self):
-    msgs = sum([l.messages for l in self.latencies.values()])
-    self.throughput.set_messages(msgs)
+    if self.throughput.v == None:
+      msgs = sum([l.messages for l in self.latencies.values()])
+      self.throughput.set_messages(msgs)
     return self.throughput.v
 
 def reg_find_conf(pat, s):
@@ -98,11 +102,33 @@ def pp_combo(xs, vs):
     s.append("%s: %s" % (x.capitalize(), v))
   return ", ".join(s)
 
-def fname_combo(xs, vs):
+def fname_combo(xs, vs, postfix):
   s = []
   for x, v in zip(xs, vs):
     s.append("%s_%s" % (x, v))
+  s.append(postfix)
   return "_".join(s)
+
+def create_single_graph(xaxis_label, yaxis_label, title, x, y, fname):
+  """
+  Create a graph for the configurations that vary in one dimension
+  """
+  fig = plt.figure()
+  ax = fig.add_subplot(111)
+  ax.set_xlabel(xaxis_label)
+  ax.set_ylabel(yaxis_label)
+  ax.set_title(title)
+  line, = ax.plot(x, y, '-o', lw=2, ms=8)
+  # Set the xaxis ticks
+  xmin, xmax = min(x), max(x)
+  xstep = (xmax - xmin) / (len(x) - 1)
+  plt.xticks(np.arange(xmin, xmax + xstep, xstep))
+  ax.xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.0f'))
+  ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
+  plt.xticks(fontsize=9)
+  plt.yticks(fontsize=9)
+  #plt.show()
+  plt.savefig(fname)
 
 def create_overall_graph(yaxis_label, x, y, lbls, fname):
   """
@@ -187,30 +213,28 @@ for cmb in combos:
     if len(cs) > 1:
       # Find the varying dimension
       (xdim,) = Conf.attrs - set(cmb)
-      # Gather the data from the related configurations
-      data = []
+      # Gather the latency & throughpur data from the related configurations
+      data_lat, data_thr = [], []
       for cid in cs:
         c = confs[cid]
-        v = getattr(c, xdim), c.get_latency()
-        data.append(v)
-      x, y = zip(*sorted(data))
+        v_lat = getattr(c, xdim), c.get_latency()
+        data_lat.append(v_lat)
+        v_thr = getattr(c, xdim), c.get_throughput()
+        data_thr.append(v_thr)
+      x_lat, y_lat = zip(*sorted(data_lat))
+      x_thr, y_thr = zip(*sorted(data_thr))
       # Create the latency figure
-      fig = plt.figure()
-      ax = fig.add_subplot(111)
-      ax.set_xlabel(xdim.capitalize())
-      ax.set_ylabel(Latency.default.capitalize() + " latency (in " + Latency.defaultUnit + ")")
-      ax.set_title(pp_combo(cmb, key))
-      line, = ax.plot(x, y, '-o', lw=2, ms=8)
-      # Set the xaxis ticks
-      xmin, xmax = min(x), max(x)
-      xstep = (xmax - xmin) / (len(x) - 1)
-      plt.xticks(np.arange(xmin, xmax + xstep, xstep))
-      ax.xaxis.set_major_formatter(ticker.FormatStrFormatter('%0.0f'))
-      ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
-      plt.xticks(fontsize=9)
-      plt.yticks(fontsize=9)
-      #plt.show()
-      plt.savefig(fname_combo(cmb, key))
+      xaxis_label = xdim.capitalize()
+      yaxis_label = Latency.default.capitalize() + " latency (in " + Latency.defaultUnit + ")"
+      title = pp_combo(cmb, key)
+      fname = fname_combo(cmb, key, "latency")
+      create_single_graph(xaxis_label, yaxis_label, title, x_lat, y_lat, fname)
+      # Create the throughput figure
+      xaxis_label = xdim.capitalize()
+      yaxis_label = Throughput.axis_title
+      title = pp_combo(cmb, key)
+      fname = fname_combo(cmb, key, "throughput")
+      create_single_graph(xaxis_label, yaxis_label, title, x_thr, y_thr, fname)
 
 # Gather the latency data from all the configurations
 x = np.arange(0, len(confs), 1)
@@ -229,5 +253,5 @@ for c in confs.values():
   lbls.append(str(c))
   y.append(c.get_throughput())
 # Create the throughput figure of all the configurations
-yaxis_label = "Throughtput (in messages / sec)"
+yaxis_label = Throughput.axis_title
 create_overall_graph(yaxis_label, x, y, lbls, "overall_throughput.png")
