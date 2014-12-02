@@ -6,18 +6,33 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import numpy as np
 
+class Throughput(object):
+  """
+  The throughput statistics at a node
+  """
+
+  def __init__(self, exectime):
+    self.exectime = exectime
+
+  def set_messages(self, msgs):
+    self.messages = msgs
+    self.v = float(msgs) / float(self.exectime)
+
+  def __str__(self):
+    return "Throughtput: %0.2lf messages/sec" % self.v
+
 class Latency(object):
   """
   The latency statistics at a node
   """
-  
+
   # The possible attributes of the statistics
   attrs = set(["messages", "average", "median"])
   # The attribute that is used for the plots
   default = "median"
   unitFactors = {"microsecs" : 1.0, "millisecs" : 1000.0}
   defaultUnit = "microsecs"
-  
+
   def __init__(self, **kwargs):
     for k in Latency.attrs:
       (tp, v) = kwargs[k]
@@ -66,6 +81,14 @@ class Conf(object):
     xs = [getattr(l, Latency.default) for l in self.latencies.values()]
     return sum(xs) / float(len(xs))
 
+  def add_throughtput(self, thrpt):
+    self.throughput = thrpt
+
+  def get_throughput(self):
+    msgs = sum([l.messages for l in self.latencies.values()])
+    self.throughput.set_messages(msgs)
+    return self.throughput.v
+
 def reg_find_conf(pat, s):
   return re.search(pat, s, re.I).group(1)
 
@@ -80,6 +103,24 @@ def fname_combo(xs, vs):
   for x, v in zip(xs, vs):
     s.append("%s_%s" % (x, v))
   return "_".join(s)
+
+def create_overall_graph(yaxis_label, x, y, lbls, fname):
+  """
+  Create a graph for all the configurations
+  """
+  fig = plt.figure()
+  ax = fig.add_subplot(111)
+  ax.set_xlabel("Configuration")
+  ax.set_ylabel(yaxis_label)
+  line, = ax.plot(x, y, 'o', lw=2, ms=8)
+  ax.set_xticks(x)
+  ax.set_xticklabels(lbls)
+  ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
+  plt.xticks(fontsize=9)
+  plt.yticks(fontsize=9)
+  plt.tight_layout()
+  #plt.show()
+  plt.savefig(fname)
 
 ### Main program
 
@@ -113,7 +154,8 @@ with open(sys.argv[1]) as f:
       pass
     # Execution time
     elif l.startswith("*"):
-      pass
+      t = Throughput(float(reg_find_conf(r'([\d\.]+) secs', l)))
+      c.add_throughtput(t)
     # Latency results at a node
     else:
       mtch = re.search(r"'(.+)'\s+(\d+)\s+([\d\.]+)\s+(\w+)\s+([\d\.]+)\s+(\w+)", l, re.I)
@@ -177,16 +219,15 @@ for c in confs.values():
   lbls.append(str(c))
   y.append(c.get_latency())
 # Create the latency figure of all the configurations
-fig = plt.figure()
-ax = fig.add_subplot(111)
-ax.set_xlabel("Configuration")
-ax.set_ylabel(Latency.default.capitalize() + " latency (in " + Latency.defaultUnit + ")")
-line, = ax.plot(x, y, 'o', lw=2, ms=8)
-ax.set_xticks(x)
-ax.set_xticklabels(lbls)
-ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
-plt.xticks(fontsize=9)
-plt.yticks(fontsize=9)
-plt.tight_layout()
-#plt.show()
-plt.savefig("overall_latency.png")
+yaxis_label = Latency.default.capitalize() + " latency (in " + Latency.defaultUnit + ")"
+create_overall_graph(yaxis_label, x, y, lbls, "overall_latency.png")
+
+# Gather the throughtput data from all the configurations
+x = np.arange(0, len(confs), 1)
+lbls, y = [], []
+for c in confs.values():
+  lbls.append(str(c))
+  y.append(c.get_throughput())
+# Create the throughput figure of all the configurations
+yaxis_label = "Throughtput (in messages / sec)"
+create_overall_graph(yaxis_label, x, y, lbls, "overall_throughput.png")
