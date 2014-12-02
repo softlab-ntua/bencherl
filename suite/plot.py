@@ -89,7 +89,7 @@ if len(sys.argv) < 2:
   sys.exit(1)
 
 # Parse the file with the statistics
-curr, confs = None, {}
+curr, confs, added = None, {}, {}
 with open(sys.argv[1]) as f:
   for l in f.readlines():
     # Declaration of a configuration
@@ -101,6 +101,11 @@ with open(sys.argv[1]) as f:
            , "client_processes" : int(reg_find_conf(r'(\d+) client processes', l))
            }
       c = Conf(**ks)
+      added_key = str(c)
+      if added_key in added:
+        old_id = added[added_key]
+        confs.pop(old_id, None)
+      added[added_key] = c.id
       confs[c.id] = c
       curr = c
     # Comment
