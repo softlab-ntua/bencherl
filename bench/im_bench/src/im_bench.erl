@@ -65,8 +65,10 @@ filter_nodes(Nodes, Prefix) ->
 loop(0, _) -> ok;
 loop(N_Loggers, Fd) ->
   receive
-    logger_stopped -> loop(N_Loggers - 1, Fd);
-    {stats, Node, L, Avg, Mean} ->
-        io:fwrite(Fd, "~p ~w ~w microsecs ~w microsecs~n", [Node, L, Avg, Mean]),
-        loop(N_Loggers, Fd)
+    {logger_stopped, Node, L, Avg, Mean, Stats} ->
+        io:fwrite(Fd, "~p ~w ~.2f microsecs ~w microsecs ( ",
+                  [Node, L, Avg, Mean]),
+        lists:foreach(fun (I) -> io:fwrite(Fd, "~w ", [I]) end, Stats),
+        io:fwrite(Fd, ")~n", []),
+        loop(N_Loggers - 1, Fd)
   end.

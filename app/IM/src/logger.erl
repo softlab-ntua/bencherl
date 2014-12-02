@@ -762,18 +762,18 @@ loop(Fd, Record, Technology, Condition, Trial, Dir) ->
 		    %% ++ "Trial = ~p~n", [Trial]),
 		    stop(Fd, latency_logger),
 		    %%XXX My super stats!
-                   Stats = [Lat || {_, _, _, Lat} <- get(stats)],
+                    Stats = [Lat || {_, _, _, Lat} <- get(stats)],
 		    L = length(Stats),
 		    Avg = lists:sum(Stats)/L,
-                   Median = lists:nth(L div 2, lists:sort(Stats)),
+                    Median = lists:nth(L div 2, lists:sort(Stats)),
 		    %%XXX: Notify the coordinator that a logger has finished.
-                   case global:whereis_name(coordinator) of
-                       undefined -> ok;
-                       CoordinatorPid ->
-                         CoordinatorPid ! {stats, node(), L, Avg, Median},
-                         CoordinatorPid ! logger_stopped
-                   end,
-                   ok
+                    case global:whereis_name(coordinator) of
+                        undefined -> ok;
+                        CoordinatorPid ->
+                          CoordinatorPid !
+                            {logger_stopped, node(), L, Avg, Median, Stats}
+                    end,
+                    ok
 	    end
     end.
 
