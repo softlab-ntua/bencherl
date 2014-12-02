@@ -36,7 +36,7 @@ run([Clients], Slaves, Conf) ->
     Clients, 1, ClientNodes, DataDir ++ "/"),
   timer:sleep(60000), %XXX: Just to make sure that all clients have logged in.
   toxic_client:launch(Clients, ClientNodes),
-  timer:sleep(60000),
+  loop_launch_clients(length(ClientNodes)),
   {ok, Fd} = file:open(DataDir ++ "/statistics.txt", [append]),
   io:fwrite(Fd, "# Conf: ~w scheduler(s), ~w server(s), ~w router(s), "
         "~w client(s), ~w client processes~n",
@@ -57,6 +57,15 @@ filter_nodes(Nodes, Prefix) ->
   lists:filter(fun(N) ->
       string:sub_string(atom_to_list(N), 1, string:len(Prefix)) == Prefix
     end, Nodes).
+
+%% loop_launch_clients/1 is a helper function that waits for all the client
+%% processes to be spawned at their respective node and be logged to the
+%% clients_db registry.
+loop_launch_clients(0) -> ok;
+loop_launch_clients(N_Nodes) ->
+  receive
+    clients_setup_ok -> loop_launch_clients(N_Nodes - 1)
+  end.
 
 %% loop/1 is a helper function that "prevents" run/3 from finishing until all
 %% loggers have halted. Without this function the benchmark would finish after

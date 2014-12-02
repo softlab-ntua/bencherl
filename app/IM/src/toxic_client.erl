@@ -344,7 +344,11 @@ setup_clients(Num_Clients, Num_Node)->
     io:format(".", []),
     case Num_Clients == 0 of
 	true ->
-	    io:format("~nClients at node client_~p@domain are set up.~n", [Num_Node]);
+	    io:format("~nClients at node client_~p@domain are set up.~n", [Num_Node]),
+            case global:whereis_name(coordinator) of
+                undefined -> ok;
+                CoordinatorPid -> CoordinatorPid ! clients_setup_ok
+            end;
 	false ->
 	    Client_Name = client_name(Num_Clients, Num_Node),
 	    Clients_DB_Name = client_db_name(Num_Node),
