@@ -47,9 +47,10 @@ run([Clients], Slaves, Conf) ->
   io:fwrite(Fd, "# <Node> <Messages> <Average Latency> <Median Latency>~n", []),
   StartTime = os:timestamp(),
   toxic_client:launch_traffic(Clients, ClientNodes),
-  timer:sleep(30000), % Benchmark duration.
-  lists:foreach(fun (N) -> {latency_logger, N} ! {stop_latency, 0} end,
-    ClientNodes),
+  timer:sleep(250000), % Benchmark duration.
+  lists:foreach(fun (N) ->
+      {latency_logger, N} ! {stop_latency, 0}
+    end, ClientNodes),
   EndTime = os:timestamp(),
   %timer:sleep(1000),
   loop(NC, Fd),
