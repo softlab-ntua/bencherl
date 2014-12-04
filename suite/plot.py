@@ -58,7 +58,7 @@ class Conf(object):
   """
   
   # The possible attributes of a configuration
-  attrs = set(["schedulers", "servers", "routers", "clients", "client_processes"])
+  attrs = set(["schedulers", "servers", "routers", "clients", "client processes"])
   
   def __init__(self, **kwargs):
     self.id = uuid.uuid4()
@@ -72,6 +72,7 @@ class Conf(object):
     for x in Conf.attrs:
       k = getattr(self, x)
       xs.append("%s: %s" % (x.capitalize(), k))
+    xs.append("Processes / client: %s" % (getattr(self, "client processes") / self.clients))
     return "\n".join(xs)
   
   def add_latency(self, node, lncy):
@@ -142,7 +143,7 @@ def create_overall_graph(yaxis_label, x, y, lbls, fname):
   ax.set_xticks(x)
   ax.set_xticklabels(lbls)
   ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
-  plt.xticks(fontsize=9)
+  plt.xticks(fontsize=8)
   plt.yticks(fontsize=9)
   plt.tight_layout()
   #plt.show()
@@ -165,7 +166,7 @@ with open(sys.argv[1]) as f:
            , "servers" : int(reg_find_conf(r'(\d+) server\(s\)', l))
            , "routers" : int(reg_find_conf(r'(\d+) router\(s\)', l))
            , "clients" : int(reg_find_conf(r'(\d+) client\(s\)', l))
-           , "client_processes" : int(reg_find_conf(r'(\d+) client processes', l))
+           , "client processes" : int(reg_find_conf(r'(\d+) client processes', l))
            }
       c = Conf(**ks)
       added_key = str(c)
