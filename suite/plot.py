@@ -138,7 +138,7 @@ def create_overall_graph(yaxis_label, x, y, lbls, fname):
   ax = fig.add_subplot(111)
   ax.set_xlabel("Configuration")
   ax.set_ylabel(yaxis_label)
-  line, = ax.plot(x, y, 'o', lw=2, ms=8)
+  line, = ax.plot(x, y, '--o', lw=2, ms=8)
   ax.set_xticks(x)
   ax.set_xticklabels(lbls)
   ax.yaxis.set_major_formatter(ticker.FormatStrFormatter('%0.1f'))
@@ -236,10 +236,11 @@ for cmb in combos:
       fname = fname_combo(cmb, key, "throughput")
       create_single_graph(xaxis_label, yaxis_label, title, x_thr, y_thr, fname)
 
+cfs = sorted(confs.values(), key=lambda x: x.clients, reverse=False)
 # Gather the latency data from all the configurations
 x = np.arange(0, len(confs), 1)
 lbls, y = [], []
-for c in confs.values():
+for c in cfs:
   lbls.append(str(c))
   y.append(c.get_latency())
 # Create the latency figure of all the configurations
@@ -249,7 +250,7 @@ create_overall_graph(yaxis_label, x, y, lbls, "overall_latency.png")
 # Gather the throughtput data from all the configurations
 x = np.arange(0, len(confs), 1)
 lbls, y = [], []
-for c in confs.values():
+for c in cfs:
   lbls.append(str(c))
   y.append(c.get_throughput())
 # Create the throughput figure of all the configurations
