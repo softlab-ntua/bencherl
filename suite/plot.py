@@ -33,8 +33,8 @@ class Latency(object):
   attrs = set(["messages", "average", "median"])
   # The attribute that is used for the plots
   default = "median"
-  unitFactors = {"microsecs" : 1.0, "millisecs" : 1000.0}
-  defaultUnit = "microsecs"
+  unitFactors = {"microsecs" : 0.001, "millisecs" : 1.0}
+  defaultUnit = "millisecs"
 
   def __init__(self, **kwargs):
     for k in Latency.attrs:
