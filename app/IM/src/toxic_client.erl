@@ -181,6 +181,10 @@ client({Client_Name, Routers_List}) ->
 	    {error, client_already_logged_in};
 	{login_success, Client_Monitor_Pid} ->
 	    %io:format("Client is successfuly logged in.~n"),
+           case global:whereis_name(coordinator) of
+               undefined -> ok;
+               CoordinatorPid -> CoordinatorPid ! client_setup_ok
+           end,
 	    client({Client_Name, Client_Monitor_Pid, [], Routers_List});
 	{error, client_already_logged_in} ->
 	    io:format("You are logged in already.~n");
@@ -344,11 +348,7 @@ setup_clients(Num_Clients, Num_Node)->
     io:format(".", []),
     case Num_Clients == 0 of
 	true ->
-	    io:format("~nClients at node client_~p@domain are set up.~n", [Num_Node]),
-            case global:whereis_name(coordinator) of
-                undefined -> ok;
-                CoordinatorPid -> CoordinatorPid ! clients_setup_ok
-            end;
+	    io:format("~nClients at node client_~p@domain are set up.~n", [Num_Node]);
 	false ->
 	    Client_Name = client_name(Num_Clients, Num_Node),
 	    Clients_DB_Name = client_db_name(Num_Node),

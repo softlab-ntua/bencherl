@@ -38,7 +38,7 @@ run([Clients], Slaves, Conf) ->
     length(ServerNodes), Clients, 1, ClientNodes, DataDir ++ "/"),
   timer:sleep(60000), %XXX: Just to make sure that all clients have logged in.
   toxic_client:launch(Clients, ClientNodes),
-  loop_launch_clients(NC),
+  loop_launch_clients(Clients),
   {ok, Fd} = file:open(DataDir ++ "/statistics.txt", [append]),
   io:fwrite(Fd, "# Conf: ~w scheduler(s), ~w server(s), ~w router(s), "
         "~w client(s), ~w client processes~n",
@@ -69,10 +69,10 @@ filter_nodes(Nodes, Prefix) ->
 %% processes to be spawned at their respective node and be logged to the
 %% clients_db registry.
 loop_launch_clients(0) -> ok;
-loop_launch_clients(N_Nodes) ->
+loop_launch_clients(N_Clients) ->
   receive
-    clients_setup_ok ->
-        loop_launch_clients(N_Nodes - 1)
+    client_setup_ok ->
+        loop_launch_clients(N_Clients - 1)
   end.
 
 %% loop/1 is a helper function that "prevents" run/3 from finishing until all
