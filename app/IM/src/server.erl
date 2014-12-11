@@ -145,8 +145,8 @@ server_supervisor_loop(Server_Name, Client_DBs, Chat_DBs, Monitored_Processes) -
        	{'EXIT', normal} ->
 	    io:format("server_supervisor is down.~n");
 	%% confirmation client is logged in.
-	{login_success, Client_Monitor_Pid} ->
-	    io:format("Client logged in. Client Monitor Pid: ~p~n", [pid_to_list(Client_Monitor_Pid)]),
+	{login_success, _Client_Monitor_Pid} ->
+	    %io:format("Client logged in. Client Monitor Pid: ~p~n", [pid_to_list(Client_Monitor_Pid)]),
 	    server_supervisor_loop(Server_Name, Client_DBs, Chat_DBs, Monitored_Processes);
 	%% confirmation chat session started. (This is never executed).
 	{session_added, ok} ->

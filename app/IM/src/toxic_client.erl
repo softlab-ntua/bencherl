@@ -180,7 +180,7 @@ client({Client_Name, Routers_List}) ->
 	false ->
 	    {error, client_already_logged_in};
 	{login_success, Client_Monitor_Pid} ->
-	    io:format("Client is successfuly logged in.~n"),
+	    %io:format("Client is successfuly logged in.~n"),
 	    client({Client_Name, Client_Monitor_Pid, [], Routers_List});
 	{error, client_already_logged_in} ->
 	    io:format("You are logged in already.~n");
