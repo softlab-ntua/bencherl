@@ -779,7 +779,9 @@ loop(Fd, Record, Technology, Condition, Trial, Dir) ->
                               {logger_stopped, node(), L, Avg, Median, Stats}
                     end,
                     ok
-	    end
+	    end;
+        _ ->
+          loop(Fd, Record, Technology, Condition, Trial, Dir)
     end.
 
 %%===============================================================================
