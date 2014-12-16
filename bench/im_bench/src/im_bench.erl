@@ -19,18 +19,18 @@ bench_args(Vsn, Conf) ->
   %io:format("Number of client processes: ~p~n", [ClientProcs]),
   [[ ClientProcs ]].
 
-run([Clients], Slaves, Conf) ->
-  % Setup a coordinator to know when the benchmark finished. This is done by
-  % counting the number of loggers that have finished.
+run([Clients, ClientsPerNode], Slaves, Conf) ->
+  %% Setup a coordinator to know when the benchmark finished. This is done by
+  %% counting the number of loggers that have finished.
   global:register_name(coordinator, self()),
-  % Get the data dir in order to store the .csv output files there.
+  %% Get the data dir in order to store the .csv output files there.
   { _, DataDir } = lists:keyfind(datadir, 1, Conf),
-  % Get the benchmark arguments from the configuration.
+  %% Get the benchmark arguments from the configuration.
   ClientNodes = filter_nodes(Slaves, "client"),
   ServerNodes = filter_nodes(Slaves, "server"),
   RouterNodes = filter_nodes(Slaves, "router"),
   NC = length(ClientNodes),
-  % Start the benchmark on the different client domains.
+  %% Start the benchmark on the different client domains.
   launcher:start_bencherl(length(ServerNodes) div length(RouterNodes), 1,
     length(ServerNodes), NC, Slaves),
   %timer:sleep(10000),
@@ -39,7 +39,9 @@ run([Clients], Slaves, Conf) ->
   timer:sleep(60000), %XXX: Just to make sure that all clients have logged in.
   toxic_client:launch(Clients, ClientNodes),
   loop_launch_clients(Clients),
+  %% Open the statistics file.
   {ok, Fd} = file:open(DataDir ++ "/statistics.txt", [append]),
+  %% Log the configuration of the experiment.
   io:fwrite(Fd, "# Conf: ~w scheduler(s), ~w server(s), ~w router(s), "
         "~w client(s), ~w client processes~n",
     [element(2, lists:keyfind(schedulers, 1, Conf)), length(ServerNodes),
@@ -54,8 +56,10 @@ run([Clients], Slaves, Conf) ->
   EndTime = os:timestamp(),
   %timer:sleep(1000),
   loop(NC, Fd),
+  %% Log the execution time.
   io:fwrite(Fd, "* Execution time: ~w secs.~n",
     [timer:now_diff(EndTime, StartTime) / 1000000]),
+  %% Close the statistics file.
   ok = file:close(Fd).
 
 %% filter_nodes/2 returns the nodes in the given list whose name starts with
