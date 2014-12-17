@@ -31,12 +31,14 @@ run([Clients], Slaves, Conf) ->
   RouterNodes = filter_nodes(Slaves, "router"),
   NC = length(ClientNodes),
   %% Start the benchmark on the different client domains.
+  io:format("[coordinator] Deploying the IM application.~n"),
   launcher:start_bencherl(length(ServerNodes) div length(RouterNodes), 1,
     length(ServerNodes), NC, Slaves),
   %timer:sleep(10000),
   logger:launch_latency("Bencherl_test", length(RouterNodes),
     length(ServerNodes), Clients, 1, ClientNodes, DataDir ++ "/"),
   timer:sleep(60000), %XXX: Just to make sure that all clients have logged in.
+  io:format("[coordinator] Deploying the clients.~n"),
   toxic_client:launch(Clients, ClientNodes),
   loop_launch_clients(Clients),
   %% Open the statistics file.
@@ -48,8 +50,10 @@ run([Clients], Slaves, Conf) ->
      length(RouterNodes), NC, Clients]),
   io:fwrite(Fd, "# <Node> <Messages> <Average Latency> <Median Latency>~n", []),
   StartTime = os:timestamp(),
+  io:format("[coordinator] Deploying the traffic generators.~n"),
   toxic_client:launch_traffic(Clients, ClientNodes),
   timer:sleep(250000), % Benchmark duration.
+  io:format("[coordinator] Stopping the loggers.~n"),
   lists:foreach(fun (N) ->
       {latency_logger, N} ! {stop_latency, 0}
     end, ClientNodes),

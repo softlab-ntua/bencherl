@@ -316,7 +316,7 @@ launch(Total_Num_Clients, Num_Nodes, Domain) ->
 %% @end
 %%---------------------------------------------------------------------
 launch_node(_Node, Num_Clients, Num_Node) ->
-    io:format("Setting up clients and traffic generators ", []),
+    io:format("[~p] Setting up clients.~n", [node()]),
     setup(Num_Clients, Num_Node).
     %% spawn(Node, fun() -> start_traffic(Num_Node, 0, Num_Clients, Num_Clients) end).
 
@@ -348,7 +348,7 @@ setup_clients(Num_Clients, Num_Node)->
 %    io:format(".", []),
     case Num_Clients == 0 of
 	true ->
-	    io:format("~nClients at node client_~p@domain are set up.~n", [Num_Node]);
+           io:format("[~p] Clients have been set up.~n", [node()]);
 	false ->
 	    Client_Name = client_name(Num_Clients, Num_Node),
 	    Clients_DB_Name = client_db_name(Num_Node),

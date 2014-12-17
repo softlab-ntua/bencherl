@@ -516,7 +516,7 @@ create_file(_Dir, _FileName) ->
 %	    io:format("ERROR: The file cannot be opened.~n"),
 %	    {error, unable_to_open_file}
 %    end.
-    io:format("INFO: The logger process has been started.~n"),
+    io:format("[~p] The logger process has been started.~n", [node()]),
     {ok, fd}.
 
 %%---------------------------------------------------------------------
@@ -554,7 +554,6 @@ create_file(_Dir, _Technology, _Benchmark, _Condition, _Trial) ->
 %	    io:format("ERROR: The file cannot be opened.~n"),
 %	    {error, unable_to_open_file}
 %    end.
-    io:format("INFO: The log file has been created.~n"),
     {file_descriptor, fd}.
 
 %%---------------------------------------------------------------------
@@ -577,7 +576,7 @@ stop(_Fd, Logger) ->
         _ ->
 %            file:close(Fd),
             unregister(Logger),
-            io:format("INFO: The logger process has been stopped.~n")
+            io:format("[~p] Stopping the logger process.~n", [node()])
     end.
 
 %%---------------------------------------------------------------------
@@ -773,8 +772,8 @@ loop(Fd, Record, Technology, Condition, Trial, Dir) ->
                             io:format("ERROR: Cannot find 'coordinator' after"
                                 " stop_latency (~p).~n", [node()]);
                         CoordinatorPid ->
-                            io:format("INFO: Sending logger_stopped to"
-                                " 'coordinator' (~p).~n", [node()]),
+                            io:format("[~p] Sending logger_stopped to"
+                                " 'coordinator'.~n", [node()]),
                             CoordinatorPid !
                               {logger_stopped, node(), L, Avg, Median, Stats}
                     end,
