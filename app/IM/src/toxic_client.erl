@@ -331,7 +331,7 @@ launch_node(_Node, Num_Clients, Num_Node) ->
 %% @end
 %%---------------------------------------------------------------------
 setup(Num_Clients, Num_Node) ->
-    io:format(".", []),
+%    io:format(".", []),
     launch_clients_db(Num_Node),
     setup_clients(Num_Clients, Num_Node).
 
@@ -345,7 +345,7 @@ setup(Num_Clients, Num_Node) ->
 %% @end
 %%---------------------------------------------------------------------
 setup_clients(Num_Clients, Num_Node)->
-    io:format(".", []),
+%    io:format(".", []),
     case Num_Clients == 0 of
 	true ->
 	    io:format("~nClients at node client_~p@domain are set up.~n", [Num_Node]);
@@ -355,7 +355,7 @@ setup_clients(Num_Clients, Num_Node)->
 	    whereis(Clients_DB_Name) ! {self(), add, Client_Name, undefined, not_in_use},
 	    receive
 		{client_added, ok} ->
-		    io:format("Client_Name = ~p~n",[Client_Name]),
+%		    io:format("Client_Name = ~p~n",[Client_Name]),
 		    login(Client_Name),
 		    setup_clients(Num_Clients - 1, Num_Node);
 		Other ->
