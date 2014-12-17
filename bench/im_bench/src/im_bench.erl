@@ -19,7 +19,7 @@ bench_args(Vsn, Conf) ->
   %io:format("Number of client processes: ~p~n", [ClientProcs]),
   [[ ClientProcs ]].
 
-run([Clients, ClientsPerNode], Slaves, Conf) ->
+run([Clients], Slaves, Conf) ->
   %% Setup a coordinator to know when the benchmark finished. This is done by
   %% counting the number of loggers that have finished.
   global:register_name(coordinator, self()),
