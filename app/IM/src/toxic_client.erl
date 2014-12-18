@@ -449,14 +449,18 @@ launch_traffic(Total_Num_Clients, Num_Nodes, Domain) ->
 %% @end
 %%---------------------------------------------------------------------
 start_traffic(Num_Node, Total_Nodes, Total_Clients, Num_Generators) ->
-    case Num_Generators == 0 of
-	true ->
-	    ok;
-	false ->
-	    spawn(fun() -> traffic_generator(Num_Node, Total_Nodes, Total_Clients)end),
-	    timer:sleep(100),
-	    start_traffic(Num_Node, Total_Nodes, Total_Clients, Num_Generators - 1)
-    end.
+    random:seed(os:timestamp()),
+    lists:foreach(fun(_) ->
+                    Seed = { random:uniform(1000000)
+                           , random:uniform(1000000)
+                           , random:uniform(1000000)},
+                    spawn(fun() -> traffic_generator(Num_Node,
+                                                     Total_Nodes,
+                                                     Total_Clients,
+                                                     Seed)
+                          end)
+                  end,
+                  lists:seq(1, Num_Generators)).
 
 %%--------------------------------------------------------------------
 %% @doc
@@ -472,11 +476,13 @@ start_traffic(Num_Node, Total_Nodes, Total_Clients, Num_Generators) ->
 %% @spec traffic_generator() -> interaction_generator/4
 %% @end
 %%--------------------------------------------------------------------
+traffic_generator(Num_Node, Total_Nodes, Total_Clients, Seed)->
+    random:seed(Seed),
+    traffic_generator(Num_Node, Total_Nodes, Total_Clients).
+
 traffic_generator(Num_Node, Total_Nodes, Total_Clients)->
     %%io:format("Traffic Generator started.~n",[]),
     Environment = {Num_Node, Total_Nodes, Total_Clients},
-    {A1, A2, A3} = os:timestamp(),
-    random:seed(A1, A2, A3),
     Interactions = random:uniform(48) + 12,
     {Sender, Receiver} = pick_random_clients(Num_Node, Total_Nodes, Total_Clients),
     %%io:format("Sender is ~p.~n",[Sender]),
@@ -594,8 +600,6 @@ pick_random_clients(Num_Node, _Total_Nodes, Total_Clients) ->
 %% @end
 %%--------------------------------------------------------------------
 pick_random_sender(Num_Node, Total_Clients) ->
-    {A1, A2, A3} = os:timestamp(),
-    random:seed(A1, A2, A3),
     Num_Client = random:uniform(Total_Clients),
     Client_Name = client_name(Num_Client, Num_Node),
     Target_DB = whereis(client_db_name(Num_Node)),
@@ -617,8 +621,6 @@ pick_random_sender(Num_Node, Total_Clients) ->
 %% @end
 %%--------------------------------------------------------------------
 pick_random_receiver(Num_Node, Total_Clients) ->
-    {A1, A2, A3} = os:timestamp(),
-    random:seed(A1, A2, A3),
     Num_Client = random:uniform(Total_Clients),
     Client_Name = client_name(Num_Client, Num_Node),
     Target_DB = whereis(client_db_name(Num_Node)),
