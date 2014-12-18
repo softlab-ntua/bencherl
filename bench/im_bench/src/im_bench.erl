@@ -35,12 +35,16 @@ run([Clients], Slaves, Conf) ->
   launcher:start_bencherl(length(ServerNodes) div length(RouterNodes), 1,
     length(ServerNodes), NC, Slaves),
   %timer:sleep(10000),
-  logger:launch_latency("Bencherl_test", length(RouterNodes),
-    length(ServerNodes), Clients, 1, ClientNodes, DataDir ++ "/"),
   timer:sleep(60000), %XXX: Just to make sure that all clients have logged in.
   io:format("[coordinator] Deploying the clients.~n"),
   toxic_client:launch(Clients, ClientNodes),
   loop_launch_clients(Clients),
+  io:format("[coordinator] Deploying the traffic generators.~n"),
+  toxic_client:launch_traffic(Clients, ClientNodes),
+  timer:sleep(600000), % Sleep 10min to stabilize traffic.
+  io:format("[coordinator] Deploying the loggers.~n"),
+  logger:launch_latency("Bencherl_test", length(RouterNodes),
+    length(ServerNodes), Clients, 1, ClientNodes, DataDir ++ "/"),
   %% Open the statistics file.
   {ok, Fd} = file:open(DataDir ++ "/statistics.txt", [append]),
   %% Log the configuration of the experiment.
@@ -50,9 +54,7 @@ run([Clients], Slaves, Conf) ->
      length(RouterNodes), NC, Clients]),
   io:fwrite(Fd, "# <Node> <Messages> <Average Latency> <Median Latency>~n", []),
   StartTime = os:timestamp(),
-  io:format("[coordinator] Deploying the traffic generators.~n"),
-  toxic_client:launch_traffic(Clients, ClientNodes),
-  timer:sleep(250000), % Benchmark duration.
+  timer:sleep(300000), % Benchmark duration.
   io:format("[coordinator] Stopping the loggers.~n"),
   lists:foreach(fun (N) ->
       {latency_logger, N} ! {stop_latency, 0}
