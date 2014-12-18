@@ -38,7 +38,13 @@ start_client(Client_Name) ->
 	{Routers_List, router_list} ->
 	    Tokens = string:tokens(Client_Name, "_"),
 	    {Num_Node, _} = string:to_integer(lists:nth(2, Tokens)),
-	    Pid = spawn(fun() -> client({Client_Name, Routers_List}) end),
+	    Seed = { random:uniform(1000000)
+	           , random:uniform(1000000)
+	           , random:uniform(1000000)},
+	    Pid = spawn(fun() ->
+                        random:seed(Seed),
+                        client({Client_Name, Routers_List})
+                    end),
 	    whereis(client_db_name(Num_Node)) ! {self(), update_pid, Client_Name, Pid},
 	    receive
 		true ->
@@ -345,25 +351,24 @@ setup(Num_Clients, Num_Node) ->
 %% @end
 %%---------------------------------------------------------------------
 setup_clients(Num_Clients, Num_Node)->
-%    io:format(".", []),
-    case Num_Clients == 0 of
-	true ->
-           io:format("[~p] Clients have been set up.~n", [node()]);
-	false ->
-	    Client_Name = client_name(Num_Clients, Num_Node),
-	    Clients_DB_Name = client_db_name(Num_Node),
-	    whereis(Clients_DB_Name) ! {self(), add, Client_Name, undefined, not_in_use},
-	    receive
-		{client_added, ok} ->
-%		    io:format("Client_Name = ~p~n",[Client_Name]),
-		    login(Client_Name),
-		    setup_clients(Num_Clients - 1, Num_Node);
-		Other ->
-		    io:format("~n~nError adding toxic clients to the database.~n",[]),
-		    io:format("setup_clients/2 received: ~p~n", [Other]),
-		    io:format("Aborting.~n")
-	    end		    
-    end.
+    random:seed(os:timestamp()),
+    lists:foreach(fun(N) ->
+%                    io:format(".", []),
+                    Client_Name = client_name(N, Num_Node),
+                    Clients_DB_Name = client_db_name(Num_Node),
+                    whereis(Clients_DB_Name) ! {self(), add, Client_Name, undefined, not_in_use},
+                    receive
+                        {client_added, ok} ->
+%                            io:format("Client_Name = ~p~n",[Client_Name]),
+                            login(Client_Name);
+                        Other ->
+                            io:format("~n~nError adding toxic clients to the database.~n"),
+                            io:format("setup_clients/2 received: ~p~n", [Other]),
+                            io:format("Aborting.~n")
+                    end
+                  end,
+                  lists:seq(1, Num_Clients)),
+    io:format("[~p] Clients have been deployed and have sent a login request.~n", [node()]).
 
 %%---------------------------------------------------------------------
 %% @doc
@@ -667,8 +672,6 @@ put_back_client(Client) ->
 %% @end
 %%--------------------------------------------------------------------
 pick_router(Routers_List) ->
-    {A1, A2, A3} = os:timestamp(),
-    random:seed(A1, A2, A3),
     Router = lists:nth(random:uniform(length(Routers_List)),Routers_List),
     {_, Router_Pid} = Router,
     Router_Pid.
