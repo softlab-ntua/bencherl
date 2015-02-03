@@ -72,7 +72,7 @@ speedup() {
 	IFS=" "
 	read -a nums <<< $(echo $line | cut -f4-)
 	grstr=$(echo "$name" | sed -e 's/\([][]\)/\\\1/g')
-	read -a seqrun <<< $(grep "${grstr}	1" $1 | cut -f4-)
+	read -a seqrun <<< $(grep "${grstr}	1	" $1 | cut -f4-)
 	for ((i=0;i<${#nums[@]};i++))
 	do
 	    bc -l <<< "${seqrun[i]}/${nums[i]}" | tr '\n' ' '
