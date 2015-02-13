@@ -1,5 +1,0 @@
-WOOPER_TOP = wooper
-
-MODULES_DIRS = common wooper
-
-include $(WOOPER_TOP)/GNUmakesettings.inc
