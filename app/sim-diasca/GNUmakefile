@@ -7,7 +7,7 @@
 	install to-archive to-archive-full vcs-archive archive            \
 	update-third-party-mirror release stats                           \
 	info info-files info-local-files info-paths info-archive          \
-	info-version info-release
+	info-version info-release app
 
 
 # Root of the Sim-Diasca based software stack (absolute paths are preferred):
@@ -337,3 +337,19 @@ info-release:
 	@echo "SIM_DIASCA_RELEASE_ARCHIVE_ZIP = $(SIM_DIASCA_RELEASE_ARCHIVE_ZIP)"
 	@echo "SIM_DIASCA_RELEASE_ARCHIVE_BZ2 = $(SIM_DIASCA_RELEASE_ARCHIVE_BZ2)"
 	@echo "SIM_DIASCA_RELEASE_ARCHIVE_XZ  = $(SIM_DIASCA_RELEASE_ARCHIVE_XZ)"
+
+# BenchErl-related thingies.
+ERLC = erlc
+ERLC_OPTS =
+ERL = erl
+ERL_LIB_DIR =
+EBIND = ebin-$(OTP)
+
+$(EBIND):
+        @mkdir -p $(EBIND)
+
+app: clean all | $(EBIND)
+        @echo "Copying all Sim-Diasca beam files in $(EBIND)."
+        @find . -name "*.beam" -type f -not -path "./ebin-*" -exec cp {} $(EBIND) \;
+        @find . -name "*.sh" -type f -not -path "./ebin-*" -exec cp {} $(EBIND) \;
+
