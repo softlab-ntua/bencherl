@@ -1,0 +1,61 @@
+digraph finite_state_machine {
+
+
+	graph [ size = "10,10", fontsize = "14.0", label = "Algorithme pour le gestionnaire de temps (TimeManager)" ];
+
+	node [ height = 1, width = 1, fixedsize = true, shape = circle, color = lightgrey, style = filled ] ;
+
+
+	/* State definition section */
+
+	/* Starting state */
+	node [ fillcolor = green ];
+
+	Start [ label = "Start\nstate" ]
+
+	/* Ending states */
+	node [ fillcolor = pink ];
+
+	Stop [ label = "Stop\nstate" ]
+
+	/* Normal states */
+	node [ fillcolor = lightblue ];
+
+	Registration [ label = "Registration\nstate" ]
+
+	ActionReportWait [ label = "Wait for\naction\nreports" ]
+	ActionReportTimeout [ label = "Handle\nactors\nmissing in\naction" ]
+
+	UpdateReportWait [ label = "Wait for\nupdate\nreports" ]
+	UpdateReportTimeout [ label = "Handle\nnon-updating\nactors" ]
+
+
+	/* All state events */
+
+	node [ fillcolor = plum4 ];
+
+
+	/* Connectivity definition section */
+
+	Start -> Registration [ label = " start" ]
+
+	Registration -> ActionReportWait [ label = "{none,\nsend_begin_tick_or_terminate}" ]
+	Registration -> Registration [ label = " subscribe" ]
+	Registration -> Registration [ label = " unsubscribe" ]
+	Registration -> Stop [ label = "stop" ]
+
+	ActionReportWait -> UpdateReportWait [ label = "{{done,Pid} & complete,\nsend_update_request}" ]
+	ActionReportWait -> ActionReportTimeout [ label = "time-out" ]
+	ActionReportWait -> ActionReportWait [ label = " {done,Pid} & ! complete" ]
+
+	ActionReportTimeout -> UpdateReportWait [ label = "{none,\nsend_update_request}" ]
+
+	UpdateReportWait ->	Registration [ label = " complete" ]
+	UpdateReportWait ->	UpdateReportTimeout [ label = "time-out" ]
+	UpdateReportWait ->	UpdateReportWait [ label = " {updated,Pid} & \n! complete" ]
+	UpdateReportWait ->	UpdateReportWait [ label = " {terminated,Pid} &\n! complete" ]
+
+	UpdateReportTimeout -> Registration [ label = " none" ]
+
+
+}

@@ -1,0 +1,9 @@
+<0.31.0>|Object-17|Actor.Theme.Object.XYZObject|3168318240219|08/04/2008 04:41:24|trace_test@myhost.org|Execution.Topic.EventB|1|Object XXX linked again
+<0.31.0>|Object-17|Actor.Theme.Object.XYZObject|3168318240218|08/04/2008 04:41:24|trace_test@myhost.org|Execution.Topic.EventA|2|No answer from object XXX
+<0.32.0>|Object XXX-18|Actor.Theme.Object XXX.XYZObject XXX|3168318240218|08/04/2008 04:41:24|trace_test@myhost.org|Execution.Topic.EventA|2|No answer from object XXX
+<0.34.0>|Object-14|Actor.Theme.Object.XYZObject|3168318240212|08/04/2008 04:41:25|trace_other@myhost.org|Execution.Topic.EventB|3|Object XXX linked again
+<0.34.0>|Object-14|Actor.Theme.Object.XYZObject|3168318240210|08/04/2008 04:41:25|trace_other@myhost.org|Execution.Topic.EventB|3|Object XXX linked again
+<0.34.0>|Object-14|Actor.Theme.Object.XYZObject|3168318240210|08/04/2008 04:41:25|trace_other@myhost.org|Execution.Topic.EventB|4|Object XXX linked again
+<0.34.0>|Object-14|Actor.Theme.Object.XYZObject|3168318240211|08/04/2008 04:41:25|trace_other@myhost.org|Execution.Topic.EventB|5|Object XXX linked again
+
+<0.34.0>|Object-14|Actor.Theme.Object.XYZObject|3168318240213|08/04/2008 04:41:25|trace_other@myhost.org|Execution.Topic.EventB|6|Object XXX linked again

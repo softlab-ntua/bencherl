@@ -1,0 +1,102 @@
+# UML class diagram for the City-Example simulation case.
+#
+# Created by Olivier Boudeville on Wednesday, October 24, 2012.
+
+
+digraph G {
+
+
+
+		/* Header section (basic settings) */
+
+		fontname = "Bitstream Vera Sans"
+		fontsize = 8
+
+		node [
+				fontname = "Bitstream Vera Sans"
+				fontsize = 8
+				shape = "record"
+		]
+
+		edge [
+				fontname = "Bitstream Vera Sans"
+				fontsize = 8
+		]
+
+
+		/* Package section */
+
+		subgraph clusterAnimalPackage {
+				label = "Package animal.example"
+
+				Dog [
+						label = "{Dog||+ bark() : void\l}"
+				]
+
+				Cat [
+						label = "{Cat||+ meow() : void\l}"
+				]
+		}
+
+
+		/* Class declaration section */
+
+		Animal [
+				label = "{Animal|+ name : string\l+ age : int\l|+ die() : void\l}"
+		]
+
+
+
+		/* Inheritance section */
+
+		edge [
+				arrowhead = "empty"
+		]
+
+		Dog -> Animal
+		Cat -> Animal
+
+
+
+		/* Association section */
+
+		edge [
+				arrowhead = "none"
+		]
+
+		Alpha -> Beta
+
+
+
+		/* Aggregation section */
+
+		edge [
+				arrowhead = "ediamond"
+		]
+
+		A -> B
+
+
+
+		/* Composition section */
+
+		edge [
+				arrowhead = "diamond"
+		]
+
+		B -> C
+
+
+
+		/* Composition with multiplicity section */
+
+		edge [
+				arrowhead = "none"
+
+				headlabel = "0..*"
+				taillabel = "1..5"
+		]
+
+		D -> E
+
+}

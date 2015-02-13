@@ -1,0 +1,87 @@
+% Add your standard header here.
+%
+-module(class_).
+
+
+% Determines what are the mother classes of this class (if any):
+-define( wooper_superclasses, [ class_TraceEmitter ] ).
+
+
+% Parameters taken by the constructor ('construct').
+-define( wooper_construct_parameters, Name ).
+
+
+% Declaring all variations of WOOPER standard life-cycle operations:
+% (template pasted, two replacements performed to update arities)
+-define( wooper_construct_export, new/X, new_link/X,
+		 synchronous_new/X, synchronous_new_link/X,
+		 synchronous_timed_new/X, synchronous_timed_new_link/X,
+		 remote_new/Y, remote_new_link/Y, remote_synchronous_new/Y,
+		 remote_synchronous_new_link/Y, remote_synchronous_timed_new/Y,
+		 remote_synchronous_timed_new_link/Y, construct/Y, destruct/1 ).
+
+
+% Member method declarations.
+-define( wooper_method_export, ).
+
+
+% Static method declarations.
+-define( wooper_static_method_export, ).
+
+
+% Allows to define WOOPER base variables and methods for that class:
+-include("wooper.hrl").
+
+
+% Must be included before class_TraceEmitter header:
+-define(TraceEmitterCategorization,"FIXME").
+
+% Allows to use macros for trace sending:
+-include("class_TraceEmitter.hrl").
+
+
+
+
+% Class-specific attributes of a X are:
+
+
+
+
+% Constructs a new .
+%
+% Construction parameters are:
+%
+% - Name: the name of this instance, specified as a plain string
+% -
+%
+construct( State, ?wooper_construct_parameters ) ->
+
+	% The attribute of an instance are:
+	%
+	% -
+	%
+
+	% First the direct mother classes:
+	TraceState = class_TraceEmitter:construct( State, Name ),
+
+	% Then the class-specific attributes:
+	setAttributes( TraceState, [
+		 {,},
+		 { trace_categorization,
+			 text_utils:string_to_binary( ?TraceEmitterCategorization ) }
+							   ] ).
+
+
+
+destruct( State ) ->
+	State.
+
+
+
+% Member method section.
+
+
+% Static method section.
+
+
+% Helper functions section.

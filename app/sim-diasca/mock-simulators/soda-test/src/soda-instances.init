@@ -1,0 +1,26 @@
+% The construction parameters of a soda-vending machine are:
+% [ MachineName, InitialCanCount, CanCost ].
+{ class_SodaVendingMachine, [ "My machine #1 read from data", 45, 1.5 ] }.
+
+"My second machine" <- { class_SodaVendingMachine, [ "My machine #2 read from data", 4, 1.4 ] }.
+
+"My third machine" <- { class_SodaVendingMachine, [ "My machine #3 read from data", 4, 1.4 ] }.
+
+{ class_SodaVendingMachine, [ "My machine #4 read from data", 7, 1.0 ] }.
+
+{ class_SodaVendingMachine, [ "My machine #5 read from data", 400, 1.4 ], "my hint" }.
+
+
+% The construction parameters of a deterministic thirsty customer are:
+% [ CustomerName, KnownMachinePid, RepletionDuration, InitialBudget ].
+{ class_DeterministicThirstyCustomer, [ "Client #1 read from data", { user_id, "My second machine" }, 10, 15.0 ] }.
+
+{ class_DeterministicThirstyCustomer, [ "Client #2 read from data", { user_id, "My third machine" }, 10, 16.0 ] }.
+
+"Zorba" <- { class_DeterministicThirstyCustomer, [ "Client #3 read from data", { user_id, "My third machine" }, 15, 160.0 ] }.
+
+{ class_DeterministicThirstyCustomer, [ "Client #4 read from data", { user_id, "My third machine" }, 12, 16.0 ], another_hint }.
+
+% To test the reference to an undefined user identifier:
+%{ class_DeterministicThirstyCustomer, [ "Client #5 read from data", { user_id, "My non-existing machine" }, 10, 15.0 ] }.
+

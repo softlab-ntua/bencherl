@@ -1,0 +1,246 @@
+/*
+:Author: Olivier Boudeville
+:Copyright: This stylesheet has been placed in the public domain.
+
+Stylesheet for use with Docutils.
+See: http://docutils.sourceforge.net/docs/howto/html-stylesheets.html
+*/
+
+@import url(html4css1.css);
+
+
+h1.title {
+  color: #ec8b23
+}
+
+
+h2.subtitle {
+  color: #4da04b
+}
+
+
+/* Violet */
+div.dedication p.topic-title {
+  color: #bf48d9
+}
+
+
+/* Green */
+div.abstract p.topic-title {
+  color: #4da04b
+}
+
+
+/* Lightgrey on Black */
+body {
+  color: #DFDFDF;
+  background: #000000;
+}
+
+
+
+/* Sidebar */
+
+
+/* Dark gray */
+div.sidebar {
+  background-color: #333333 ;
+  color: #74716e
+}
+
+
+div.sidebar p {
+  color: #bbbbbb
+}
+
+
+/* Softer Orange */
+div.sidebar p.sidebar-title {
+  color: #ec8b23
+}
+
+
+/* Blue */
+div.sidebar p.sidebar-subtitle {
+  color: #8aa0d2
+}
+
+
+
+
+
+/* Red Bordeaux */
+div.system-messages h1 {
+  color: #cc470c
+}
+
+
+/* Red Bordeaux */
+div.system-message p.system-message-title {
+  color: red ;
+  font-weight: cc470c
+}
+
+
+
+/* Black */
+p.rubric {
+  color: #000000
+}
+
+
+/* Dark grey */
+pre.literal-block, pre.doctest-block {
+  background-color: #444444
+}
+
+
+
+/* Red Bordeaux */
+span.problematic {
+  color: red
+}
+
+
+/* Dark grey */
+tt.docutils {
+  background-color: #666666
+}
+
+
+/* Blue */
+a:link {
+  text-decoration:none;
+  color: #8aa0d2
+}
+
+
+a:visited {
+  color: #7a8ebc
+}
+
+
+a:active {
+  color: #8aa0d2
+}
+
+
+a:hover {
+  color:#8aa0d2
+}
+
+
+
+
+
+div.contents a.reference {
+  text-decoration: none;
+  list-style-type: none
+}
+
+
+div.contents a:hover.reference {
+  text-decoration: underline;
+  color:#FFFFFF
+}
+
+
+a.section-title {
+  text-decoration: none
+}
+
+
+/* Softer orange */
+a.toc-backref {
+  color: #ec8b23;
+  text-decoration: none
+}
+
+
+h1 a.toc-backref {
+  color: #ec8b23
+}
+
+
+h2 a.toc-backref {
+  color: #06b1dc
+}
+
+h3 a.toc-backref {
+  color: #4da04b
+}
+
+
+div.warning p.admonition-title {
+  color: #ec9523
+}
+
+
+/* Orange */
+div.attention p.admonition-title {
+  color: #e6841b }
+
+/* Orange */
+div.caution p.admonition-title {
+  color: #e6841b }
+
+/* Red Bordeaux */
+div.danger p.admonition-title {
+  color: #cc470c }
+
+/* Red Bordeaux */
+div.error p.admonition-title {
+  color: #cc470c }
+
+/* Green */
+div.hint p.admonition-title {
+  color: #4da04b }
+
+/* Blue */
+div.important p.admonition-title {
+  color: #06b1dc }
+
+/* Violet */
+div.note p.admonition-title {
+  color: #bf48d9 }
+
+/* Green */
+div.tip p.admonition-title {
+  color: #4da04b }
+
+
+
+div.contents p.topic-title {
+  text-decoration: none;
+}
+
+
+/* Violet */
+a.footnote-reference {
+  text-decoration: none;
+  color: #bf48d9
+}
+
+
+td.label {
+	color: green
+}
+
+
+/* Green */
+a.citation-reference {
+  text-decoration: none;
+  color: #4da04b
+}
+
+
+dl {
+  margin-left: 3%
+}
+
+dt {
+  color: #EFEFEF;
+  background: #5E5E5E;
+  margin-top: 1%;
+  font-weight: bold
+}

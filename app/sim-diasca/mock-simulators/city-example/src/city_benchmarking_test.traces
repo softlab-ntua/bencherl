@@ -1,0 +1,34 @@
+<0.41.0>|Trace Aggregator|Trace.Emitter|none|2015/2/12 13:51:40|city_benchmarking_run-arou@eager|Trace Management|4|Trace aggregator created, trace filename is 'city_benchmarking_test.traces', trace type is 'log_mx_traces', and trace title is 'Ceylan'.
+
+<0.105.0>|Orleans|City-example.CityGenerator|none|2015/2/12 13:51:48|city_benchmarking_run-arou@eager|Execution.Uncategorized|4|Creating 18 incinerators, 14 landfills, 450 residential and 130 industrial waste sources, 500 road junctions, a weather system comprising 4225 (65^2) weather cells.
+<0.105.0>|Orleans|City-example.CityGenerator|none|2015/2/12 13:51:49|city_benchmarking_run-arou@eager|Execution.Uncategorized|4| - generating definitions for 18 incinerators
+<0.105.0>|Orleans|City-example.CityGenerator|none|2015/2/12 13:51:49|city_benchmarking_run-arou@eager|Execution.Uncategorized|4| - creating these 18 incinerators
+<0.105.0>|Orleans|City-example.CityGenerator|none|2015/2/12 13:51:49|city_benchmarking_run-arou@eager|Execution.Uncategorized|4| - generating definitions for 14 landfills
+<0.105.0>|Orleans|City-example.CityGenerator|none|2015/2/12 13:51:49|city_benchmarking_run-arou@eager|Execution.Uncategorized|4| - creating these 14 landfills
+<0.105.0>|Orleans|City-example.CityGenerator|none|2015/2/12 13:51:50|city_benchmarking_run-arou@eager|Execution.Uncategorized|4| - generating definitions for 130 industrial waste sources
+<0.105.0>|Orleans|City-example.CityGenerator|none|2015/2/12 13:51:50|city_benchmarking_run-arou@eager|Execution.Uncategorized|4| - creating these 130 industrial waste sources
+<0.105.0>|Orleans|City-example.CityGenerator|none|2015/2/12 13:51:50|city_benchmarking_run-arou@eager|Execution.Uncategorized|4| - generating definitions for 450 residential waste sources
+<0.105.0>|Orleans|City-example.CityGenerator|none|2015/2/12 13:51:50|city_benchmarking_run-arou@eager|Execution.Uncategorized|4| - creating these 450 residential waste sources
+<0.105.0>|Orleans|City-example.CityGenerator|none|2015/2/12 13:51:51|city_benchmarking_run-arou@eager|Execution.Uncategorized|4| - generating definitions for 500 base road junctions
+<0.105.0>|Orleans|City-example.CityGenerator|none|2015/2/12 13:51:51|city_benchmarking_run-arou@eager|Execution.Uncategorized|4| - creating these 500 base road junctions
+<0.105.0>|Orleans|City-example.CityGenerator|none|2015/2/12 13:51:52|city_benchmarking_run-arou@eager|Execution.Uncategorized|4| - generating definitions for 180 waste trucks
+<0.105.0>|Orleans|City-example.CityGenerator|none|2015/2/12 13:51:52|city_benchmarking_run-arou@eager|Execution.Uncategorized|4| - creating these 180 waste trucks
+<0.105.0>|Orleans|City-example.CityGenerator|none|2015/2/12 13:51:52|city_benchmarking_run-arou@eager|Execution.Uncategorized|4| - waiting for all POI creations
+<0.105.0>|Orleans|City-example.CityGenerator|none|2015/2/12 13:51:52|city_benchmarking_run-arou@eager|Execution.Uncategorized|4| - generating road network
+<0.105.0>|Orleans|City-example.CityGenerator|none|2015/2/12 13:51:53|city_benchmarking_run-arou@eager|Execution.Uncategorized|4|    + adding roads for junctions
+<0.105.0>|Orleans|City-example.CityGenerator|none|2015/2/12 13:51:54|city_benchmarking_run-arou@eager|Execution.Uncategorized|4|    + forcing POI connectivity
+<0.105.0>|Orleans|City-example.CityGenerator|none|2015/2/12 13:51:55|city_benchmarking_run-arou@eager|Execution.Uncategorized|4|    + generating definitions of the corresponding 3366 roads
+<0.105.0>|Orleans|City-example.CityGenerator|none|2015/2/12 13:51:57|city_benchmarking_run-arou@eager|Execution.Uncategorized|4|    + creating these 3366 corresponding roads
+<0.105.0>|Orleans|City-example.CityGenerator|none|2015/2/12 13:51:58|city_benchmarking_run-arou@eager|Execution.Uncategorized|4|    + declaring these 3366 corresponding roads
+<0.105.0>|Orleans|City-example.CityGenerator|none|2015/2/12 13:51:58|city_benchmarking_run-arou@eager|Execution.Uncategorized|4|    + roads declared, network generated
+<0.105.0>|Orleans|City-example.CityGenerator|none|2015/2/12 13:51:59|city_benchmarking_run-arou@eager|Execution.Uncategorized|4| - road network generated
+<0.105.0>|Orleans|City-example.CityGenerator|none|2015/2/12 13:51:59|city_benchmarking_run-arou@eager|Execution.Uncategorized|4|Warning: this creation does not include weather-related models.
+<0.105.0>|Orleans|City-example.CityGenerator|none|2015/2/12 13:51:59|city_benchmarking_run-arou@eager|Execution.Uncategorized|4|Following city elements were created for city Orleans:
+ - 18 incinerators
+ - 14 landfills
+ - 450 residential waste sources
+ - 130 industrial waste sources
+ - 500 road junctions
+ - 3366 roads
+ - 180 waste trucks
+

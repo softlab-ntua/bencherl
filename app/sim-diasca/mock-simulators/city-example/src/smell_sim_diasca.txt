@@ -1,0 +1,248 @@
+(city_benchmarking_run-arou@greedy)1> percept2:profile("sim_diasca.dat", {city_benchmarking_test, run, [tiny, brief]}, [all]).
+Starting profiling.
+
+Get virtual table for class_TraceAggregator by <0.41.0>.
+
+[Trace Aggregator] Trace aggregator created, trace filename is 'city_benchmarking_test.traces', trace type is 'log_mx_traces', and trace title is 'Ceylan'.
+Running the City-example benchmarking case v.0.5.0, with scale 'tiny' and duration 'brief'.
+Get virtual table for class_DeploymentManager by <0.44.0>.
+(in production mode, thus using the extended inter-node time-out: 30 minutes)
+Get virtual table for class_PluginManager by <0.46.0>.
+[info] [my_plugin_example] simulator started; keeping as are following input configuration changes: {configuration_changes,
+                                                                          undefined}.
+[info] [my_plugin_example] deployment started
+Get virtual table for class_ComputingHostManager by <0.59.0>.
+
+The single specified computing host is available, using corresponding node: Sim-Diasca_City-example_Benchmarking_Case-arou@greedy.
+
+To connect to computing nodes ['Sim-Diasca_City-example_Benchmarking_Case-arou@greedy'], use cookie '906f5b0bb636-1ed8-99d4-cf57-00ac5833'.
+
+[info] [my_plugin_example] technical details available: cookie '906f5b0bb636-1ed8-99d4-cf57-00ac5833' used for the 1 computing node(s):
+ + Sim-Diasca_City-example_Benchmarking_Case-arou@greedy
+
+Get virtual table for class_InstanceTracker by <9165.50.0>.
+Get virtual table for class_InstanceTracker by <0.87.0>.
+Get virtual table for class_TimeManager by <9165.53.0>.
+Get virtual table for class_ResultManager by <0.89.0>.
+Get virtual table for class_DataLogger by <9165.54.0>.
+Get virtual table for class_LoadBalancer by <9165.56.0>.
+Get virtual table for class_DataExchanger by <9165.57.0>.
+Get virtual table for class_ResilienceManager by <0.92.0>.
+(in production mode, thus using the extended inter-node time-out: 30 minutes)
+[info] [my_plugin_example] deployment stopped
+[info] [my_plugin_example] case initialisation started
+Get virtual table for class_GIS by <0.93.0>.
+Get virtual table for class_CityGenerator by <0.94.0>.
+[info] Creating 2 incinerators, 1 landfills, 10 residential and 2 industrial waste sources, and 12 road junctions.
+Get virtual table for class_LocationGenerator by <0.95.0>.
+Get virtual table for class_Mesh by <0.96.0>.
+[info]  - generating definitions for 2 incinerators
+[info]  - creating these 2 incinerators
+Get virtual table for class_Incinerator by <9165.58.0>.
+Get virtual table for class_Incinerator by <9165.59.0>.
+Get virtual table for class_Probe by <9165.60.0>.
+Get virtual table for class_Probe by <9165.61.0>.
+[info]  - generating definitions for 1 landfills
+[info]  - creating these 1 landfills
+Get virtual table for class_Landfill by <9165.66.0>.
+[info]  - generating definitions for 2 industrial waste sources
+[info]  - creating these 2 industrial waste sources
+Get virtual table for class_IndustrialWasteSource by <9165.67.0>.
+Get virtual table for class_IndustrialWasteSource by <9165.68.0>.
+[info]  - generating definitions for 10 residential waste sources
+[info]  - creating these 10 residential waste sources
+Get virtual table for class_ResidentialWasteSource by <9165.69.0>.
+Get virtual table for class_ResidentialWasteSource by <9165.70.0>.
+Get virtual table for class_ResidentialWasteSource by <9165.71.0>.
+Get virtual table for class_ResidentialWasteSource by <9165.72.0>.
+Get virtual table for class_ResidentialWasteSource by <9165.73.0>.
+Get virtual table for class_ResidentialWasteSource by <9165.74.0>.
+Get virtual table for class_ResidentialWasteSource by <9165.75.0>.
+Get virtual table for class_ResidentialWasteSource by <9165.76.0>.
+Get virtual table for class_ResidentialWasteSource by <9165.77.0>.
+Get virtual table for class_ResidentialWasteSource by <9165.78.0>.
+[info]  - generating definitions for 12 base road junctions
+[info]  - creating these 12 base road junctions
+Get virtual table for class_RoadJunction by <9165.79.0>.
+Get virtual table for class_RoadJunction by <9165.80.0>.
+Get virtual table for class_RoadJunction by <9165.81.0>.
+Get virtual table for class_RoadJunction by <9165.82.0>.
+Get virtual table for class_RoadJunction by <9165.83.0>.
+Get virtual table for class_RoadJunction by <9165.84.0>.
+Get virtual table for class_RoadJunction by <9165.85.0>.
+Get virtual table for class_RoadJunction by <9165.86.0>.
+Get virtual table for class_RoadJunction by <9165.87.0>.
+Get virtual table for class_RoadJunction by <9165.88.0>.
+Get virtual table for class_RoadJunction by <9165.89.0>.
+Get virtual table for class_RoadJunction by <9165.90.0>.
+[info]  - generating definitions for 18 waste trucks
+[info]  - creating these 18 waste trucks
+Get virtual table for class_WasteTruck by <9165.91.0>.
+Get virtual table for class_WasteTruck by <9165.92.0>.
+Get virtual table for class_WasteTruck by <9165.93.0>.
+Get virtual table for class_WasteTruck by <9165.94.0>.
+Get virtual table for class_WasteTruck by <9165.95.0>.
+Get virtual table for class_WasteTruck by <9165.96.0>.
+Get virtual table for class_WasteTruck by <9165.97.0>.
+Get virtual table for class_WasteTruck by <9165.98.0>.
+Get virtual table for class_WasteTruck by <9165.100.0>.
+Get virtual table for class_WasteTruck by <9165.101.0>.
+Get virtual table for class_WasteTruck by <9165.102.0>.
+Get virtual table for class_WasteTruck by <9165.103.0>.
+Get virtual table for class_WasteTruck by <9165.104.0>.
+Get virtual table for class_WasteTruck by <9165.99.0>.
+Get virtual table for class_WasteTruck by <9165.105.0>.
+Get virtual table for class_WasteTruck by <9165.106.0>.
+Get virtual table for class_WasteTruck by <9165.107.0>.
+Get virtual table for class_WasteTruck by <9165.108.0>.
+[info]  - waiting for all POI creations
+[info]  - generating road network
+[info]     + adding roads for junctions
+[info]     + forcing POI connectivity
+[info]     + generating definitions of the corresponding 86 roads
+[info]     + creating these 86 corresponding roads
+Get virtual table for class_Road by <9165.109.0>.
+Get virtual table for class_Road by <9165.110.0>.
+Get virtual table for class_Road by <9165.111.0>.
+Get virtual table for class_Road by <9165.112.0>.
+Get virtual table for class_Road by <9165.113.0>.
+Get virtual table for class_Road by <9165.114.0>.
+Get virtual table for class_Road by <9165.115.0>.
+Get virtual table for class_Road by <9165.116.0>.
+Get virtual table for class_Road by <9165.117.0>.
+Get virtual table for class_Road by <9165.118.0>.
+Get virtual table for class_Road by <9165.119.0>.
+Get virtual table for class_Road by <9165.120.0>.
+Get virtual table for class_Road by <9165.121.0>.
+Get virtual table for class_Road by <9165.122.0>.
+Get virtual table for class_Road by <9165.123.0>.
+Get virtual table for class_Road by <9165.124.0>.
+Get virtual table for class_Road by <9165.125.0>.
+Get virtual table for class_Road by <9165.126.0>.
+Get virtual table for class_Road by <9165.127.0>.
+Get virtual table for class_Road by <9165.128.0>.
+Get virtual table for class_Road by <9165.129.0>.
+Get virtual table for class_Road by <9165.130.0>.
+Get virtual table for class_Road by <9165.131.0>.
+Get virtual table for class_Road by <9165.132.0>.
+Get virtual table for class_Road by <9165.133.0>.
+Get virtual table for class_Road by <9165.134.0>.
+Get virtual table for class_Road by <9165.135.0>.
+Get virtual table for class_Road by <9165.136.0>.
+Get virtual table for class_Road by <9165.137.0>.
+Get virtual table for class_Road by <9165.138.0>.
+Get virtual table for class_Road by <9165.139.0>.
+Get virtual table for class_Road by <9165.140.0>.
+Get virtual table for class_Road by <9165.141.0>.
+Get virtual table for class_Road by <9165.142.0>.
+Get virtual table for class_Road by <9165.143.0>.
+Get virtual table for class_Road by <9165.144.0>.
+Get virtual table for class_Road by <9165.145.0>.
+Get virtual table for class_Road by <9165.146.0>.
+Get virtual table for class_Road by <9165.147.0>.
+Get virtual table for class_Road by <9165.148.0>.
+Get virtual table for class_Road by <9165.149.0>.
+Get virtual table for class_Road by <9165.150.0>.
+Get virtual table for class_Road by <9165.151.0>.
+Get virtual table for class_Road by <9165.152.0>.
+Get virtual table for class_Road by <9165.153.0>.
+Get virtual table for class_Road by <9165.154.0>.
+Get virtual table for class_Road by <9165.155.0>.
+Get virtual table for class_Road by <9165.156.0>.
+Get virtual table for class_Road by <9165.157.0>.
+Get virtual table for class_Road by <9165.158.0>.
+Get virtual table for class_Road by <9165.159.0>.
+Get virtual table for class_Road by <9165.160.0>.
+Get virtual table for class_Road by <9165.161.0>.
+Get virtual table for class_Road by <9165.162.0>.
+Get virtual table for class_Road by <9165.163.0>.
+Get virtual table for class_Road by <9165.164.0>.
+Get virtual table for class_Road by <9165.165.0>.
+Get virtual table for class_Road by <9165.166.0>.
+Get virtual table for class_Road by <9165.167.0>.
+Get virtual table for class_Road by <9165.168.0>.
+Get virtual table for class_Road by <9165.169.0>.
+Get virtual table for class_Road by <9165.170.0>.
+Get virtual table for class_Road by <9165.171.0>.
+Get virtual table for class_Road by <9165.172.0>.
+Get virtual table for class_Road by <9165.173.0>.
+Get virtual table for class_Road by <9165.174.0>.
+Get virtual table for class_Road by <9165.175.0>.
+Get virtual table for class_Road by <9165.176.0>.
+Get virtual table for class_Road by <9165.177.0>.
+Get virtual table for class_Road by <9165.178.0>.
+Get virtual table for class_Road by <9165.179.0>.
+Get virtual table for class_Road by <9165.180.0>.
+Get virtual table for class_Road by <9165.181.0>.
+Get virtual table for class_Road by <9165.182.0>.
+Get virtual table for class_Road by <9165.183.0>.
+Get virtual table for class_Road by <9165.184.0>.
+Get virtual table for class_Road by <9165.185.0>.
+Get virtual table for class_Road by <9165.186.0>.
+Get virtual table for class_Road by <9165.187.0>.
+Get virtual table for class_Road by <9165.188.0>.
+Get virtual table for class_Road by <9165.189.0>.
+Get virtual table for class_Road by <9165.190.0>.
+Get virtual table for class_Road by <9165.191.0>.
+Get virtual table for class_Road by <9165.192.0>.
+Get virtual table for class_Road by <9165.193.0>.
+Get virtual table for class_Road by <9165.194.0>.
+[info]     + declaring these 86 corresponding roads
+[info]     + roads declared, network generated
+[info]  - road network generated
+[info] Following city elements were created for city Yzeure:
+ - 2 incinerators
+ - 1 landfills
+ - 10 residential waste sources
+ - 2 industrial waste sources
+ - 12 road junctions
+ - 86 roads
+ - 18 waste trucks
+
+[info] [my_plugin_example] case initialisation stopped
+Simulation started at simulation time: 1/1/2000 0:00:00 (tick 12622780800), real time: 7/7/2014 16:39:49 with a simulation frequency of approximately 0.200000Hz (period of exactly 5 seconds). Simulation will stop no later than tick 12622786560 (i.e. after 5760 ticks, which is a duration of 8 hours in virtual time).
+
+Meaning of the console tracker columns:
+ - S: overall [S]imulation time (full time and date)
+ - T: overall simulation [T]ick (virtual time)
+ - D: overall simulation [D]iasca (in-tick causality progress)
+ - R: [R]eal (wall-clock) time
+ - A: total (distributed) [A]ctor count
+ - S: actor [S]chedulings on last diasca (spontaneous/triggered behaviours)
+ - P: total (distributed) [P]rocess count
+
++----------------------+----------------+--------+----------------------+--------------+--------------+----------------+
+| Simulation Time      | Tick Offset    | Diasca | Real Time            | Actor Count  | Schedulings  | Process Count  |
++======================+================+========+======================+==============+==============+================+
+[info] [my_plugin_example] simulation started
+|S:       (not started)|T:             0|D:     0|R:   7/7/2014 16:39:49|A:           0|S:           0|P:           34 |
+[info] [my_plugin_example] simulation bootstrap started
+|S:   1/1/2000  0:00:00|T:             0|D:     0|R:   7/7/2014 16:39:49|A:         131|S:           0|P:           34 |
+[info] [my_plugin_example] simulation tick milestone met at tick offset #0, while current wall-clock time is 2014/7/7 16:39:49.
+[info] [my_plugin_example] simulation bootstrap stopped
+|S:   1/1/2000  0:20:00|T:           240|D:     2|R:   7/7/2014 16:39:50|A:         131|S:           3|P:          173 |
+|S:   1/1/2000  1:05:55|T:           791|D:     7|R:   7/7/2014 16:39:51|A:         131|S:           2|P:          173 |
+[info] [my_plugin_example] simulation tick milestone met at tick offset #1000, while current wall-clock time is 2014/7/7 16:39:51.
+|S:   1/1/2000  1:56:40|T:          1400|D:     8|R:   7/7/2014 16:39:52|A:         131|S:           3|P:          173 |
+[info] [my_plugin_example] simulation tick milestone met at tick offset #2000, while current wall-clock time is 2014/7/7 16:39:52.
+|S:   1/1/2000  2:58:15|T:          2139|D:     7|R:   7/7/2014 16:39:53|A:         131|S:           1|P:          173 |
+[info] [my_plugin_example] simulation tick milestone met at tick offset #3000, while current wall-clock time is 2014/7/7 16:39:53.
+|S:   1/1/2000  4:27:45|T:          3213|D:     4|R:   7/7/2014 16:39:54|A:         131|S:           1|P:          173 |
+|S:   1/1/2000  5:51:00|T:          4212|D:     6|R:   7/7/2014 16:39:55|A:         131|S:           1|P:          173 |
+|S:   1/1/2000  7:25:40|T:          5348|D:     5|R:   7/7/2014 16:39:56|A:         131|S:           1|P:          173 |
+[info] [my_plugin_example] result gathering started
+|S:   1/1/2000  7:59:50|T:          5758|D:     7|R:   7/7/2014 16:39:56|A:         131|S:           1|P:          173 |
++----------------------+----------------+--------+----------------------+--------------+--------------+----------------+
+
+In batch mode, no browsing of results performed. Waiting for their processing and retrieval.
+[info] [my_plugin_example] simulation stopped
+[info] [my_plugin_example] result gathering stopped
+Simulation terminated successfully at simulation time: 1/1/2000 8:00:00 (tick 12622786560), real time: 7/7/2014 16:39:56, after a duration of 8 hours in simulation time (5760 ticks), computed during a wall-clock duration of 7 seconds and 410 milliseconds.
+Simulation ran faster than the clock, with an acceleration factor of x3886.640.
+
+Results are available now.
+[info] [my_plugin_example] simulator stopped
+[Trace Aggregator] Aggregator deleted.
+End of test city_benchmarking_test.
+ok
+

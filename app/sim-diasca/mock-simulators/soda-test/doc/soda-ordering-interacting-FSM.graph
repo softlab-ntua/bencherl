@@ -1,0 +1,128 @@
+digraph soda_ordering_interacting_FSM{
+
+	graph [ size = "14;14", fontsize = "15.0", label = "Interacting FSM for the \nsoda ordering use case" ];
+
+	node [ height = 1, width = 1, fixedsize = true, shape = circle, color = lightgrey, style = filled ] ;	
+
+	
+	/* Connectivity definition section */
+	
+	
+	subgraph clusterSodaVendingMachine
+	{
+
+		graph [ label = "Soda vending machine FSM" ];
+
+
+		/* State definition section */
+
+
+		/* Starting state */
+		node [ fillcolor = green, shape = circle ];
+		MachineStartingState  [ label = "Machine\nSwitched\nOn" ]		
+		
+		
+		/* Normal states */
+		node [ fillcolor = lightblue ];
+		
+		WaitingState       [ label = "Waiting\nCustomers" ]  
+		DisplayingState    [ label = "Displaying\nCan\nCost" ]  
+		ProcessingState    [ label = "Processing\nCan\nRequest" ]  
+
+
+		/* Ending states */
+		node [ fillcolor = pink ];
+		MachineEndingState   [ label = "Machine\nSwitched\nOff" ]
+
+
+		
+		/* Connectivity definition section */
+		
+		
+		MachineStartingState -> WaitingState
+		
+		WaitingState -> DisplayingState
+		WaitingState -> ProcessingState
+		
+		DisplayingState -> WaitingState
+		ProcessingState -> WaitingState
+		
+		WaitingState -> MachineEndingState
+
+	}
+	
+
+
+	subgraph clusterThirstyCustomer
+	{
+
+		graph [ label = "Thirsty Customer FSM" ];
+		
+		
+		/* State definition section */
+
+
+		/* Starting state */
+		node [ fillcolor = green, shape = circle ];
+		CustomerStartingState  [ label = "Customer\nArrival" ]		
+		
+		
+		/* Normal states */
+		node [ fillcolor = lightblue ];
+		
+		RequestingState    [ label = "Requesting\nCan\nCost" ]  
+		KnowingState       [ label = "Knowing\nCan\nCost" ]  
+		FeelingState       [ label = "Feeling\nFine" ]  
+		ThirstyState       [ label = "Being\nThirsty" ]  
+		CountingState      [ label = "Counting\nMoney" ]  
+		OrderingState      [ label = "Ordering\nA\nCan" ]  
+		GettingState       [ label = "Getting\nA\nCan" ]  
+		RefundState        [ label = "Getting\nRefund" ]  
+
+		
+		/* Ending states */
+		node [ fillcolor = pink ];
+
+		CustomerEndingState   [ label = "Customer\nDeparture" ]
+		CashErrorState     [ label = "Insufficient\nCash", shape = octagon ]  
+
+
+		
+		/* Connectivity definition section */
+		
+		CustomerStartingState -> RequestingState
+		RequestingState -> KnowingState [ label = "Machine\nanswered" ]
+		
+		KnowingState -> FeelingState
+		
+		FeelingState -> FeelingState [ label = " Thirst\n increasing\nover time" ]
+		FeelingState -> ThirstyState [ label = "Thirst\nthreshold\nreached" ]
+		
+		ThirstyState -> CountingState
+		ThirstyState -> CustomerEndingState
+		
+		CountingState -> ThirstyState [ label = "Insufficient\nmoney" ]
+		CountingState -> OrderingState [ label = " Budget\nok" ]
+		
+		OrderingState -> GettingState [ label = "Transaction\nsucceeded" ]
+		OrderingState -> RefundState [ label = "Transaction\nfailed" ]
+		OrderingState -> CashErrorState [ label = "Model\ninconsistency" ]
+		
+		GettingState -> FeelingState [ label = "Decreased\nthirst" ]
+		RefundState -> ThirstyState[ label = "Still\nthirsty" ]
+		
+		
+	}
+	
+	edge [ color = black, width = 2, style = dashed ];
+	
+	RequestingState -> DisplayingState
+	DisplayingState -> KnowingState
+	
+	OrderingState -> ProcessingState
+
+	ProcessingState -> GettingState [ label = "Can\ndelivered" ]
+	ProcessingState -> RefundState [ label = "No\ncan\nleft" ]
+	ProcessingState -> CashErrorState
+	
+}	
