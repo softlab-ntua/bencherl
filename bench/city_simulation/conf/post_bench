@@ -1,0 +1,26 @@
+#!/bin/bash
+
+OLD_IFS=$IFS
+IFS=","
+
+i=1
+for node in ${5}; do
+
+    if [[ "$i" -gt "${6}" ]]; then
+        break;
+    fi
+
+    node=${node:1:-1}
+    name=`echo $node | cut -d'@' -f1`
+    host=`echo $node | cut -d'@' -f2`
+
+    IFS=$OLD_IFS
+    ssh `whoami`@$host "ps -ef | grep erl | grep $name | grep -v post_bench | \`awk '{ print \"kill \" \$2 }'\`"
+    IFS=","
+
+    i=$((i+1))
+
+done
+
+IFS=$OLD_IFS
+ 

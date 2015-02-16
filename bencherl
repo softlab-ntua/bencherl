@@ -34,12 +34,11 @@ plot() {
         echo "set grid"
         echo -n "plot "
         first=1
-        OLDIFS=$IFS
+        OLD_IFS=$IFS
         IFS=$'\n'
         for line in $lines
         do
-	    if [ $first -eq 1 ]
-	    then
+	    if [ $first -eq 1 ]; then
 	        first=0
 	    else
 	        echo -n ", "
@@ -57,12 +56,12 @@ plot() {
         done
         echo ""
         echo "exit"
-        IFS=$OLDIFS
+        IFS=$OLD_IFS
         )
 }
 
 speedup() {
-    OLDIFS=$IFS
+    OLD_IFS=$IFS
     IFS=$'\n'
     for line in $(cat $1)
     do
@@ -79,7 +78,7 @@ speedup() {
         done
         echo ""
     done
-    IFS=$OLDIFS
+    IFS=$OLD_IFS
 }
 
 spin()
@@ -182,10 +181,6 @@ rsbm()
 {
     IFS=$OLD_IFS
 
-    if [ -f $BENCHERL_ROOT/bench/$bench/conf/pre_bench ]; then
-        $BENCHERL_ROOT/bench/$bench/conf/pre_bench $s "$otpv" "$argsv" "$COOKIE"
-    fi
-
     benchdir=$BENCHERL_ROOT/bench/$bench
 
     if [ -z $otpv ]; then
@@ -219,7 +214,7 @@ rsbm()
 {bench, $bench}.
 {version, $VERSION}.
 {otp, "$otpv"}.
-{erl_args, "$argsv $EXTRA_ERL_ARGS +S$s:$s -noshell -pa $EXTRA_CODE_PATH $DEPS_PATHS ${BENCHERL_ROOT}/suite/ebin-$otpl ${BENCHERL_ROOT}/bench/$bench/ebin-$otpl -setcookie $COOKIE" }.
+{erl_args, "$argsv $EXTRA_ERL_ARGS +S$s:$s -noshell -pa $EXTRA_CODE_PATH $DEPS_PATHS ${BENCHERL_ROOT}/suite/ebin-$otpl ${BENCHERL_ROOT}/bench/$bench/ebin-$otpl -setcookie '$COOKIE'" }.
 {number_of_slaves, $n}.
 {number_of_schedulers, $s}.
 {slaves, [$SLAVE_NODES]}.
@@ -235,6 +230,12 @@ rsbm()
 {skip_slave_setup, $sss}.
 EOF
 
+    if [ -f $BENCHERL_ROOT/bench/$bench/conf/pre_bench ]; then
+        $BENCHERL_ROOT/bench/$bench/conf/pre_bench $s "$otpv" "$argsv" \
+            "$COOKIE" "$SLAVE_NODES" $n "$otpl" "$EXTRA_CODE_PATH" \
+            "$DEPS_PATHS" "$ERL_ENV" "$erl" "$BENCHERL_ROOT"
+    fi
+
     ERL_CMD="BENCHERL_ROOT=${BENCHERL_ROOT} ${ERL_ENV} ${erl} ${argsv} ${EXTRA_ERL_ARGS} -setcookie \"${COOKIE}\" +S$s:$s \
         $mn -noshell -pa ${EXTRA_CODE_PATH} ${DEPS_PATHS} \
         ${BENCHERL_ROOT}/suite/ebin-$otpl \
@@ -243,7 +244,9 @@ EOF
     eval $ERL_CMD
 
     if [ -f $BENCHERL_ROOT/bench/$bench/conf/post_bench ]; then
-	$BENCHERL_ROOT/bench/$bench/conf/post_bench $s "$otpv" "$argsv" "$COOKIE"
+	$BENCHERL_ROOT/bench/$bench/conf/post_bench $s "$otpv" "$argsv" \
+            "$COOKIE" "$SLAVE_NODES" $n "$otpl" "$EXTRA_CODE_PATH" \
+            "$DEPS_PATHS" "$ERL_ENV" "$erl" "$BENCHERL_ROOT"
     fi
 
     IFS=$NEW_IFS

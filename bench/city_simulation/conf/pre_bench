@@ -1,0 +1,30 @@
+#!/bin/bash
+
+OLD_IFS=$IFS
+IFS=","
+
+i=1
+for node in ${5}; do
+
+    if [[ "$i" -gt "${6}" ]]; then
+        break;
+    fi
+
+    node=${node:1:-1}
+    name=`echo $node | cut -d'@' -f1`
+    host=`echo $node | cut -d'@' -f2`
+
+    IFS=$OLD_IFS
+    cmd="BENCHERL_ROOT=${12} ${10} ${11} ${3} -setcookie '${4}' +K true \
+        +A 128 +P 1048576 +S${1}:${1} -sname $name -noshell -pa ${8} ${9} \
+        ${12}/suite/ebin-${7} ${12}/bench/city-simulation/ebin-${7} \
+        -kernel inet_dist_listen_min 50000 inet_dist_listen_max 55000 -detached"
+    ssh `whoami`@$host "$cmd"
+    IFS=","
+
+    i=$((i+1))
+
+done
+
+IFS=$OLD_IFS
+ 
