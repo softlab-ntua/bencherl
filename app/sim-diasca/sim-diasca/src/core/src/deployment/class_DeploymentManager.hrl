@@ -333,7 +333,7 @@
 	% that may prevent a proper deployment, so we strongly advise to let this
 	% clean-up enabled.
 	%
-	perform_initial_node_cleanup = true :: boolean(),
+	perform_initial_node_cleanup = false :: boolean(),
 
 
 	% Tells whether there are firewall restrictions to be taken into account
