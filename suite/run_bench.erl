@@ -34,32 +34,36 @@ main() ->
         {_,What} = lists:keyfind(what, 1, Conf),
         {_,UseLongNames} = lists:keyfind(use_long_names, 1, Conf),
         {_,Cores} = lists:keyfind(number_of_cores, 1, Conf),
+        {_,SkipSlaveSetup} = lists:keyfind(skip_slave_setup, 1, Conf),
+
         NS = case What of
                  node  -> N;
                  sched -> S
              end,
 
-	%% Start the slaves.
+	%% Start the slaves (if necessary).
         Slaves =
-            lists:map(
-              fun(Sn) -> [Name|Rest] = string:tokens(atom_to_list(Sn), "@"),
-                         {ok, Host} =
-                             case Rest of
-                                 [] ->
-                                     {ok, Hname} = inet:gethostname(),
-                                     case UseLongNames of
-                                         true  -> {ok, #hostent{h_name=H}} =
-                                                      inet:gethostbyname(Hname),
-                                                  {ok, H};
-                                         false -> {ok, Hname}
-                                     end;
-                                 _ -> {ok, hd(Rest)}
-                             end,
-                         {ok, Slave} =
-                             slave:start(list_to_atom(Host), list_to_atom(Name),
-                                         ErlArgs, self(), ErlProgram),
-                         Slave
-              end, lists:sublist(Snames, N)),
+           case SkipSlaveSetup of
+              false -> lists:map(fun(Sn) -> 
+                          [Name|Rest] = string:tokens(atom_to_list(Sn), "@"),
+                          {ok, Host} = case Rest of
+                                          [] ->
+                                             {ok, Hname} = inet:gethostname(),
+                                             case UseLongNames of
+                                                true  -> {ok, #hostent{h_name=H}} =
+                                                             inet:gethostbyname(Hname),
+                                                         {ok, H};
+                                                false -> {ok, Hname}
+                                             end;
+                                          _ -> {ok, hd(Rest)}
+                                       end,
+                          {ok, Slave} = slave:start(list_to_atom(Host), 
+                                           list_to_atom(Name), ErlArgs, self(), 
+                                           ErlProgram),
+                          Slave
+                       end, lists:sublist(Snames, N));
+              true -> lists:sublist(Snames, N)
+           end,
 
 	%% Open the measurements file.
         {ok, MF} = file:open(MeasFile, [append]),
