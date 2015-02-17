@@ -3,6 +3,9 @@
 OLD_IFS=$IFS
 IFS=","
 
+echo "" > ${12}/app/sim-diasca/mock-simulators/city-example/src/sim-diasca-host-candidates-for-scale-benchmarks.txt
+echo "" > ${12}/app/sim-diasca/mock-simulators/city-example/src/sim-diasca-host-candidates.txt
+
 i=1
 for node in ${5}; do
 
@@ -14,6 +17,9 @@ for node in ${5}; do
     name=`echo $node | cut -d'@' -f1`
     host=`echo $node | cut -d'@' -f2`
 
+    echo "'$host'." >>  ${12}/app/sim-diasca/mock-simulators/city-example/src/sim-diasca-host-candidates-for-scale-benchmarks.txt
+    echo "'$host'." >> ${12}/app/sim-diasca/mock-simulators/city-example/src/sim-diasca-host-candidates.txt
+ 
     IFS=$OLD_IFS
     cmd="BENCHERL_ROOT=${12} ${10} ${11} ${3} -setcookie '${4}' +K true \
         +A 128 +P 1048576 +S${1}:${1} -sname $name -noshell -pa ${8} ${9} \
@@ -23,6 +29,7 @@ for node in ${5}; do
     IFS=","
 
     i=$((i+1))
+    hosts="$hosts\n'$host'."
 
 done
 
