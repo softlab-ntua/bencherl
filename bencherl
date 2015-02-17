@@ -236,6 +236,11 @@ EOF
             "$DEPS_PATHS" "$ERL_ENV" "$erl" "$BENCHERL_ROOT"
     fi
 
+    curdir=`pwd`
+    if [ ! -z "$WORKING_DIRECTORY" ]; then
+        cd $WORKING_DIRECTORY
+    fi
+
     ERL_CMD="BENCHERL_ROOT=${BENCHERL_ROOT} ${ERL_ENV} ${erl} ${argsv} ${EXTRA_ERL_ARGS} -setcookie \"${COOKIE}\" +S$s:$s \
         $mn -noshell -pa ${EXTRA_CODE_PATH} ${DEPS_PATHS} \
         ${BENCHERL_ROOT}/suite/ebin-$otpl \
@@ -248,6 +253,8 @@ EOF
             "$COOKIE" "$SLAVE_NODES" $n "$otpl" "$EXTRA_CODE_PATH" \
             "$DEPS_PATHS" "$ERL_ENV" "$erl" "$BENCHERL_ROOT"
     fi
+
+    cd $curdir
 
     IFS=$NEW_IFS
 }
@@ -548,6 +555,7 @@ for bench in $BENCHES; do
         EXTRA_CODE_PATH=
         EXTRA_ERL_ARGS=
         ERL_ENV=
+        WORKING_DIRECTORY=
 
         benchresdir="$resdir/$bench"
         outdir="$benchresdir/output"
