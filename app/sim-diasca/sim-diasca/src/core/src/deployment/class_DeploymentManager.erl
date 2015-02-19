@@ -377,7 +377,8 @@ construct( State,
 	ChangedState = apply_configuration_changes( PluginConfChanges, TraceState ),
 
 	% Simulations will never step over others (previous ones):
-	Cookie = text_utils:string_to_atom( basic_utils:generate_uuid() ),
+	%Cookie = text_utils:string_to_atom( basic_utils:generate_uuid() ),
+        Cookie = 'cookie',
 
 	% All spawned nodes will be given later the current cookie of this node:
 	erlang:set_cookie( node(), Cookie ),
