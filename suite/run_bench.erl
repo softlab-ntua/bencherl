@@ -145,7 +145,10 @@ main() ->
         file:close(MF),
 
 	%% Stop the slaves.
-        lists:foreach(fun(Slave)-> slave:stop(Slave) end, Slaves)
+        case SkipSlaveSetup of
+            false -> lists:foreach(fun(Slave)-> slave:stop(Slave) end, Slaves);
+            true  -> ok
+        end
 
     catch
         E:D ->
