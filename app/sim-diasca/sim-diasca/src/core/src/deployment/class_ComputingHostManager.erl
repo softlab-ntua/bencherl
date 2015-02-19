@@ -819,7 +819,7 @@ check_host_availability( Hostname, State ) ->
 %
 % (helper function)
 %
-ensure_no_lingering_node( FullyQualifiedNodeName, NodeName, Hostname, State ) ->
+ensure_no_lingering_node( _FullyQualifiedNodeName, _NodeName, _Hostname, _State ) ->
 
 	% 'Immediate', as it is not being launched here:
 	%
@@ -828,24 +828,24 @@ ensure_no_lingering_node( FullyQualifiedNodeName, NodeName, Hostname, State ) ->
 	% the most common case, so this checking alone might be responsible for a
 	% time-out failure)
 	%
-	case net_utils:check_node_availability( FullyQualifiedNodeName,
-											immediate ) of
+%	case net_utils:check_node_availability( FullyQualifiedNodeName,
+%											immediate ) of
 
-		{ true, _Duration } ->
-			?warning_fmt( "Node ~s on host ~s was already available, stopping"
-						  " (and, later relaunching) it to ensure it runs the "
-						  "correct code version.", [ NodeName, Hostname ] ),
+%		{ true, _Duration } ->
+%			?warning_fmt( "Node ~s on host ~s was already available, stopping"
+%						  " (and, later relaunching) it to ensure it runs the "
+%						  "correct code version.", [ NodeName, Hostname ] ),
 
 			% Preferred to unloading-purging/reloading our modules:
 			% (this is a blocking operation)
-			net_utils:shutdown_node( FullyQualifiedNodeName );
+%			net_utils:shutdown_node( FullyQualifiedNodeName );
 
-		{ false, _Duration } ->
-			?debug_fmt( "Node ~s on host ~s is not available, it will be "
-						"launched from scratch.", [ NodeName, Hostname ] )
+%		{ false, _Duration } ->
+%			?debug_fmt( "Node ~s on host ~s is not available, it will be "
+%						"launched from scratch.", [ NodeName, Hostname ] )
 
-	end.
-
+%	end.
+	ok.
 
 
 
@@ -996,66 +996,66 @@ get_clean_up_command_for_host( Hostname, ScriptFullPath, State ) ->
 % Returns either 'success' or {failure,Reason}.
 %
 -spec launch_erlang_node( wooper:state() ) -> 'success' | { 'failure', atom() }.
-launch_erlang_node( State ) ->
+launch_erlang_node( _State ) ->
+	success.
+	%NodeName = ?getAttr(node_name),
+	%UserName = ?getAttr(user_name),
+	%Hostname = ?getAttr(managed_host),
 
-	NodeName = ?getAttr(node_name),
-	UserName = ?getAttr(user_name),
-	Hostname = ?getAttr(managed_host),
+	%Command = get_erlang_launch_command( NodeName, UserName, Hostname, State ),
 
-	Command = get_erlang_launch_command( NodeName, UserName, Hostname, State ),
-
-	?info_fmt( "Trying to launch node ~s on host ~s with user ~s "
-			   "with following command: '~s'.",
-			   [ NodeName, Hostname, UserName, Command ] ),
+	%?info_fmt( "Trying to launch node ~s on host ~s with user ~s "
+	%		   "with following command: '~s'.",
+	%		   [ NodeName, Hostname, UserName, Command ] ),
 
 	%io:format( "### Launch: '~s'.~n", [ Command ] ),
 
-	FullyQualifiedNodeName = ?getAttr(full_node_name),
+	%FullyQualifiedNodeName = ?getAttr(full_node_name),
 
 	% We will try to ensure that host managers will not answer after the
 	% deployment manager times-out:
 	%
-	MaxWaitingBudget = ?getAttr(deploy_time_out) -
-		get_other_operations_duration(),
+	%MaxWaitingBudget = ?getAttr(deploy_time_out) -
+	%	get_other_operations_duration(),
 
 	% Node availability will be determined based on Erlang-level ping:
-	case os:cmd( Command ) of
+	%case os:cmd( Command ) of
 
-		[] ->
+	%	[] ->
 
 			% We will have to answer before the deployment manager times-out,
 			% yet we want to let a node at the very least 2s for set-up,
 			% otherwise waiting for node is pointless:
-			ActualTimeOut = max( 2000, MaxWaitingBudget ),
+	%		ActualTimeOut = max( 2000, MaxWaitingBudget ),
 
 			%io:format( "ActualTimeOut = ~B ms~n", [ActualTimeOut] ),
 
 			% Node apparently successfully launched, checking it:
-			case net_utils:check_node_availability( FullyQualifiedNodeName,
-													ActualTimeOut ) of
+	%		case net_utils:check_node_availability( FullyQualifiedNodeName,
+	%												ActualTimeOut ) of
 
-				{ true, Duration } ->
-					?info_fmt(
-						"Node ~s on host ~s successfully launched and checked "
-							  "(which took ~B ms on a time-out of ~B ms).",
-						[ NodeName, Hostname, Duration, ActualTimeOut ] ),
-					success;
+	%			{ true, Duration } ->
+	%				?info_fmt(
+	%					"Node ~s on host ~s successfully launched and checked "
+	%						  "(which took ~B ms on a time-out of ~B ms).",
+	%					[ NodeName, Hostname, Duration, ActualTimeOut ] ),
+	%				success;
 
-				{ false, Duration } ->
-					?error_fmt(
-						"Node ~s on host ~s apparently successfully launched, "
-						"but not responding (to Erlang ping), "
-						"after ~B milliseconds (time-out duration: ~B). "
-						"Maybe a node with the same name "
-						"but with a different cookie was already existing "
-						"(prior non-cleaned faulty launch)?",
-						[ NodeName, Hostname, Duration, ActualTimeOut ] ),
-					{ failure, launched_node_not_responding }
+	%			{ false, Duration } ->
+	%				?error_fmt(
+	%					"Node ~s on host ~s apparently successfully launched, "
+	%					"but not responding (to Erlang ping), "
+	%					"after ~B milliseconds (time-out duration: ~B). "
+	%					"Maybe a node with the same name "
+	%					"but with a different cookie was already existing "
+	%					"(prior non-cleaned faulty launch)?",
+	%					[ NodeName, Hostname, Duration, ActualTimeOut ] ),
+	%				{ failure, launched_node_not_responding }
 
-			end;
+	%		end;
 
 
-		ErrorMessage ->
+	%	ErrorMessage ->
 
 			% Node apparently had trouble being launched, checking it:
 
@@ -1066,79 +1066,79 @@ launch_erlang_node( State ) ->
 			% (note that the previous launch command might have last a long
 			% time, to the point that the simulation might already be finished)
 
-			ActualTimeOut = max( 2000,
-					 min( get_time_out_for(launch_error), MaxWaitingBudget ) ),
+	%		ActualTimeOut = max( 2000,
+	%				 min( get_time_out_for(launch_error), MaxWaitingBudget ) ),
 
 			%io:format( "ActualTimeOut = ~B ms~n", [ActualTimeOut] ),
 
-			case net_utils:check_node_availability( FullyQualifiedNodeName,
-													ActualTimeOut ) of
+	%		case net_utils:check_node_availability( FullyQualifiedNodeName,
+	%												ActualTimeOut ) of
 
-				{ true, Duration } ->
+	%			{ true, Duration } ->
 
 					%io:format( "ActualTimeOut = ~p, Duration = ~p.~n",
 					%			[ ActualTimeOut, Duration ] ),
 
-					?warning_fmt(
-						"Node ~s on host ~s successfully launched and checked "
-						"(in ~B ms out of the ~B time-out), "
-						"despite following message: '~s'.",
-						[ NodeName, Hostname, Duration, ActualTimeOut,
-						  ErrorMessage ] ),
+	%				?warning_fmt(
+	%					"Node ~s on host ~s successfully launched and checked "
+	%					"(in ~B ms out of the ~B time-out), "
+	%					"despite following message: '~s'.",
+	%					[ NodeName, Hostname, Duration, ActualTimeOut,
+	%					  ErrorMessage ] ),
 
-					success;
+	%				success;
 
-				{ false, Duration } ->
+	%			{ false, Duration } ->
 
-					io:format( "Error message: ~s.~n", [ ErrorMessage ] ),
+	%				io:format( "Error message: ~s.~n", [ ErrorMessage ] ),
 
-					?error_fmt(
-						"Node ~s on host ~s apparently failed to launch "
-						"properly (message: '~s') and is not responding "
-						"after ~B milliseconds (time-out duration: ~B). "
-						"Are you using indeed a proper SSH password-less "
-						"account for that host, and is Erlang available on it? "
-						"One may try executing: 'ssh USER@HOST erl' to check." ,
-						[ NodeName, Hostname, ErrorMessage, Duration,
-						  ActualTimeOut ] ),
+	%				?error_fmt(
+	%					"Node ~s on host ~s apparently failed to launch "
+	%					"properly (message: '~s') and is not responding "
+	%					"after ~B milliseconds (time-out duration: ~B). "
+	%					"Are you using indeed a proper SSH password-less "
+	%					"account for that host, and is Erlang available on it? "
+	%					"One may try executing: 'ssh USER@HOST erl' to check." ,
+	%					[ NodeName, Hostname, ErrorMessage, Duration,
+	%					  ActualTimeOut ] ),
 
-					{ failure, node_launching_failed }
+	%				{ failure, node_launching_failed }
 
-			end
+	%		end
 
-	end.
+	%end.
 
 
 
 
 % Returns a command suitable to the launching of the corresponding Erlang node.
 %
--spec get_erlang_launch_command( net_utils:string_node_name(),
-		basic_utils:user_name(), net_utils:string_host_name(), wooper:state() )
-							   -> string().
-get_erlang_launch_command( NodeName, Username, Hostname, State ) ->
+%-spec get_erlang_launch_command( net_utils:string_node_name(),
+%		basic_utils:user_name(), net_utils:string_host_name(), wooper:state() )
+%							   -> string().
+%get_erlang_launch_command( NodeName, Username, Hostname, State ) ->
 
 	% We replicate the settings of the user node on all computer nodes:
 	%
 	% (see the --max-process-count and --async-thread-count options of
 	% common/src/scripts/launch-erl.sh)
 	%
-	AsynchThreadsCount = erlang:system_info( thread_pool_size ),
-	MaxProcesses       = erlang:system_info( process_limit ),
+%	AsynchThreadsCount = erlang:system_info( thread_pool_size ),
+%	MaxProcesses       = erlang:system_info( process_limit ),
 
-	SeqOption = case ?getAttr(scheduler_count) of
+%	SeqOption = case ?getAttr(scheduler_count) of
 
-					undefined ->
-						"";
+%					undefined ->
+%						"";
 
-					Count ->
-						io_lib:format( "+S ~B", [ Count ] )
+%					Count ->
+%						io_lib:format( "+S ~B", [ Count ] )
 
-	end,
+%	end,
 
-	AdditionalOptions = io_lib:format(
-			" -noshell -smp auto ~s +K true +A ~B +P ~B ",
-			[ SeqOption, AsynchThreadsCount, MaxProcesses ] ),
+%	AdditionalOptions = io_lib:format(
+%			" -noshell -smp auto ~s +K true +A ~B +P ~B ",
+%			[ SeqOption, AsynchThreadsCount, MaxProcesses ] ),
 
 	% The next command propagates the cookie of the user node to this newly
 	% launched computing node (using -setcookie); however there seems to be a
@@ -1147,32 +1147,32 @@ get_erlang_launch_command( NodeName, Username, Hostname, State ) ->
 	% (that node being the user node); however this seems to be only a transient
 	% error and the simulation overcomes it, as we saw it.
 	%
-	BasicCommand = net_utils:get_basic_node_launching_command(
-		NodeName, ?getAttr(node_naming_mode), ?getAttr(epmd_port),
-		?getAttr(tcp_port_range), AdditionalOptions ),
+%	BasicCommand = net_utils:get_basic_node_launching_command(
+%		NodeName, ?getAttr(node_naming_mode), ?getAttr(epmd_port),
+%		?getAttr(tcp_port_range), AdditionalOptions ),
 
-	case ?getAttr(managed_host) of
+%	case ?getAttr(managed_host) of
 
-		localhost ->
+%		localhost ->
 
 			% We are on the current host, no need to perform a SSH login, as
 			% already logged here:
 			% (checking we are using indeed the same user)
-			Username = system_utils:get_user_name(),
+%			Username = system_utils:get_user_name(),
 
-			BasicCommand ++ " &";
+%			BasicCommand ++ " &";
 
-		_ ->
+%		_ ->
 			% We target a remote host here:
 			%
 			% -f: Requests ssh to go to background just before command execution
 			%
 			% We suppose here we do not have anything to do, firewall-wise:
-			executable_utils:get_default_ssh_client_path() ++ " "
-			  ++ executable_utils:get_ssh_mute_option() ++ " -f "
-			  ++ Username ++ "@" ++ Hostname ++ " " ++ BasicCommand
+%			executable_utils:get_default_ssh_client_path() ++ " "
+%			  ++ executable_utils:get_ssh_mute_option() ++ " -f "
+%			  ++ Username ++ "@" ++ Hostname ++ " " ++ BasicCommand
 
-	end.
+%	end.
 
 
 
