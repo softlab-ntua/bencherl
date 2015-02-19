@@ -346,10 +346,10 @@ ERL_LIB_DIR =
 EBIND = ebin-$(OTP)
 
 $(EBIND):
-        @mkdir -p $(EBIND)
+	@mkdir -p $(EBIND)
 
 app: clean all | $(EBIND)
-        @echo "Copying all Sim-Diasca beam files in $(EBIND)."
-        @find . -name "*.beam" -type f -not -path "./ebin-*" -exec cp {} $(EBIND) \;
-        @find . -name "*.sh" -type f -not -path "./ebin-*" -exec cp {} $(EBIND) \;
+	@echo "Copying all Sim-Diasca beam files in $(EBIND)."
+	@find . -name "*.beam" -type f -not -path "./ebin-*" -exec cp {} $(EBIND) \;
+	@find . -name "*.sh" -type f -not -path "./ebin-*" -exec cp {} $(EBIND) \;
 
