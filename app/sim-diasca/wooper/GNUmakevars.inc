@@ -76,7 +76,7 @@ BEAM_DIRS += . $(WOOPER_BEAM)/src $(WOOPER_BEAM)/examples
 ifndef EXECUTION_TARGET
 
   # Other possible value: production
-  EXECUTION_TARGET=development
+  EXECUTION_TARGET=production
 
 endif
 

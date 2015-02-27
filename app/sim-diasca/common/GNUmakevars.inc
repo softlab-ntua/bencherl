@@ -134,12 +134,12 @@ endif
 
 # Overall settings section.
 
-#EXECUTION_TARGET = production
+EXECUTION_TARGET = production
 
 ifndef EXECUTION_TARGET
 
   # Other possible value: production
-  EXECUTION_TARGET = development
+  EXECUTION_TARGET = production
 
 endif
 
