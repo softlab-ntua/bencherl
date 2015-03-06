@@ -29,9 +29,14 @@ $(UI_BIN):
 		./rebar get-deps ; \
 		./rebar compile ; \
 	fi
-	rm -rf bencherlui/boss.config
-	cp bencherlui/boss.config.in bencherlui/boss.config
-	sed -i -e "s@BENCHERL_UI_PATH@`pwd`@g" bencherlui/boss.config
+	rm -rf bencherlui/boss.config ; \
+	cp bencherlui/boss.config.in bencherlui/boss.config ; \
+	sed -i -e "s@BENCHERL_UI_PATH@`pwd`@g" bencherlui/boss.config ; \
+	NUMBER=`awk -vmin=0 -vmax=1000000000 'BEGIN{srand(); print int(min+rand()*(max-min+1))}'` ; \
+	ALPHA_NUMBERIC_PATH=$$(echo `pwd` | sed 's/[^a-zA-Z0-9]//g') ; \
+	NODE_NAME="$$ALPHA_NUMBERIC_PATH""$$NUMBER" ; \
+	sed -i -e 's@VM_SHORT_NAME@'"$$NODE_NAME"'@g' bencherlui/boss.config ; \
+	sed -i -e 's@VM_NAME@'"$$NODE_NAME"'@g' bencherlui/boss.config ; \
 	cd bencherlui ; \
 	./rebar compile
 

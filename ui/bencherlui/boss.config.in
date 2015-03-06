@@ -2,6 +2,8 @@
     {path, "BENCHERL_UI_PATH/ChicagoBoss"},
     {applications, [bencherlui]},
     {db_host, "localhost"},
+    {vm_sname, "VM_SHORT_NAME"},
+    {vm_name, "VM_NAME"},
     {db_port, 1978},
     {db_adapter, mock},
     {log_dir, "log"},

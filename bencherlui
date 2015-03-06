@@ -5,6 +5,10 @@
 usage()
 {
 	cat << EOF
+bencherlui is used to start the bencherl UI web server that can be
+used to view benchmark results in a web browser. For bencherui to
+work, bencherl UI needs to be compiled (make ui).
+
 Usage: bencherlui [OPTION..]
 Start or stop the web server that serves bencherl UI.
 
@@ -15,6 +19,11 @@ Start or stop the web server that serves bencherl UI.
 For complete documentation, see the README.md file.
 EOF
 }
+
+if [ "$#" -ne 1 ] ; then
+    usage
+    exit 1
+fi
 
 START=`date +%s`
 cd "$( dirname "${BASH_SOURCE[0]}" )"
