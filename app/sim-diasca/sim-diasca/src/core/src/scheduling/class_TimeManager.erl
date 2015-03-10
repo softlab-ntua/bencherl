@@ -912,7 +912,7 @@ construct( State, SimulationTickDuration, InteractivityMode,
 		{ started, false },
 
 		% initial_tick set later in this method.
-		{ initial_timestamp, basic_utils:get_timestamp() },
+		{ initial_timestamp, basic_utils:get_precise_timestamp() },
 
 		% Will be set at simulation start:
 		{ current_tick_offset, undefined },

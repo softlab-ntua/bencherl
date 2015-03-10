@@ -33,6 +33,21 @@ Launches the specified executable with specified parameters on the cluster, thro
 # just contains the corresponding job ID and server node.
 
 
+# With SLURM we have a typical output like:
+
+# Using specified and validated install root directory
+# /scratch/E21850/Software/Sim-Diasca/Sim-Diasca-current-install.
+#Started on Wednesday, February 4, 2015, at 17:03:07.
+#  Rebuilding selectively Sim-Diasca in production mode...
+#(not performing any initial clean-up)
+#  Unmuting modules of interest
+#  Generating the cluster script...
+#  Submitting it to the job manager (slurm)...
+#Job 2405075 submitted on Wednesday, February 4, 2015, at 17:03:16, waiting until it is scheduled and run...
+#Job queued on Wednesday, February 4, 2015, at 17:03:16, waiting for launch...
+#Job started on Wednesday, February 4, 2015, at 17:03:19, waiting for completion...
+
+
 
 # Detects the job manager interface to be used.
 #
@@ -51,14 +66,14 @@ detect_job_manager()
 
 	sbatch_cmd=$(which sbatch)
 
-	if [ -x "$salloc_cmd" ] ; then
+	if [ -x "$sbatch_cmd" ] ; then
 
-		[ $be_quiet -eq 0 ] || echo "salloc found, hence using SLURM."
+		[ $be_quiet -eq 0 ] || echo "sbatch found, hence using SLURM."
 		system_type="slurm"
 
 	else
 
-		[ $be_quiet -eq 0 ] || echo "no salloc found hence not SLURM, testing for PBS compliance."
+		[ $be_quiet -eq 0 ] || echo "no sbatch found hence not SLURM, testing for PBS compliance."
 
 		qsub_cmd=$(which qsub)
 
@@ -124,7 +139,7 @@ done
 
 # First we select which tool for job submission should be used:
 
-
+detect_job_manager
 
 exec=$1
 [ $be_quiet -eq 0 ] || echo "Requesting execution of the $exec executable..."
@@ -136,60 +151,98 @@ sub_output_file="/tmp/.sim-diasca-submission-by-$USER-on-"$(date '+%Y%m%d-%Hh%Mm
 
 if [ "$system_type" = "pbs" ] ; then
 
-	sub_command="$qsub_cmd ${all_parameters} 1>$sub_output_file 2>&1"
+	sub_command="${qsub_cmd}"
 
 elif [ "$system_type" = "slurm" ] ; then
 
-	sub_command="$salloc_cmd ${all_parameters} 1>$sub_output_file 2>&1"
+	sub_command="${sbatch_cmd}"
 
 fi
 
-[ $do_debug -eq 1 ] || echo "Submission command: $qsub_cmd ${all_parameters} 1>$qsub_output_file 2>&1"
+[ $do_debug -eq 1 ] || echo "Submission command: $sub_command ${all_parameters} 1>$sub_output_file 2>&1"
 
-$qsub_cmd ${all_parameters} 1>$qsub_output_file 2>&1
+$sub_command ${all_parameters} 1>$sub_output_file 2>&1
 res=$?
 
 if [ ! $res -eq 0 ] ; then
 
 	echo
-	echo "Error, job submission (qsub) failed (error code: $res).
+	echo "Error, job submission with $system_type failed (error code: $res).
 Error message was:" 1>&2
-	cat $qsub_output_file 1>&2
+	cat $sub_output_file 1>&2
 	echo
 	exit 15
 
 fi
 
 
-# qsub_output_file might contain an entry like '1806204.cla11pno'.
-# job_id would be then 1806204:
-#job_id=$( cat $qsub_output_file | sed 's|\..*$||1' )
+if [ "$system_type" = "pbs" ] ; then
 
-# Apparently now specifying only the job ID (ex: 2891949 instead of
-# 2891949.cla11pno) will not work anymore, 'qstat -f 2891949' will indeed return
-# 'qstat: Unknown Job Id 2891949.cla13pno'. Specifying the full entry read from
-# file (ex: 2891949.cla11pno) will however work:
-job_id=$( cat $qsub_output_file )
+	# output_file might contain an entry like '1806204.cla11pno'.
+	# job_id would be then 1806204:
+	#job_id=$( cat $output_file | sed 's|\..*$||1' )
 
+	# Apparently now specifying only the job ID (ex: 2891949 instead of
+	# 2891949.cla11pno) will not work anymore, 'qstat -f 2891949' will indeed return
+	# 'qstat: Unknown Job Id 2891949.cla13pno'. Specifying the full entry read from
+	# file (ex: 2891949.cla11pno) will however work:
+	job_id=$( cat $sub_output_file )
 
-echo "Job identifier is $job_id, its state is:"
+	echo "Job identifier is $job_id, its state is:"
 
-# Full listing of the job information:
-state=$( qstat -f $job_id )
+	# Full listing of the job information:
+	state=$( qstat -f $job_id )
 
-job_name=$( echo "$state"|grep Job_Name|awk '{printf $3}' )
+	job_name=$( echo "$state" | grep Job_Name | awk '{printf $3}' )
 
-echo "    Job_Name  = $job_name"
-echo "$state" | grep Job_Owner
-echo "$state" | grep job_state
-echo "$state" | grep queue
+	echo "    Job_Name  = $job_name"
+	echo "$state" | grep Job_Owner
+	echo "$state" | grep job_state
+	echo "$state" | grep queue
+
+elif [ "$system_type" = "slurm" ] ; then
+
+	# We have all the information we need as environment variables set by SLURM
+	# in the environment of the launched script, not in this environment:
+
+	#echo "SLURM_JOB_ID=${SLURM_JOB_ID}"
+	#echo "SLURM_JOB_NAME=${SLURM_JOB_NAME}"
+	#echo "SLURM_JOB_NODELIST=${SLURM_JOB_NODELIST}"
+	#echo "SLURM_JOB_NUM_NODES=${SLURM_JOB_NUM_NODES}"
+	#echo "SLURM_SUBMIT_DIR=${SLURM_SUBMIT_DIR}"
+
+	#job_id="${SLURM_JOB_ID}"
+
+	if [ ! -f "$sub_output_file" ] ; then
+
+		echo "  Error, no submission output file found ($sub_output_file)." 1>&2
+		exit 34
+
+	fi
+
+	job_id=$( cat $sub_output_file | sed 's|^Submitted batch job ||1' )
+
+	job_name=$( scontrol show jobid ${job_id} | grep ' Name=' | sed 's|^.* Name=||1' )
+
+fi
+
 
 queue_time=$( LC_ALL= LANG= date '+%A, %B %-e, %Y, at %k:%M:%S' )
 
-echo "Job submitted on $queue_time, waiting until it is scheduled and run..."
+echo "Job ${job_id} submitted on $queue_time, waiting until it is scheduled and run..."
 
 output_file="$job_name.o$job_id"
 error_file="$job_name.e$job_id"
+
+
+# Table of possible job status values (loosely listed in order of appearance):
+#
+# Q: Queued (pending)
+# A: cAncelled
+# R: Running
+# F: Failed
+# C: Completed
+
 
 running=1
 spotted_as_queued=1
@@ -198,18 +251,74 @@ max_failed_lookups=30
 
 while [ $running -eq 1 ] ; do
 
-	# Either Q (queued) or R (running):
-	job_status=$( qstat | grep $job_id | awk '{print $5}' )
+	if [ "$system_type" = "pbs" ] ; then
 
-	echo "  - job_status = $job_status"
-	echo "  - spotted_as_queued = $spotted_as_queued"
-	echo "  - failed_lookups = $failed_lookups"
-	echo "  - max_failed_lookups = $max_failed_lookups"
+		# Either Q (queued) or R (running):
+		job_status=$( qstat | grep $job_id | awk '{print $5}' )
+
+	elif [ "$system_type" = "slurm" ] ; then
+
+		job_state=$( scontrol show jobid ${job_id} | grep JobState | sed 's| Reason.*$||1' | sed 's|^   JobState=||1' )
+
+		case $job_state in
+
+			"RUNNING")
+				job_status="R"
+				;;
+
+			"PENDING")
+				job_status="Q"
+				;;
+
+			"FAILED")
+				job_status="F"
+				;;
+
+			"CANCELLED")
+				job_status="A"
+				;;
+
+			"COMPLETED")
+				job_status="C"
+				;;
+
+			*)
+			   echo "Error, unexpected job state for ${job_id}: $job_state"
+			   exit 15
+			   ;;
+
+		esac
+
+	fi
+
+	if [ $be_quiet -eq 1 ] ; then
+
+		echo "  - job_status = $job_status"
+		echo "  - spotted_as_queued = $spotted_as_queued"
+		echo "  - failed_lookups = $failed_lookups"
+		echo "  - max_failed_lookups = $max_failed_lookups"
+
+	fi
 
 	if [ "$job_status" = "R" ] ; then
 
 		start_time=$( LC_ALL= LANG= date '+%A, %B %-e, %Y, at %k:%M:%S' )
 		echo "Job started on $start_time, waiting for completion..."
+		running=0
+
+	elif [ "$job_status" = "F" ] ; then
+
+		echo "Error, submitted job failed (name: $job_name, id: $job_id)." 1>&2
+		exit 56
+
+	elif [ "$job_status" = "A" ] ; then
+
+		echo "Error, submitted job was cancelled - abnormal (name: $job_name, id: $job_id)." 1>&2
+		exit 57
+
+	elif [ "$job_status" = "C" ] ; then
+
+		echo "Submitted job (name: $job_name, id: $job_id) reported as successfully completed." 1>&2
 		running=0
 
 	elif [ "$job_status" = "Q" ] ; then
@@ -281,23 +390,52 @@ while [ $running -eq 1 ] ; do
 
 done
 
-#echo
-[ $be_quiet -eq 0 ] || echo "Waiting for output file $output_file in "$(pwd)"..."
 
-echo
+# PBS will create the output and error files when the job is finished, while
+# SLURM may create them immediately and write them over time.
 
-while [ ! -f "$output_file" ] ; do sleep 1  ; done
 
-stop_time=$(LC_ALL= LANG= date '+%A, %B %-e, %Y, at %k:%M:%S' )
+if [ "$system_type" = "pbs" ] ; then
+
+	[ $be_quiet -eq 0 ] || echo "Waiting for output file $output_file in "$(pwd)"..."
+
+	while [ ! -f "$output_file" ] ; do sleep 1 ; done
+
+elif [ "$system_type" = "slurm" ] ; then
+
+	# Possibly never set as running:
+	[ $be_quiet -eq 0 ] || echo "Waiting until job ${job_id} is not reported as running..."
+
+	while true ; do
+
+		job_state=$( scontrol show jobid ${job_id} | grep JobState | sed 's| Reason.*$||1' | sed 's|^   JobState=||1' )
+
+		#[ $be_quiet -eq 0 ] ||echo "Job ${job_id} in state $job_state"
+
+		if [ ! "$job_state" = "RUNNING" ] ; then
+			break
+		fi
+
+	done
+
+	# The writing is not instantaneous either:
+	[ $be_quiet -eq 0 ] || echo "Waiting for output file $output_file in "$(pwd)"..."
+
+	while [ ! -f "$output_file" ] ; do sleep 1 ; done
+
+fi
+
+
+stop_time=$( LC_ALL= LANG= date '+%A, %B %-e, %Y, at %k:%M:%S' )
 echo "Job stopped on $stop_time."
 echo
 
-echo "##### Output of job $job_name:$job_id is:"
-cat $output_file
+echo "##### Output of job $job_name (ID: $job_id) is (in "$(pwd)"/$output_file):"
+cat "$output_file"
 
 #echo "Now waiting for error file..."
 
-while [ ! -f "$error_file" ] ; do  sleep 1  ; done
+while [ ! -f "$error_file" ] ; do sleep 1  ; done
 
 res=$( cat "$error_file" )
 
@@ -307,8 +445,15 @@ if [ -z "$res" ] ; then
 
 else
 
-  echo "##### Error of job $job_name:$job_id is:"
-  echo $res
+  echo "##### Error output for job $job_name (ID: $job_id) is (in "$(pwd)"/$error_file):"
+
+  # Strange output:
+  #echo $res
+
+  cat "$error_file"
+
+  echo "Job failed at "$( LC_ALL= LANG= date '+%A, %B %-e, %Y, at %k:%M:%S' )
+
   exit 1
 
 fi
@@ -316,13 +461,13 @@ fi
 
 if [ $do_debug -eq 1 ] ; then
 
-	/bin/rm -f ${qsub_output_file}
+	/bin/rm -f ${output_file}
 
 else
 
-	echo "Qsub command file left in ${qsub_output_file}."
+	echo "Command file left in ${output_file}."
 
 fi
 
 
-echo "Job finished."
+echo "Job finished at "$( LC_ALL= LANG= date '+%A, %B %-e, %Y, at %k:%M:%S' )

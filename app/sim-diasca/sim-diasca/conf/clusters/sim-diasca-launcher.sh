@@ -39,6 +39,8 @@ set_as_absolute_path()
 }
 
 
+be_quiet=0
+
 
 # Detects the job manager interface to be used.
 #
@@ -55,14 +57,14 @@ detect_job_manager()
 
 	sbatch_cmd=$(which sbatch)
 
-	if [ -x "$salloc_cmd" ] ; then
+	if [ -x "$sbatch_cmd" ] ; then
 
-		[ $be_quiet -eq 0 ] || echo "salloc found, hence using SLURM."
+		[ $be_quiet -eq 0 ] || echo "sbatch found, hence using SLURM."
 		system_type="slurm"
 
 	else
 
-		[ $be_quiet -eq 0 ] || echo "no salloc found hence not SLURM, testing for PBS compliance."
+		[ $be_quiet -eq 0 ] || echo "no sbatch found hence not SLURM, testing for PBS compliance."
 
 		qsub_cmd=$(which qsub)
 
@@ -84,9 +86,12 @@ detect_job_manager()
 
 
 
-USAGE="Usage: "$(basename $0)" [ -h | --help ] [ -d | --debug ] [ --install-root PATH ] [ --node-count NODE_COUNT ] [ {--cores-per-node,--cpn} CORE_COUNT ] [ --queue QUEUE_NAME ] [ --qos QOS ] [ --key KEY ] [ --max-duration M ] [ --mail MAIL_ADDRESS EVENT_SPËCIFICATION ] CASE_PATH
- Launches specified Sim-Diasca simulation case on a cluster (running either a PBS or a SLURM job manager) with specified resource requirements. Ensures first that the Sim-Diasca installation is fully built.
+USAGE="Usage: "$(basename $0)" [ -h | --help ] [ -d | --debug ] [ --install-root PATH ] [ --node-count NODE_COUNT ] [ {--cores-per-node,--cpn} CORE_COUNT ] [ --queue QUEUE_NAME ] [ --qos QOS ] [ --key KEY ] [ --max-duration M ] [ --mail MAIL_ADDRESS EVENT_SPËCIFICATION ] CASE_PATH [CASE_OPTIONS]
+ Launches specified Sim-Diasca simulation case on a cluster (running either a PBS or a SLURM job manager) with specified resource requirements and options. Ensures first that the Sim-Diasca installation is fully built.
  CASE_PATH is either an absolute path to the case to run, or a path relative to the Sim-Diasca install root.
+
+ CASE_OPTIONS are the command-line options (if any) that have to be passed to the case itself
+
  Options are:
    --help: displays this message
    --debug: activates the debug mode
@@ -96,10 +101,10 @@ USAGE="Usage: "$(basename $0)" [ -h | --help ] [ -d | --debug ] [ --install-root
    --queue: specifies which job queue (named partition in SLURM) is to be used (cluster-specific, ex: parall_128)
    --qos: specifies the quality of service to be used for that job (project-specific, ex: release)
    --key: specifies a key in order to enable job launching (cluster-specific)
-   --max-duration: specifies the maximal duration, in wall-clock time, as HH (an integer number of hours) or HH:MM:SS (not depending on the number of nodes) for this simulation [default: ${max_duration}h]
-   --mail: specifies the email address to which run notifications should be sent; event specification must be added afterward, i.e. on PBS  'a' and/or 'b' and/or 'e', must be added afterwards, so that an email is sent respectively when the job is a(borted), b(egun) or e(nded), while on SLURM it can be set to BEGIN, END, FAIL or ALL
+   --max-duration: specifies the maximal duration, in wall-clock time, as DD-HH:MM, i.e. number of days, hours and minutes (not depending on the number of nodes) for this simulation, or as MM, i.e. number of minutes; a null (0) duration corresponds to the default value of the target queue [default: ${max_duration}]
+   --mail: specifies the email address to which run notifications should be sent; event specification must be added afterwards, it may be set either to: 'none', 'begin', 'end', 'fail' or 'all'
 
-Example: "$(basename $0)" --install-root /scratch/$USER/my-sim-diasca-install --node-count 4 --cores-per-node 8 --queue parall_1024 --max-duration 24 --mail john.doe@example.org be sim-diasca/src/core/src/scheduling/tests/scheduling_scalability_test.erl"
+Example: "$(basename $0)" --install-root /scratch/$USER/my-sim-diasca-install --node-count 4 --cores-per-node 8 --queue parall_1024 --max-duration 00-08:00 --mail john.doe@example.org all sim-diasca/src/core/src/scheduling/tests/scheduling_scalability_test.erl --scale medium --duration short"
 
 start_date=$(LC_ALL= LANG= date '+%A, %B %-e, %Y, at %k:%M:%S')
 
@@ -117,7 +122,10 @@ start_date=$(LC_ALL= LANG= date '+%A, %B %-e, %Y, at %k:%M:%S')
 default_install_root="/scratch/$USER/Software/Sim-Diasca/Sim-Diasca-current-install"
 
 install_root=""
+
 case_path=""
+case_options=""
+
 node_count=1
 core_count=""
 qos=""
@@ -237,35 +245,28 @@ while [ -n "$*" ] ; do
 		case_path="$1"
 		shift
 
-		if [ -n "$*" ] ; then
+		# Now we want to support case options:
 
-			echo "  Error, unexpected parameters ($*) after case path ($case_path).
+		#if [ -n "$*" ] ; then
 
-$USAGE" 1>&2
+		#	echo "  Error, unexpected parameters ($*) after case path ($case_path).
+		#
+		#$USAGE" 1>&2
 
-			exit 5
+		#	exit 5
 
-		fi
+		#fi
+
+		case_options="$*"
+
+		# Otherwise the while will continue and overwrite the previous
+		# variables:
+		break
 
 	fi
 
 done
 
-
-# Only relevant for PBS:
-#
-#if [ -n "$mail_notifications" ] ; then
-#
-#	test_mail=$(echo "$mail_notifications"|sed 's|[abe]\{1,3\}|sim-diasca-correct|1')
-#
-#	if [ ! "$test_mail" = "sim-diasca-correct" ] ;  then
-#
-#		echo "  Error, incorrect mail specification ($mail_notifications), expecting a and/or b and/or e." 1>&2
-#		exit 60
-#
-#	fi
-#
-#fi
 
 
 if [ -z "$case_path" ] ; then
@@ -278,27 +279,29 @@ $USAGE" 1>&2
 fi
 
 
+do_debug_input_opts=1
 
-if [ $do_debug -eq 0 ] ; then
+if [ $do_debug_input_opts -eq 0 ] ; then
 
-	echo
-	echo "$saved_command_line"
+	echo "### Input options:"
 
-	echo "install_root       = $install_root"
-	echo "case_path          = $case_path"
-	echo "node_count         = $node_count"
-	echo "core_count         = $core_count"
-	echo "queue_name         = $queue_name"
-	echo "qos                = $qos"
-	echo "key                = $key"
-	echo "max_duration       = $max_duration"
-	echo "mail               = $mail"
-	echo "mail_notifications = $mail_notifications"
+	echo "  $saved_command_line"
+
+	echo "  install_root       = $install_root"
+	echo "  case_path          = $case_path"
+	echo "  case_options       = $case_options"
+	echo "  node_count         = $node_count"
+	echo "  core_count         = $core_count"
+	echo "  queue_name         = $queue_name"
+	echo "  qos                = $qos"
+	echo "  key                = $key"
+	echo "  max_duration       = $max_duration"
+	echo "  mail               = $mail"
+	echo "  mail_notifications = $mail_notifications"
 
 	echo
 
 fi
-
 
 
 # First, determine Sim-Diasca install root.
@@ -415,19 +418,106 @@ $USAGE" 1>&2
 fi
 
 
+# From here many options will be translated depending on the target job manager,
+# hence let's detect it first:
+#
+detect_job_manager
 
-# Determine duration (total, in seconds):
-#actual_max_duration=$(expr $max_duration \* 3600 \* $node_count)
 
-# Apparently this is just an overall duration specified in HH:MM:SS; as we can
+
+# Determine mail notification events of interest:
+
+if [ "$system_type" = "pbs" ] ; then
+
+	if [ -n "$mail_notifications" ] ; then
+
+		case $mail_notifications in
+
+			"none")
+				actual_mail_notifications=""
+				;;
+
+			"begin")
+				actual_mail_notifications="b"
+				;;
+
+			"end")
+				actual_mail_notifications="e"
+				;;
+
+			"fail")
+				# For abort:
+				actual_mail_notifications="a"
+				;;
+
+			"all")
+				actual_mail_notifications="abe"
+				;;
+
+		esac
+
+	fi
+
+
+elif [ "$system_type" = "slurm" ] ; then
+
+	case $mail_notifications in
+
+		"none")
+			actual_mail_notifications=""
+			;;
+
+		"begin")
+			actual_mail_notifications="BEGIN"
+			;;
+
+		"end")
+			actual_mail_notifications="END"
+			;;
+
+		"fail")
+			actual_mail_notifications="FAIL"
+			;;
+
+		"all")
+			actual_mail_notifications="ALL"
+			;;
+
+	esac
+
+fi
+
+
+# Determine duration (total, in minutes):
+#actual_max_duration=$(expr $max_duration \* 60 \* $node_count)
+
+# Apparently this is just a wall-clock duration specified as DD-HH:MM; as we can
 # specify it just as HH, let's canonicalise it:
 
 if [ ! $( echo $max_duration | grep ':' ) ] ; then
 
-	actual_max_duration="$max_duration:00:00"
+	# We have just minutes here (possibly 0):
+
+	if [ "$system_type" = "slurm" ] ; then
+
+		# SLURM format: 'days-hours:minutes:seconds':
+
+		# Let's ensure we have MM (two digits) and not just M:
+		if [ $(expr length "$max_duration") -eq 1 ] ; then
+			max_duration="0$max_duration"
+		fi
+
+		actual_max_duration="00-00:$max_duration:00"
+
+	elif [ "$system_type" = "pbs" ] ; then
+
+		actual_max_duration="$max_duration:00:00"
+
+	fi
 
 else
 
+	# Here there is at least one ':', let's suppose it is correct as:
 	actual_max_duration="$max_duration"
 
 fi
@@ -444,17 +534,25 @@ actual_case_dir=$( dirname $actual_case_path)
 actual_case_file=$( basename $actual_case_path )
 actual_case_target=$( echo $actual_case_file | sed 's|_test.erl$|_cluster_run|1' | sed 's|_sim.erl$|_cluster_run|1' )
 
-if [ $do_debug -eq 0 ] ; then
 
-	echo "actual_case_dir     = $actual_case_dir"
-	echo "actual_case_file    = $actual_case_file"
-	echo "actual_case_target  = $actual_case_target"
-	echo "actual_case_path    = $actual_case_path"
-	echo "actual_max_duration = $actual_max_duration"
-	echo "current directory   = $PWD"
+actual_case_options="$case_options"
+
+
+do_debug_translated_opts=1
+
+if [ $do_debug_translated_opts -eq 0 ] ; then
+
+	echo "### Translated options:"
+
+	echo "  actual_case_dir     = $actual_case_dir"
+	echo "  actual_case_file    = $actual_case_file"
+	echo "  actual_case_target  = $actual_case_target"
+	echo "  actual_case_path    = $actual_case_path"
+	echo "  actual_case_options = $actual_case_options"
+	echo "  actual_max_duration = $actual_max_duration"
+	echo "  current directory   = $PWD"
 
 fi
-
 
 
 
@@ -467,9 +565,8 @@ fi
 # The job managers mostly require job information to be specified in the script
 # (rather than as parameters), hence the script must be generated.
 
-# The information (meta-data) in this script will depend on the type of the job manager.
-
-detect_job_manager
+# The information (meta-data) in this script will depend on the type of the job
+# manager.
 
 
 
@@ -496,17 +593,23 @@ echo "Started on $start_date."
 #
 
 BUILD_MODE=production
+#BUILD_MODE=development
 
-echo "  Ensuring that Sim-Diasca is fully built in ${BUILD_MODE} mode..."
+echo "  Rebuilding selectively Sim-Diasca in ${BUILD_MODE} mode..."
 
 BUILD_OPT="EXECUTION_TARGET=${BUILD_MODE}"
 
 if [ $do_debug -eq 0 ] ; then
 
-	make all ${BUILD_OPT}
+	#echo "(in debug mode, hence perform an initial clean-up)"
+	#make clean all ${BUILD_OPT} 1>/dev/null
+
+	echo "(in debug mode, but not performing an initial clean-up)"
+	make all ${BUILD_OPT} 1>/dev/null
 
 else
 
+	echo "(not performing any initial clean-up)"
 	make all ${BUILD_OPT} 1>/dev/null
 
 fi
@@ -519,13 +622,67 @@ if [ ! $? -eq 0 ] ; then
 
 fi
 
+# At least on clusters, we want to selectively reactivate some modules, that are
+# known to send a limited number of traces, otherwise we have to deal with
+# difficult black boxes:
+#
+UNMUTED_MODULES="./sim-diasca/src/core/src/deployment/class_DeploymentManager.erl ./sim-diasca/src/core/src/deployment/class_ComputingHostManager.erl"
+
+ADDITIONAL_UNMUTED_MODULES="./sim-diasca/src/core/src/instance-creation/instance_loading.erl ./sim-diasca/src/core/src/instance-creation/class_LoadBalancer.erl ./sim-diasca/src/core/src/plugins/sim_diasca_plugin.erl ./sim-diasca/src/core/src/data-management/result-management/class_ResultManager.erl"
+
+ALL_UNMUTED_MODULES="$UNMUTED_MODULES"
+#ALL_UNMUTED_MODULES="$UNMUTED_MODULES ADDITIONAL_UNMUTED_MODULES"
+
+if [ $do_debug -eq 0 ] ; then
+
+	echo "  Unmuting following modules: ${ALL_UNMUTED_MODULES}"
+
+else
+
+	echo "  Unmuting modules of interest"
+
+fi
+
+
+for m in ${ALL_UNMUTED_MODULES} ; do if ! touch $m ; then echo "  Error, module to unmute '$m' not found." 1>&2 ; exit 25 ; fi ; done
+
+
+# No ${BUILD_OPT} here on purpose; of course no clean either:
+#
+if [ $do_debug -eq 0 ] ; then
+
+	#make all
+	make all 1>/dev/null
+
+else
+
+	make all 1>/dev/null
+
+fi
+
+if [ ! $? -eq 0 ] ; then
+
+	echo "  Error, rebuild of the Sim-Diasca unmuted modules failed." 1>&2
+	exit 31
+
+fi
+
 
 # Second, generation of the corresponding cluster script:
 
-echo "  Generating the cluster script..."
-
 # Hidden file, should never collide with others:
 script_name="/tmp/.sim-diasca-generated-launcher-for-$actual_case_target-by-$USER-on-"$(date '+%Y%m%d-%Hh%Mm%Ss')"-$$.sh"
+
+
+if [ $do_debug -eq 0 ] ; then
+
+	echo "  Generating the cluster script ${script_name}"
+
+else
+
+	echo "  Generating the cluster script..."
+
+fi
 
 
 # Not to have problems with permissions:
@@ -543,7 +700,7 @@ echo "#!/bin/sh" > $script_name
 
 # Too long, was truncated:
 #job_name="Sim-Diasca-$actual_case"
-job_name="Sim-Diasca"
+job_name="SimDiasca"
 
 if [ "$system_type" = "pbs" ] ; then
 
@@ -569,8 +726,8 @@ if [ "$system_type" = "pbs" ] ; then
 
 		echo "#PBS -M $mail" >> $script_name
 
-		if [ -n "$mail_notifications" ] ; then
-			echo "#PBS -m $mail_notifications" >> $script_name
+		if [ -n "$actual_mail_notifications" ] ; then
+			echo "#PBS -m $actual_mail_notifications" >> $script_name
 		fi
 
 	fi
@@ -590,22 +747,32 @@ elif [ "$system_type" = "slurm" ] ; then
 		echo "#SBATCH --cores-per-socket=$core_count" >> $script_name
 	fi
 
-	echo "#SBATCH --error=$job_name.e%A" >> $script_name
+	echo "#SBATCH --error=$job_name.e%j" >> $script_name
 
 	# We do not want to share nodes with other running jobs:
 	echo "#SBATCH --exclusive" >> $script_name
 
 	echo "#SBATCH --job-name=$job_name" >> $script_name
 
-	echo "#SBATCH --mail-user=$mail" >> $script_name
+	if [ -n "$mail" ] ; then
 
-	echo "#SBATCH --mail-type=$mail_notifications" >> $script_name
+		echo "#SBATCH --mail-user=$mail" >> $script_name
+
+		if [ -n "$actual_mail_notifications" ] ; then
+			echo "#SBATCH --mail-type=$actual_mail_notifications" >> $script_name
+		fi
+
+	fi
 
 	echo "#SBATCH --nodes=$node_count" >> $script_name
 
-	echo "#SBATCH --output=$job_name.o%A" >> $script_name
+	echo "#SBATCH --output=$job_name.o%j" >> $script_name
 
-	echo "#SBATCH --partition=$queue" >> $script_name
+
+	if [ -n "$queue_name" ] ; then
+		echo "#SBATCH --partition=$queue_name" >> $script_name
+	fi
+
 
 	if [ -n "$qos" ] ; then
 		echo "#SBATCH --qos=$qos" >> $script_name
@@ -617,7 +784,7 @@ elif [ "$system_type" = "slurm" ] ; then
 
 	# Supposedly safer ("Do not begin execution until all nodes are ready for
 	# use"):
-	echo "#SBATCH --wail-all-nodes=1" >> $script_name
+	echo "#SBATCH --wait-all-nodes=1" >> $script_name
 
 	if [ -n "$key" ] ; then
 		echo "#SBATCH --wckey=$key" >> $script_name
@@ -636,7 +803,7 @@ echo >> $script_name
 
 # We record information of interest:
 
-echo "echo \"Actual execution started on \"\$\(LC_ALL= LANG= date '+%A, %B %-e, %Y, at %k:%M:%S'\)" >> $script_name
+echo "echo \"Actual execution started on \"\$(LC_ALL= LANG= date '+%A, %B %-e, %Y, at %k:%M:%S')" >> $script_name
 echo "echo \"Hostname: \""\$\(hostname -f\) >> $script_name
 
 if [ "$system_type" = "pbs" ] ; then
@@ -651,8 +818,8 @@ elif [ "$system_type" = "slurm" ] ; then
 	echo "echo \"Job ID (SLURM_JOB_ID): \$SLURM_JOB_ID \"" >> $script_name
 	echo "echo \"Job name (SLURM_JOB_NAME): \$SLURM_JOB_NAME\"" >> $script_name
 	echo "echo \"Host count (SLURM_JOB_NUM_NODES ): \$SLURM_JOB_NUM_NODES\"" >> $script_name
-	echo "echo \"Host list (SLURM_JOB_NODELIST): \$SLURM_JOB_NODELIST\"" >> $script_name
-	echo "echo \"Used queue (SLURM_JOB_PARTITION): \$SLURM_JOB_PARTITION\"" >> $script_name
+
+	echo "echo \"Compressed host list (SLURM_JOB_NODELIST): \$SLURM_JOB_NODELIST\"" >> $script_name
 	echo "echo \"Host names (SLURMD_NODENAME): \$SLURMD_NODENAME\"" >> $script_name
 
 	echo "echo \"Invoked from directory (SLURM_SUBMIT_DIR): \$SLURM_SUBMIT_DIR\"" >> $script_name
@@ -677,7 +844,12 @@ if [ "$system_type" = "pbs" ] ; then
 
 elif [ "$system_type" = "slurm" ] ; then
 
-	echo "node_list=\$SLURM_JOB_NODELIST)" >> $script_name
+	# Would be only in compressed form (ex: 'atcn[431-432]') while we need the
+	# expanded one (ex: 'atcn431 atcn432'):
+	#echo "node_list=\"\$SLURM_JOB_NODELIST\"" >> $script_name
+
+	echo "node_list=\$( scontrol show hostname \"\$SLURM_JOB_NODELIST\")" >> $script_name
+
 	echo "host_candidate_file=\"/tmp/.sim-diasca-host-candidates-for-\$USER-\$SLURM_JOB_ID-\$\$.txt\"" >> $script_name
 
 fi
@@ -692,7 +864,9 @@ echo "for n in \$node_list ; do echo \"\$n.\" >> \$host_candidate_file ; done" >
 echo "echo \"Content of the Sim-Diasca host file:\"" >> $script_name
 echo "cat \$host_candidate_file" >> $script_name
 echo "cd $actual_case_dir" >> $script_name
-echo "make ${actual_case_target} CMD_LINE_OPT=\"--batch --sim-diasca-host-file \$host_candidate_file\"" >> $script_name
+echo "make ${actual_case_target} CMD_LINE_OPT=\"--batch --sim-diasca-host-file \$host_candidate_file ${actual_case_options} \" " >> $script_name
+
+echo "echo \"Actual execution ended on \"\$(LC_ALL= LANG= date '+%A, %B %-e, %Y, at %k:%M:%S')" >> $script_name
 
 if [ $do_debug -eq 1 ] ; then
 
@@ -708,7 +882,7 @@ chmod +x $script_name
 
 # Third, execution of that generated script:
 
-echo "  Submitting it to the job manager..."
+echo "  Submitting it to the job manager ($system_type)..."
 
 quiet_opt="--quiet"
 
@@ -720,6 +894,7 @@ if [ $do_debug -eq 0 ] ; then
 fi
 
 $launch_script $quiet_opt $script_name
+
 
 res=$?
 

@@ -132,6 +132,8 @@
 						   -> no_return().
 manage_initialisation( InitialisationFiles, NodeCount, LoadBalancerPid ) ->
 
+	LoadStartTimestamp = basic_utils:get_precise_timestamp(),
+
 	ShortenInitFiles = [ text_utils:format( "file '~s'",
 		   [ filename:basename( F ) ] ) || F <- InitialisationFiles ],
 
@@ -205,7 +207,7 @@ manage_initialisation( InitialisationFiles, NodeCount, LoadBalancerPid ) ->
 			% space and to preserve reproducibility:
 			%
 			?notify_warning( "Multiple initialisation files have been "
-							 "specified. Reproducibility currently "
+							 "specified. Total reproducibility currently "
 							 "cannot be guaranteed with this setting." );
 
 		_ ->
@@ -226,17 +228,17 @@ manage_initialisation( InitialisationFiles, NodeCount, LoadBalancerPid ) ->
 	% to be sent in the course of the loading to the load balancer):
 	%
 	initialisation_waiting_loop( UserIdResolverPid, Creators, Readers,
-								 LoadBalancerPid ).
+								 LoadStartTimestamp, LoadBalancerPid ).
 
 
 
 
 % Main loop driving the loadings.
 %
--spec initialisation_waiting_loop( pid(), [ pid() ], [ pid() ], pid() ) ->
-										 no_return().
+-spec initialisation_waiting_loop( pid(), [ pid() ], [ pid() ], 
+			basic_utils:timestamp(), pid() ) -> no_return().
 initialisation_waiting_loop( UserIdResolverPid, Creators, _Readers=[],
-							 LoadBalancerPid ) ->
+							 LoadStartTimestamp, LoadBalancerPid ) ->
 
 	?notify_debug( "All readers terminated, wrapping up." ),
 
@@ -255,7 +257,18 @@ initialisation_waiting_loop( UserIdResolverPid, Creators, _Readers=[],
 
 	end,
 
-	Message = "All instances successfully loaded.~n~n",
+	LoadStopTimestamp = basic_utils:get_precise_timestamp(),
+
+	LoadDuration = basic_utils:get_precise_duration( LoadStartTimestamp,												 LoadStopTimestamp ),
+
+	LoadDurationString = text_utils:duration_to_string( LoadDuration ),
+
+	Message = io_lib:format( "~nAll initial instances have been successfully "
+							 "loaded, in ~s.~n~n", [ LoadDurationString ] ),
+
+	Message = io_lib:format( "~nAll initial instances successfully loaded, "
+							"at ~s.~n~n",
+							[ basic_utils:get_textual_timestamp() ] ),
 
 	?notify_debug( Message ),
 	io:format( Message ),
@@ -266,7 +279,7 @@ initialisation_waiting_loop( UserIdResolverPid, Creators, _Readers=[],
 
 % At least one reader is still waited:
 initialisation_waiting_loop( UserIdResolverPid, Creators, Readers,
-							 LoadBalancerPid ) ->
+							 LoadStartTimestamp, LoadBalancerPid ) ->
 
 	receive
 
@@ -280,7 +293,7 @@ initialisation_waiting_loop( UserIdResolverPid, Creators, Readers,
 			NewReaders = list_utils:delete_existing( ReaderPid, Readers ),
 
 			initialisation_waiting_loop( UserIdResolverPid, Creators,
-										 NewReaders, LoadBalancerPid )
+										 NewReaders, LoadStartTimestamp, LoadBalancerPid )
 
 	end.
 
@@ -324,7 +337,7 @@ read_init_file( Filename, Creators, InstanceLoaderPid ) ->
 
 	% Each filename is by design an absolute path here:
 	%
-	case file_utils:is_existing_file( Filename ) of
+	case file_utils:is_existing_file_or_link( Filename ) of
 
 		true ->
 			ok;
@@ -609,6 +622,21 @@ instance_creator_loop( NodeCount, IdResolverPid, LoadBalancerPid,
 	   pid() ) -> pid().
 parse_creation_line( _LineInfo={ LineNumber, BinLine }, BinFilename,
 					 IdResolverPid, LoadBalancerPid ) ->
+
+	case LineNumber rem 500 of
+
+		0 ->
+			ShortenFilename = filename:basename(
+						 text_utils:binary_to_string( BinFilename ) ),
+
+			io:format( " - processing creation line #~B from ~s at ~s~n",
+					   [ LineNumber, ShortenFilename,
+						 basic_utils:get_textual_timestamp() ] );
+
+		_ ->
+			ok
+
+	end,
 
 	%io:format( "~n*** parsing line #~B: '~s'.~n", [ LineNumber, BinLine ] ),
 

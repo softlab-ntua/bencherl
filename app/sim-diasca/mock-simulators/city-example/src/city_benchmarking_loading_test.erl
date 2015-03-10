@@ -128,7 +128,7 @@ run_common( ScaleSetting, DurationSetting, StopShell ) ->
 			   [ VersionString, ScaleSetting, Filename, DurationSetting ] ),
 
 
-	case file_utils:is_existing_file( Filename ) of
+	case file_utils:is_existing_file_or_link( Filename ) of
 
 		true ->
 			ok;

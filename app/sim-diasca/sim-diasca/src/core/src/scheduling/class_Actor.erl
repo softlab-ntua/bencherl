@@ -696,8 +696,13 @@ construct( State,
 
 	after MaxWaitedDuration ->
 
-		?send_error( TimeAwareState, "Actor constructor failed: "
-			"time-out while waiting for time manager, stopping actor." ),
+		?send_error_fmt( TimeAwareState, "Actor constructor failed: "
+						 "time-out while waiting for time manager "
+						 "(after ~B ms, i.e. ~s), "
+						 "stopping actor.",
+						 [ MaxWaitedDuration,
+						   text_utils:duration_to_string( MaxWaitedDuration )
+						 ] ),
 
 		throw( { actor_construction_failed, time_subscription_timed_out } )
 
@@ -3807,8 +3812,8 @@ apply_reordering( MessagesForCurrentDiasca, constant_permuted_order ) ->
 % In production mode here:
 
 get_maximum_subscription_duration() ->
-	% 60 seconds:
-	60 * 1000.
+	% 30 minutes:
+	30 * 60 * 1000.
 
 
 -else.
@@ -3817,8 +3822,8 @@ get_maximum_subscription_duration() ->
 % In development mode here:
 
 get_maximum_subscription_duration() ->
-	% 8 seconds:
-	8 * 1000.
+	% 15 seconds:
+	15 * 1000.
 
 
 -endif.
