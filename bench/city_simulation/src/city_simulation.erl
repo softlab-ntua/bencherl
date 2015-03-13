@@ -10,5 +10,5 @@ bench_args(Version, _Conf) ->
 	end.
 
 run([S,D|_], _, _) ->
-	city_benchmarking_test:run(S, D),
+	city_benchmarking_loading_test:run(S, D),
 	ok.

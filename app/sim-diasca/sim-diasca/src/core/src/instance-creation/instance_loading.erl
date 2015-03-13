@@ -132,8 +132,6 @@
 						   -> no_return().
 manage_initialisation( InitialisationFiles, NodeCount, LoadBalancerPid ) ->
 
-	LoadStartTimestamp = basic_utils:get_precise_timestamp(),
-
 	ShortenInitFiles = [ text_utils:format( "file '~s'",
 		   [ filename:basename( F ) ] ) || F <- InitialisationFiles ],
 
@@ -152,14 +150,19 @@ manage_initialisation( InitialisationFiles, NodeCount, LoadBalancerPid ) ->
 					case filename:extension( Filename ) of
 
 						CompressExt ->
+
 							io:format( "Decompressing '~s'.~n",
 									   [ Filename ] ),
+
 							DecompressedFilename = file_utils:decompress(
 									Filename, CompressionFormat ),
+
 							[ DecompressedFilename | AccFilenames ];
+
 
 						_ ->
 							[ Filename | AccFilenames ]
+
 
 					end
 
@@ -228,17 +231,17 @@ manage_initialisation( InitialisationFiles, NodeCount, LoadBalancerPid ) ->
 	% to be sent in the course of the loading to the load balancer):
 	%
 	initialisation_waiting_loop( UserIdResolverPid, Creators, Readers,
-								 LoadStartTimestamp, LoadBalancerPid ).
+								 LoadBalancerPid ).
 
 
 
 
 % Main loop driving the loadings.
 %
--spec initialisation_waiting_loop( pid(), [ pid() ], [ pid() ], 
-			basic_utils:timestamp(), pid() ) -> no_return().
+-spec initialisation_waiting_loop( pid(), [ pid() ], [ pid() ], pid() ) ->
+										 no_return().
 initialisation_waiting_loop( UserIdResolverPid, Creators, _Readers=[],
-							 LoadStartTimestamp, LoadBalancerPid ) ->
+							 LoadBalancerPid ) ->
 
 	?notify_debug( "All readers terminated, wrapping up." ),
 
@@ -257,18 +260,7 @@ initialisation_waiting_loop( UserIdResolverPid, Creators, _Readers=[],
 
 	end,
 
-	LoadStopTimestamp = basic_utils:get_precise_timestamp(),
-
-	LoadDuration = basic_utils:get_precise_duration( LoadStartTimestamp,												 LoadStopTimestamp ),
-
-	LoadDurationString = text_utils:duration_to_string( LoadDuration ),
-
-	Message = io_lib:format( "~nAll initial instances have been successfully "
-							 "loaded, in ~s.~n~n", [ LoadDurationString ] ),
-
-	Message = io_lib:format( "~nAll initial instances successfully loaded, "
-							"at ~s.~n~n",
-							[ basic_utils:get_textual_timestamp() ] ),
+	Message = "All instances successfully loaded.~n~n",
 
 	?notify_debug( Message ),
 	io:format( Message ),
@@ -279,7 +271,7 @@ initialisation_waiting_loop( UserIdResolverPid, Creators, _Readers=[],
 
 % At least one reader is still waited:
 initialisation_waiting_loop( UserIdResolverPid, Creators, Readers,
-							 LoadStartTimestamp, LoadBalancerPid ) ->
+							 LoadBalancerPid ) ->
 
 	receive
 
@@ -293,7 +285,7 @@ initialisation_waiting_loop( UserIdResolverPid, Creators, Readers,
 			NewReaders = list_utils:delete_existing( ReaderPid, Readers ),
 
 			initialisation_waiting_loop( UserIdResolverPid, Creators,
-										 NewReaders, LoadStartTimestamp, LoadBalancerPid )
+										 NewReaders, LoadBalancerPid )
 
 	end.
 
@@ -397,7 +389,7 @@ read_all_lines( File, ChunkCount, Creators, Filename ) ->
 	% able to return informative error messages.
 	%
 	read_all_lines( File, ChunkCount, _RemainingFreeCreators=Creators,
-				  _WaitedCreators=[], BinFilename, _LineCount=1 ).
+					_WaitedCreators=[], BinFilename, _LineCount=1 ).
 
 
 
@@ -485,7 +477,7 @@ read_all_lines( File, ChunkCount, RemainingFreeCreators, WaitedCreators,
 % rely on it to preserve reproducibility, it is not a problem.
 %
 -spec read_chunk( file:io_device(), basic_utils:count(), line_number() ) ->
-			{ [ line_info() ], line_number() }.
+						{ [ line_info() ], line_number() }.
 read_chunk( File, ChunkCount, LineCount ) ->
 	read_chunk( File, ChunkCount, LineCount, _AccLines=[] ).
 
@@ -626,12 +618,8 @@ parse_creation_line( _LineInfo={ LineNumber, BinLine }, BinFilename,
 	case LineNumber rem 500 of
 
 		0 ->
-			ShortenFilename = filename:basename(
-						 text_utils:binary_to_string( BinFilename ) ),
-
-			io:format( " - processing creation line #~B from ~s at ~s~n",
-					   [ LineNumber, ShortenFilename,
-						 basic_utils:get_textual_timestamp() ] );
+			io:format( " - processing creation line #~B from ~s~n",
+					   [ LineNumber, BinFilename ] );
 
 		_ ->
 			ok

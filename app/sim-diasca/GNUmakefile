@@ -344,7 +344,7 @@ ERLC_OPTS =
 ERL = erl
 ERL_LIB_DIR =
 EBIND = ebin-$(OTP)
-EXECUTION_TARGET=production
+EXECUTION_TARGET = production
 
 $(EBIND):
 	@mkdir -p $(EBIND)

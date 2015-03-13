@@ -17,7 +17,7 @@ for node in ${5}; do
     name=`echo $node | cut -d'@' -f1`
     host=`echo $node | cut -d'@' -f2`
 
-    echo "'$host'." >>  ${12}/app/sim-diasca/mock-simulators/city-example/src/sim-diasca-host-candidates-for-scale-benchmarks.txt
+    echo "'$host'." >> ${12}/app/sim-diasca/mock-simulators/city-example/src/sim-diasca-host-candidates-for-scale-benchmarks.txt
     echo "'$host'." >> ${12}/app/sim-diasca/mock-simulators/city-example/src/sim-diasca-host-candidates.txt
  
     IFS=$OLD_IFS

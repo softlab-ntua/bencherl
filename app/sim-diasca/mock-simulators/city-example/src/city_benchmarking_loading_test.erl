@@ -187,8 +187,9 @@ run_common( ScaleSetting, DurationSetting, StopShell ) ->
 		enable_data_logger = false,
 
 		% Would alter wrongly the benchmark:
-		enable_performance_tracker = false
-
+		enable_performance_tracker = false,
+ 
+		perform_initial_node_cleanup = false
 	},
 
 

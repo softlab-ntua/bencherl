@@ -69,8 +69,10 @@ get_description_for( _CityName="Yzeure" ) ->
 
 get_description_for( _CityName="Orleans" ) ->
 
+	Factor = 8,
+
 	% Km²:
-	Area = 23643.24,
+	Area = 23643.24 * Factor,
 
 	% Meters:
 	SideLen = erlang:round( class_CityGenerator:area_to_side_length( Area ) ),
@@ -90,12 +92,12 @@ get_description_for( _CityName="Orleans" ) ->
 			center={ - SideLen / 2, - SideLen / 2,
 					( MinAltitude + MaxAltitude ) / 2 },
 
-			incinerator_count=18,
-			landfill_count=14,
-			residential_waste_source_count=450,
-			industrial_waste_source_count=130,
-			road_junction_count=500,
-			waste_truck_count=180
+			incinerator_count=18*Factor,
+			landfill_count=14*Factor,
+			residential_waste_source_count=450*Factor,
+			industrial_waste_source_count=130*Factor,
+			road_junction_count=500*Factor,
+			waste_truck_count=180*Factor
 
 										};
 
