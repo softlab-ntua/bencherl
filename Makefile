@@ -3,12 +3,13 @@ ERLC_OPTS =
 
 .PHONY: all clean clean-app clean-bench clean-res clean-suite clean-ui ui
 
-# Create the relevant dirs.
-directories:
+# Make everything but the UI.
+not-ui:
 	mkdir -p scratch/
+	tar xvfz app/sim-diasca/mock-simulators/city-example/src/city-example-instances-version-0.5.4.all.init.tar.gz -C app/sim-diasca/mock-simulators/city-example/src
 
 # Make everything. Not the default as maybe not required by everyone.
-all: directories ui
+all: not-ui ui
 
 # Compile the UI.
 ui:
